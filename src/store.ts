@@ -22,10 +22,10 @@ interface State {
   email: string | null;
 }
 
-const store = new Vuex.Store({
+const store = new Vuex.Store<State>({
     state: {
       email: null,
-    } as State,
+    },
 
     getters: {
       loggedIn(state) {
@@ -44,6 +44,7 @@ const store = new Vuex.Store({
         // This is for if the user signs in on a different device than from
         // which the requested the email link, and we don't have their email in
         // local storage
+
         if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
           return dispatch('tryFinishLogin');
         }
@@ -59,6 +60,10 @@ const store = new Vuex.Store({
         }
         await firebase.auth().sendSignInLinkToEmail(email, options);
         localStorage.setItem('emailForSignIn', email); // Will be verified in second half of login
+      },
+
+      logOut() {
+        return firebase.auth().signOut();
       },
 
       async tryFinishLogIn() {

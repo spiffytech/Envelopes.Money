@@ -1,6 +1,7 @@
 <template>
   <div class="hello">
     <router-link :to="{name: 'login'}" v-if="!this.$store.getters.loggedIn">Log In</router-link>
+    <LogOut></LogOut>
     <p>Email: {{this.$store.state.email}}</p>
     <h1>Domain: {{ domain }}</h1>
   </div>
@@ -9,8 +10,13 @@
 <script lang="ts">
 import Vue from 'vue';
 
+import LogOut from './LogOut.vue';
+
 export default Vue.extend({
   name: 'HelloWorld',
+  components: {
+    LogOut,
+  },
   props: {
     msg: String,
   },

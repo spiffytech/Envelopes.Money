@@ -26,7 +26,7 @@ export default Vue.extend({
   },
   methods: {
     submit() {
-      this.$store.dispatch(
+      return this.$store.dispatch(
         'logIn',
         {email: this.email}
       );

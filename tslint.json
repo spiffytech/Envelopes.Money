@@ -1,0 +1,6 @@
+{
+    "extends": "typestrict",
+    "rules": {
+        "no-invalid-this": false
+    }
+}

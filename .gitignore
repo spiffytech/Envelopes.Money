@@ -31,3 +31,6 @@ resources/signing
 jsconfig.json
 .vscode/
 typings/
+
+functions/node_modules
+functions/lib

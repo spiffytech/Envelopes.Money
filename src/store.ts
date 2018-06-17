@@ -8,35 +8,62 @@ import 'firebase/auth';
 import 'firebase/firestore';
 
 import router from './router';
+import {BankEvent} from './lib/txns';
+import * as Categories from './lib/categories';
 
-firebase.initializeApp({
-  apiKey: "AIzaSyA4sCttFmUIJcWk2cNZC2adPwtszGNJkBQ",
-  authDomain: "warbucks-fcd3f.firebaseapp.com",
-  databaseURL: "https://warbucks-fcd3f.firebaseio.com",
-  projectId: "warbucks-fcd3f",
-  storageBucket: "warbucks-fcd3f.appspot.com",
-  messagingSenderId: "291722920421"
-});
+const firebaseConfig = require('../firebase.config.json');
+
+firebase.initializeApp(firebaseConfig);
+firebase.firestore().settings({timestampsInSnapshots: true});
 
 interface State {
+  categories: Categories.Category[],
   email: string | null;
+  txns: BankEvent[];
 }
 
 const store = new Vuex.Store<State>({
     state: {
+      categories: [],
       email: null,
+      txns: [],
     },
 
     getters: {
+      categoriesFromTxns(state): string[] {
+        return Categories.discoverCategories(state.txns);
+      },
+
+      categoryBalances(state): Map<string, Categories.CategoryBalance> {
+        const categories = state.categories;
+        return Categories.calcBalances(categories, state.txns);
+      },
+
       loggedIn(state) {
         return Boolean(state.email)
-      }
+      },
     },
 
     mutations: {
       setUsername(state, email: string) {
         state.email = email;
-      }
+      },
+
+      clearTxns(state) {
+        state.txns = [];
+      },
+
+      addTxn(state, doc: BankEvent) {
+        state.txns.push(doc);
+      },
+
+      addTxns(state, docs: BankEvent[]) {
+        state.txns.push(...docs);
+      },
+
+      setCategories(state, categories) {
+        state.categories = categories;
+      },
     },
 
     actions: {
@@ -48,8 +75,6 @@ const store = new Vuex.Store<State>({
         if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
           return dispatch('tryFinishLogin');
         }
-
-        console.log('domain', process.env.DOMAIN)
 
         const options = {
           // URL you want to redirect back to. The domain (www.example.com) for this
@@ -84,8 +109,32 @@ const store = new Vuex.Store<State>({
     }
 });
 
-firebase.auth().onAuthStateChanged((user) =>
+firebase.auth().onAuthStateChanged(async (user) => {
+  await firebase.firestore().enablePersistence();
+
   store.commit('setUsername', user ? user.email : null)
-)
+
+  const u = firebase.auth().currentUser;
+  if (u) {
+    const db = firebase.firestore().collection('users').doc(u.email!);
+
+    db.collection('txns').
+    orderBy('date', 'desc').
+    onSnapshot((snapshot) => {
+      store.commit('clearTxns');
+      const docs = snapshot.docs.map((doc) => doc.data());
+      store.commit('addTxns', docs);
+      console.log('Adding docs', docs.length)
+    });
+
+    db.collection('categories').
+    orderBy('sortOrder').
+    onSnapshot((snapshot) => {
+      store.commit('setCategories', snapshot.docs.map((doc) => doc.data()));
+    });
+  }
+});
+
+(window as any).store = store;
 
 export default store;

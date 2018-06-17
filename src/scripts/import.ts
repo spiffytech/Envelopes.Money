@@ -6,9 +6,10 @@ import {fs} from 'mz';
 import nconf from 'nconf'
 import * as shortid from 'shortid';
 import 'source-map-support/register'
-import {BankEvent, Txn, AccountTransfer, LedgerEvent, isTxn, isTxfr} from '../lib/txns';
+import {BankEvent, Txn, AccountTransfer, LedgerEvent, isTxn, isTxfr, sumAccountTotal} from '../lib/txns';
 import {discoverCategories, Category} from '../lib/categories';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
+import {groupBy} from '../lib/utils';
 
 const firebaseConfig = require('../../firebase.config.json');
 firebase.initializeApp(firebaseConfig);
@@ -120,19 +121,8 @@ export function rowToTxn(row: GoodBudgetRow): Txn | AccountTransfer | null {
   return {...ret, txfrId: (row as GoodBudgetTxfr).txfrId, type};
 }
 
-function groupBy<T>(arr: T[], fn: (item: T) => string): {[key: string]: T[]} {
-  return arr.reduce(
-    (acc, item) => ({...acc, [fn(item)]: [...(acc[fn(item)] || []), item]}),
-    {} as {[key: string]: T[]}
-  )
-}
-
 function nullFilter<T>(item: T | null | undefined): item is T {
   return Boolean(item);
-}
-
-function sumAccountTotal(txns: BankEvent[]) {
-  return txns.reduce((total, txn) => total + txn.amount, 0);
 }
 
 function sumByCategory(category: string) {

@@ -8,8 +8,9 @@ import 'firebase/auth';
 import 'firebase/firestore';
 
 import router from './router';
-import {BankEvent} from './lib/txns';
+import {BankEvent, sumAccountTotal} from './lib/txns';
 import * as Categories from './lib/categories';
+import * as utils from './lib/utils';
 
 const firebaseConfig = require('../firebase.config.json');
 
@@ -42,6 +43,14 @@ const store = new Vuex.Store<State>({
       loggedIn(state) {
         return Boolean(state.email)
       },
+
+      accountBalances(state): {account: string, balance: number}[] {
+        const groups = utils.groupBy(state.txns.filter((txn) => txn.account), ((txn) => txn.account));
+        return Object.entries(groups).map(([account, txns]) => ({
+          account: account,
+          balance: sumAccountTotal(txns)
+        }));
+      }
     },
 
     mutations: {

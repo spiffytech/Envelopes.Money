@@ -5,6 +5,8 @@
         <LogOut></LogOut>
       </v-layout>
 
+      <AccountBalances></AccountBalances>
+
       <v-layout row>
         <v-flex md4>
           <router-view name="sidebar"></router-view>
@@ -16,18 +18,17 @@
       </v-layout>
     </v-container>
     <img src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
   </v-app>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from './components/HelloWorld.vue';
+import AccountBalances from './components/AccountBalances.vue';
 import LogOut from './components/LogOut.vue';
 
 @Component({
   components: {
-    HelloWorld,
+    AccountBalances,
     LogOut,
   },
 })

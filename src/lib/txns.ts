@@ -34,3 +34,7 @@ export function isTxn(item: BankEvent): item is Txn {
 export function isTxfr(item: BankEvent): item is AccountTransfer {
   return item.type === 'accountTransfer';
 }
+
+export function sumAccountTotal(txns: BankEvent[]) {
+  return txns.reduce((total, txn) => total + txn.amount, 0);
+}

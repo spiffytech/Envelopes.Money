@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "csv-parse": "^2.5.0",
+    "date-fns": "^1.29.0",
     "firebase": "^5.0.4",
     "lodash": "^4.17.10",
     "mz": "^2.7.0",

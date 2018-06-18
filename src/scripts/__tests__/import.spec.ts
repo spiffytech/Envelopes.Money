@@ -1,6 +1,7 @@
 import {GoodBudgetRow, GoodBudgetTxfr} from '../types';
 import * as import_ from '../import';
-import {isTxn} from '../../lib/txns';
+import {isTxn, BankEvent, sumAccountTotal} from '../../lib/txns';
+import {groupBy} from '../../lib/utils';
 
 function mkRow(args: Partial<GoodBudgetRow>) {
   return {
@@ -103,5 +104,25 @@ describe('Parsing categories', () => {
     if (!txn) throw new Error('Txn was not present');
     if (!isTxn(txn)) throw new Error('Was not a transaction');
     expect(txn.categories['Car stuff']).toEqual(-1300);
+  });
+});
+
+describe('It sums up these transactions correctly', () => {
+  const rows = require('./fixture_1.json');
+  let txns: BankEvent[] = rows.map(import_.rowToTxn).filter((txn: any) => txn);
+  txns = txns.filter((txn) => txn !== null);
+  const txnsForChecking = txns.filter((txn) => txn.account === 'Checking');
+
+  test('It gives all rows the right account', () => {
+    expect(sumAccountTotal(txnsForChecking)).toEqual(19099);
+  });
+
+  test('It has the right number of transactions', () => {
+    expect(txnsForChecking.length).toEqual(28);
+  });
+
+  test('Calculating group totals is correct', () => {
+    const groups = groupBy(txns.filter((txn) => txn.account), ((txn) => txn.account));
+    console.log(Object.values(groups).map(sumAccountTotal).map((n) => n / 100))
   });
 });

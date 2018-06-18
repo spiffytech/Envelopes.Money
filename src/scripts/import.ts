@@ -60,15 +60,19 @@ function mergeAccountTransfers(rows: any): (GoodBudgetRow | GoodBudgetTxfr)[] {
   });
 
   Object.values(txfrs).forEach((rows: any[]) => {
-    console.log(rows)
-    const txfrId = shortid.generate();
-    const from = rows.find((row) => parseFloat(row.Amount) < 0);
-    const to = rows.find((row) => parseFloat(row.Amount) > 0);
+    while (rows.length > 0) {
+      const txfrId = shortid.generate();
+      const from = rows.find((row) => parseFloat(row.Amount) < 0);
+      const to = rows.find((row) => parseFloat(row.Amount) > 0);
+      console.log(rows.length);
 
+      // Remove the items from the array
+      rows.splice(rows.indexOf(from), 1);
+      rows.splice(rows.indexOf(to), 1);
 
-    console.log(rows)
-    newRows.push({...from, Name: to.Account, txfrId});
-    newRows.push({...to, Name: from.Account, txfrId});
+      newRows.push({...from, Name: to.Account, txfrId});
+      newRows.push({...to, Name: from.Account, txfrId});
+      }
   })
 
   return newRows;
@@ -167,22 +171,21 @@ async function main() {
     map(rowToTxn).filter(nullFilter);
 
   const groups = groupBy(txns.filter((txn) => txn.account), ((txn) => txn.account));
-  //console.log(sumAccountTotal(groups['Money Market']))
   console.log(Object.values(groups).map(sumAccountTotal).map((n) => n / 100))
 
   const emptyCats = txns.filter(isTxn).filter((txn) => txn.categories['']);
   console.log(emptyCats);
   if (emptyCats.length > 0) throw new Error('Empty category names');
 
+  /*
   console.log(
     txns.
     filter(isTxn).
     reduce(sumByCategory('[Unallocated]'), 0)
   );
+  */
 
   console.log(txns.filter(isTxfr).filter((txn) => !txn.txfrId))
-
-  console.log(rows.filter((row) => row.Name === 'NCDMV'))
 
   await writeToFirebase(txns);
   await learnCategories(txns);

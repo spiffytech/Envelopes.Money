@@ -2,7 +2,7 @@ import VueRouter from 'vue-router';
 
 import Login from './components/Login.vue';
 import Transactions from './components/Transactions.vue';
-import Categories from './components/Categories.vue';
+import HomeSidebar from './components/HomeSidebar.vue';
 
 export default new VueRouter({
   routes: [
@@ -10,7 +10,7 @@ export default new VueRouter({
       path: '/',
       components: {
         default: Transactions,
-        sidebar: Categories,
+        sidebar: HomeSidebar,
       },
     },
     {path: '/login', name: 'login', component: Login},

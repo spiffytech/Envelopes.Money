@@ -5,8 +5,6 @@
         <LogOut></LogOut>
       </v-layout>
 
-      <AccountBalances></AccountBalances>
-
       <v-layout row>
         <v-flex md4>
           <router-view name="sidebar"></router-view>
@@ -23,12 +21,10 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import AccountBalances from './components/AccountBalances.vue';
 import LogOut from './components/LogOut.vue';
 
 @Component({
   components: {
-    AccountBalances,
     LogOut,
   },
 })

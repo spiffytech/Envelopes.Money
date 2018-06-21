@@ -4,3 +4,7 @@ export function groupBy<T>(arr: T[], fn: (item: T) => string): {[key: string]: T
     {} as {[key: string]: T[]}
   )
 }
+
+export function objectFromEntries<T>(entries: [string, T][]): {[key: string]: T} {
+  return entries.reduce((acc, [key, value]) => ({...acc, [key]: value}), {});
+}

@@ -34,3 +34,5 @@ typings/
 
 functions/node_modules
 functions/lib
+
+src/scripts/*.json

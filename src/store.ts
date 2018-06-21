@@ -130,6 +130,7 @@ firebase.auth().onAuthStateChanged(async (user) => {
     db.collection('txns').
     orderBy('date', 'desc').
     onSnapshot((snapshot) => {
+      console.log('Snapshots came from cache?', snapshot.metadata.fromCache);
       store.commit('clearTxns');
       const docs = snapshot.docs.map((doc) => doc.data());
       store.commit('addTxns', docs);

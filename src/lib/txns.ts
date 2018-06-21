@@ -1,3 +1,19 @@
+import _ from 'lodash';
+import { DetailedPeerCertificate } from 'tls';
+
+export interface TxnItem {
+  account: string;
+  amount: number;
+}
+
+export interface DETxn {
+  id: string;
+  payee: string;
+  date: Date;
+  items: {[key: string]: number};
+  memo: string;
+}
+
 export interface LedgerEvent {
   id: string;
   date: Date;
@@ -27,14 +43,39 @@ export interface AccountTransfer extends LedgerEvent {
 
 export type BankEvent = Txn | AccountTransfer;
 
-export function isTxn(item: BankEvent): item is Txn {
-  return item.type === 'transaction';
+export function sumAccountTotal(account: string, txns: DETxn[]) {
+  return txns.
+  filter((txn) => txn.items[account]).
+  reduce((total, txn) => total + txn.items[account], 0);
 }
 
-export function isTxfr(item: BankEvent): item is AccountTransfer {
-  return item.type === 'accountTransfer';
+export function learnAccountsFromTxns(txns: DETxn[]): string[] {
+  return _.flatten(
+    _.uniq(_.flatten(txns.map((txn) => Object.keys(txn.items)))).
+    map((account) => {
+      const splits = account.split(':');
+      const ret = [];
+      for (let i = 1; i <= splits.length; i++) {
+        ret.push(account.split(':', i).join(':'));
+      }
+      return ret;
+    })
+  );
 }
 
-export function sumAccountTotal(txns: BankEvent[]) {
-  return txns.reduce((total, txn) => total + txn.amount, 0);
+function txnItemOfTxn(txn: DETxn, account: string): TxnItem {
+  return {account: account, amount: txn.items[account]};
+}
+
+/**
+ * A reducer factory for grouping Txns into TxnItems grouped by account they
+ * affect, including all nested account levels
+ */
+export function groupByAccount(acc: {[key: string]: TxnItem[]}, txn: DETxn): {[key: string]: TxnItem[]} {
+  Object.keys(txn.items).
+  forEach((account) =>
+    acc[account] = [...acc[account] || [], txnItemOfTxn(txn, account)]
+  );
+
+  return acc;
 }

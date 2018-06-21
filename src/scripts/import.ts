@@ -6,10 +6,10 @@ import {fs} from 'mz';
 import nconf from 'nconf'
 import * as shortid from 'shortid';
 import 'source-map-support/register'
-import {BankEvent, Txn, AccountTransfer, LedgerEvent, isTxn, isTxfr, sumAccountTotal} from '../lib/txns';
+import {DETxn, BankEvent, Txn, AccountTransfer, EnvelopeTransfer, LedgerEvent, sumAccountTotal, TxnItem} from '../lib/txns';
 import {discoverCategories, Category} from '../lib/categories';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
-import {groupBy} from '../lib/utils';
+import {groupBy, objectFromEntries} from '../lib/utils';
 
 const firebaseConfig = require('../../firebase.config.json');
 firebase.initializeApp(firebaseConfig);
@@ -33,7 +33,8 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
   })
 }
 
-function parseCategories(row: {[key: string]: any}) {
+export function parseCategories(row: {[key: string]: any}): {[key: string]: number} {
+  if (row.Details === '') return {[row.Envelope]: amountOfStr(row.Amount)};
   return (
     row.Envelope ? {[row.Envelope]: amountOfStr(row.Amount)} :
     row.Details.split('||').
@@ -98,31 +99,104 @@ export function typeForRow(row: GoodBudgetRow) {
   }
 }
 
-export function rowToTxn(row: GoodBudgetRow): Txn | AccountTransfer | null {
-  if (row.Account === '[none]') return null;  // It's a fill
+const IncomePayees = require('./income_payees.json');
+const AssetAccounts = require('./asset_accounts.json');
+const LiabilityAccounts = require('./liability_accounts.json');
 
-  if (row.Name === 'Sandi Metz') console.log(row);
+/**
+ * Given a row, returns the category name for the row's Account
+ */
+export function nameAccount(AssetAccounts: string[], LiabilityAccounts: string[], row: GoodBudgetRow): string {
+  if (AssetAccounts.indexOf(row.Account) !== -1) {
+    return `Assets:${row.Account}`;
+  } else if (LiabilityAccounts.indexOf(row.Account) !== -1) {
+    return `Liabilities:${row.Account}`;
+  } else {
+    throw new Error(`Unrecognized account: ${row.Account}`);
+  }
+}
+
+function isIncome(IncomePayees: string[], payee: string) {
+  return IncomePayees.indexOf(payee) !== -1;
+}
+
+/** Given a row, returns the envelope name the transaction is from */
+export function nameOutboundCategory(
+  AssetAccounts: string[],
+  LiabilityAccounts: string[],
+  IncomePayees: string[],
+  row: GoodBudgetRow
+): string {
+  if (isIncome(IncomePayees, row.Name)) {
+    return `Income:Salary`;
+  } else {
+    return nameAccount(AssetAccounts, LiabilityAccounts, row);
+  }
+}
+
+export function mkAccountItems(
+  AssetAccounts: string[],
+  LiabilityAccounts: string[],
+  IncomePayees: string[],
+  row: GoodBudgetRow
+): TxnItem[] {
+  if (isIncome(IncomePayees, row.Name)) {
+    return [
+      {account: 'Income:Salary', amount: -amountOfStr(row.Amount)},
+      {account: nameAccount(AssetAccounts, LiabilityAccounts, row), amount: amountOfStr(row.Amount)}, ];
+  }
+
+  return [{account: nameAccount(AssetAccounts, LiabilityAccounts, row), amount: amountOfStr(row.Amount)}];
+}
+
+export function mkCategoryItems(
+  [category, amount]: [string, number],
+  isFill: boolean,
+): TxnItem[] {
+  if (isFill) {
+    return [
+      {account: `Liabilities:${category}`, amount: -amount},
+      {account: `Expenses:${category}`, amount},
+    ]
+  }
+
+  return [{account: `Liabilities:${category}`, amount: -amount}];
+}
+
+export function ItemsForRow(
+  AssetAccounts: string[],
+  LiabilityAccounts: string[],
+  IncomePayees: string[],
+  row: GoodBudgetRow
+): TxnItem[] {
+  const i = isIncome(IncomePayees, row.Name);
+  return _.flatten([
+    ...mkAccountItems(AssetAccounts, LiabilityAccounts, IncomePayees, row),
+    ...Object.entries(parseCategories(row)).
+      map(([category, amount]) => mkCategoryItems([category, amount], i)),
+  ]);
+}
+
+export function rowToTxn(
+  AssetAccounts: string[],
+  LiabilityAccounts: string[],
+  IncomePayees: string[],
+  row: GoodBudgetRow
+): DETxn | null {
+  if (row.Account === '[none]') return null;  // It's a fill
 
   const type = typeForRow(row);
 
-  //console.log(row, row.Amount);
-  if (amountOfStr(row.Amount) === 600000) console.log(row)
   if (type === 'envelopeTransfer') return null;
 
-  const categories = row.Details !== '' ? parseCategories(row) : {[row.Envelope]: amountOfStr(row.Amount)};
-
-  const ret: LedgerEvent = {
+  const items = ItemsForRow(AssetAccounts, LiabilityAccounts, IncomePayees, row);
+  return {
     id: shortid.generate(),
     date: new Date(row.Date),
     payee: row.Name,
-    account: row.Account,
     memo: row.Notes,
-    amount: amountOfStr(row.Amount),
-  };
-  
-  if (type === 'transaction') return {...ret, categories, type};
-
-  return {...ret, txfrId: (row as GoodBudgetTxfr).txfrId, type};
+    items: objectFromEntries(items.map(({account, amount}) => [account, amount] as [string, number]))
+  }
 }
 
 function nullFilter<T>(item: T | null | undefined): item is T {
@@ -166,16 +240,29 @@ async function main() {
   nconf.required(['file', 'email']);
 
   const rows = await readCsv(nconf.get('file'));
-  const txns: BankEvent[] =
+  const txns: DETxn[] =
     mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]')).
-    map(rowToTxn).filter(nullFilter);
+    map((row) => rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row)).
+    filter(nullFilter);
 
-  const groups = groupBy(txns.filter((txn) => txn.account), ((txn) => txn.account));
-  console.log(Object.values(groups).map(sumAccountTotal).map((n) => n / 100))
-
-  const emptyCats = txns.filter(isTxn).filter((txn) => txn.categories['']);
-  console.log(emptyCats);
-  if (emptyCats.length > 0) throw new Error('Empty category names');
+  const groups =
+    groupBy(
+      txns,
+      (txn) => {
+        const keys = Object.keys(txn.items);
+        const ret = keys.find((k) =>
+          k.startsWith('Assets:') ||
+          LiabilityAccounts.map((acct: string) => `Liabilities:${acct}`).indexOf(k) !== -1
+        );
+        if (!ret) throw new Error(`Could not find account for ${JSON.stringify(txn)}`);
+        return ret;
+      }
+    );
+  console.log(
+    Object.values(groups).
+    map((items) => items.reduce((acc, i) => acc + i.amount, 0)).
+    map((total) => total / 100)
+  );
 
   /*
   console.log(
@@ -185,10 +272,8 @@ async function main() {
   );
   */
 
-  console.log(txns.filter(isTxfr).filter((txn) => !txn.txfrId))
-
-  await writeToFirebase(txns);
-  await learnCategories(txns);
+  //await writeToFirebase(txns);
+  //await learnCategories(txns);
 }
 if (nconf.get('run')) {
   /* tslint:disable */

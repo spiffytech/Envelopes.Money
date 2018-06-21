@@ -49,6 +49,10 @@ export function sumAccountTotal(account: string, txns: DETxn[]) {
   reduce((total, txn) => total + txn.items[account], 0);
 }
 
+export function isTxn(item: BankEvent): item is Txn {
+  return item.type === 'transaction';
+}
+
 export function learnAccountsFromTxns(txns: DETxn[]): string[] {
   return _.flatten(
     _.uniq(_.flatten(txns.map((txn) => Object.keys(txn.items)))).
@@ -65,6 +69,12 @@ export function learnAccountsFromTxns(txns: DETxn[]): string[] {
 
 function txnItemOfTxn(txn: DETxn, account: string): TxnItem {
   return {account: account, amount: txn.items[account]};
+}
+
+export function journalToLedger(txns: DETxn[]): TxnItem[] {
+  return _.flatten(
+    txns.map((txn) => Object.keys(txn.items).map((account) => txnItemOfTxn(txn, account)))
+  );
 }
 
 /**

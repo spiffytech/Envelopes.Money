@@ -6,7 +6,7 @@ import {fs} from 'mz';
 import nconf from 'nconf'
 import * as shortid from 'shortid';
 import 'source-map-support/register'
-import {DETxn, BankEvent, Txn, AccountTransfer, EnvelopeTransfer, LedgerEvent, sumAccountTotal, TxnItem} from '../lib/txns';
+import {DETxn, BankEvent, groupByAccount, Txn, TxnItem, journalToLedger} from '../lib/txns';
 import {discoverCategories, Category} from '../lib/categories';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 import {groupBy, objectFromEntries} from '../lib/utils';
@@ -235,6 +235,11 @@ async function writeToFirebase(txns: BankEvent[]) {
   }
 }
 
+function isMagicAccount(txnItem: TxnItem) {
+  return AssetAccounts.map((acct: string) => `Assets:${acct}`).indexOf(txnItem.account) !== -1 ||
+    LiabilityAccounts.map((acct: string) => `Liabilities: ${acct}`).indexOf(txnItem.account) !== -1;
+}
+
 async function main() {
   // Putting this here so the unit tests don't require these values
   nconf.required(['file', 'email']);
@@ -245,19 +250,14 @@ async function main() {
     map((row) => rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row)).
     filter(nullFilter);
 
-  const groups =
-    groupBy(
-      txns,
-      (txn) => {
-        const keys = Object.keys(txn.items);
-        const ret = keys.find((k) =>
-          k.startsWith('Assets:') ||
-          LiabilityAccounts.map((acct: string) => `Liabilities:${acct}`).indexOf(k) !== -1
-        );
-        if (!ret) throw new Error(`Could not find account for ${JSON.stringify(txn)}`);
-        return ret;
-      }
-    );
+  const txnItems = journalToLedger(txns);
+  const sum = txnItems.reduce((acc, item) => acc + item.amount, 0);
+  if (sum !== 0) throw new Error(`Expected zero-balanced ledger, got ${sum}`);
+
+  const groups = groupBy(txnItems.filter(isMagicAccount), (txnItem) => txnItem.account);
+
+  console.log('keys', Object.keys(groups));
+
   console.log(
     Object.values(groups).
     map((items) => items.reduce((acc, i) => acc + i.amount, 0)).

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { DetailedPeerCertificate } from 'tls';
+import * as R from 'ramda';
 
 export interface TxnItem {
   account: string;
@@ -41,16 +41,10 @@ export interface AccountTransfer extends LedgerEvent {
   type: 'accountTransfer';
 }
 
-export type BankEvent = Txn | AccountTransfer;
-
 export function sumAccountTotal(account: string, txns: DETxn[]) {
   return txns.
   filter((txn) => txn.items[account]).
   reduce((total, txn) => total + txn.items[account], 0);
-}
-
-export function isTxn(item: BankEvent): item is Txn {
-  return item.type === 'transaction';
 }
 
 export function learnAccountsFromTxns(txns: DETxn[]): string[] {
@@ -88,4 +82,13 @@ export function groupByAccount(acc: {[key: string]: TxnItem[]}, txn: DETxn): {[k
   );
 
   return acc;
+}
+
+export function calcBalances(txns: DETxn[], filterFn: (txnItem: TxnItem) => boolean) {
+  const txnItems: TxnItem[] = journalToLedger(txns);
+  const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(filterFn));
+  return Object.entries(groups).map(([account, txnItems]) => ({
+    account: account,
+    balance: txnItems.map(R.prop('amount')).reduce(R.add, 0),
+  }));
 }

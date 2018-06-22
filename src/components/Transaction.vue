@@ -17,14 +17,14 @@ import Vue from 'vue';
 import Component from 'vue-class-component';
 import {Prop} from "vue-property-decorator"
 
-import {BankEvent} from '../lib/txns';
+import {DETxn} from '../lib/txns';
 
 @Component
 export default class Transaction extends Vue {
   @Prop({
     type: Object
   })
-  txn: BankEvent;
+  txn: DETxn;
 }
 </script>
 

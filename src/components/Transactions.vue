@@ -15,7 +15,7 @@
       </td>
 
       <td class="text-xs-left">
-        <CategoriesSpan :categories="props.item.categories" v-if="props.item.categories"></CategoriesSpan>
+        <CategoriesSpan :categories="props.item.categories" v-if="props.item.items.map((item) => item.account)"></CategoriesSpan>
       </td>
 
       <td class="text-xs-left">{{ props.item.account }}</td>
@@ -44,7 +44,7 @@
           {text: 'Payee', value: 'payee'},
           {text: 'Amount', value: 'amount'},
           {text: 'Categories', value: 'categories'},
-          {text: 'Accout', value: 'account'},
+          {text: 'Account', value: 'account'},
         ]
       };
     },

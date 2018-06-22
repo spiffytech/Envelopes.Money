@@ -6,7 +6,7 @@
         :key="category.name"
       >
         <v-list-tile-content>
-          <span><span>{{category.name}}</span>: <Amount :amount="category.balance"></Amount></span>
+          <span><span>{{category.account}}</span>: <Amount :amount="category.balance"></Amount></span>
         </v-list-tile-content>
       </v-list-tile>
     </v-list>

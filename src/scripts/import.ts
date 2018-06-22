@@ -5,11 +5,11 @@ import 'firebase/firestore';
 import {fs} from 'mz';
 import nconf from 'nconf'
 import * as shortid from 'shortid';
+import * as R from 'ramda';
 import 'source-map-support/register'
-import {DETxn, BankEvent, groupByAccount, Txn, TxnItem, journalToLedger} from '../lib/txns';
+import {DETxn, TxnItem, journalToLedger} from '../lib/txns';
 import {discoverCategories, Category} from '../lib/categories';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
-import {groupBy, objectFromEntries} from '../lib/utils';
 
 const firebaseConfig = require('../../firebase.config.json');
 firebase.initializeApp(firebaseConfig);
@@ -195,7 +195,9 @@ export function rowToTxn(
     date: new Date(row.Date),
     payee: row.Name,
     memo: row.Notes,
-    items: objectFromEntries(items.map(({account, amount}) => [account, amount] as [string, number]))
+    items: R.fromPairs(items.map(
+      ({account, amount}): [string, number] => [account, amount]
+    ))
   }
 }
 
@@ -203,12 +205,8 @@ function nullFilter<T>(item: T | null | undefined): item is T {
   return Boolean(item);
 }
 
-function sumByCategory(category: string) {
-  return (acc: number, item: Txn) => acc + (item.categories[category] || 0)
-}
-
-async function learnCategories(txns: BankEvent[]) {
-  const categories = discoverCategories(txns);
+async function learnCategories(txnItems: TxnItem[]) {
+  const categories = discoverCategories(txnItems);
 
   const collRef = firebase.firestore().collection('users').doc(nconf.get('email')).collection('categories');
   const batch = firebase.firestore().batch();
@@ -222,7 +220,7 @@ async function learnCategories(txns: BankEvent[]) {
   await batch.commit();
 }
 
-async function writeToFirebase(txns: BankEvent[]) {
+async function writeToFirebase(txns: DETxn[]) {
   const chunks = _.chunk(txns, 500);
   const collRef = firebase.firestore().collection('users').doc(nconf.get('email')).collection('txns');
   for (let chunk of chunks) {
@@ -251,29 +249,19 @@ async function main() {
     filter(nullFilter);
 
   const txnItems = journalToLedger(txns);
-  const sum = txnItems.reduce((acc, item) => acc + item.amount, 0);
+  const sum = txnItems.map(R.prop('amount')).reduce(R.add);
   if (sum !== 0) throw new Error(`Expected zero-balanced ledger, got ${sum}`);
 
-  const groups = groupBy(txnItems.filter(isMagicAccount), (txnItem) => txnItem.account);
-
+  const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(isMagicAccount));
   console.log('keys', Object.keys(groups));
-
   console.log(
     Object.values(groups).
-    map((items) => items.reduce((acc, i) => acc + i.amount, 0)).
-    map((total) => total / 100)
+    map((items) => items.map(R.prop('amount')).reduce(R.add, 0)).
+    map(R.divide(100))
   );
 
-  /*
-  console.log(
-    txns.
-    filter(isTxn).
-    reduce(sumByCategory('[Unallocated]'), 0)
-  );
-  */
-
-  //await writeToFirebase(txns);
-  //await learnCategories(txns);
+  await writeToFirebase(txns);
+  await learnCategories(txnItems);
 }
 if (nconf.get('run')) {
   /* tslint:disable */

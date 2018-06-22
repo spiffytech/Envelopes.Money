@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import {BankEvent, isTxn} from './txns';
+import {TxnItem} from './txns';
 
 export interface Category {
   name: string;
@@ -10,31 +9,12 @@ export interface Category {
 }
 
 export interface CategoryBalance {
-  name: string;
+  account: string;
   balance: number;
 }
 
-export function discoverCategories(events: BankEvent[]) {
-  const all = events.
-    filter(isTxn).
-    map((txn) => Object.keys(txn.categories));
-
-  return _.uniq(_.flatten(all));
-}
-
-export function calcBalances(categories: Category[], events: BankEvent[]): Map<string, CategoryBalance> {
-    const kv: [string, CategoryBalance][] = categories.map(({name: category}) =>
-      [
-        category,
-        {
-          name: category,
-          balance: events.
-            filter(isTxn).
-            map((txn) => txn.categories[category]).
-            filter(Boolean).
-            reduce((acc, item) => acc + item, 0)
-        }
-      ] as [string, CategoryBalance]
-    )
-  return new Map(kv);
+export function discoverCategories(txnItems: TxnItem[]) {
+  return txnItems.
+    filter((item) => item.account.startsWith('Expenses')).
+    map((item) => item.account.replace(/^Expenses:/, ''));
 }

@@ -1,8 +1,6 @@
 import {GoodBudgetRow, GoodBudgetTxfr} from '../types';
 import * as import_ from '../import';
 import {DETxn, sumAccountTotal, learnAccountsFromTxns, groupByAccount} from '../../lib/txns';
-import {groupBy} from '../../lib/utils';
-import { assert } from '@firebase/util';
 
 const AssetAccounts = [
   'Checking',
@@ -169,7 +167,7 @@ describe('It groups accounts correctly', () => {
       }
     ];
 
-    expect(txns.reduce(groupByAccount, {})).toEqual({
+    expect(txns.reduce(groupByAccount, {} as {[key: string]: any})).toEqual({
       'Assets:Checking': [{account: 'Assets:Checking', amount: -500}],
       'Liabilities:Credit Card': [{account: 'Liabilities:Credit Card', amount: -500}],
       'Liabilities:Food:Grocery:Fancy': [
@@ -194,11 +192,6 @@ describe('It sums up these transactions correctly', () => {
 
   test('It has the right number of transactions', () => {
     expect(txnsForChecking.length).toEqual(28);
-  });
-
-  test('Calculating group totals is correct', () => {
-    const groups = groupBy(txns.filter((txn) => txn.account), ((txn) => txn.account));
-    console.log(Object.values(groups).map(sumAccountTotal).map((n) => n / 100))
   });
 });
 

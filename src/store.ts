@@ -8,49 +8,62 @@ import 'firebase/auth';
 import 'firebase/firestore';
 
 import router from './router';
-import {BankEvent, sumAccountTotal} from './lib/txns';
+import {DETxn} from './lib/txns';
+import * as R from 'ramda';
+import * as Txns from './lib/txns';
 import * as Categories from './lib/categories';
-import * as utils from './lib/utils';
 
 const firebaseConfig = require('../firebase.config.json');
 
 firebase.initializeApp(firebaseConfig);
 firebase.firestore().settings({timestampsInSnapshots: true});
 
+const isBankAccount = R.curry((bankAccounts: {[key: string]: any}, txnItem: Txns.TxnItem): boolean => {
+  console.log(Object.keys(bankAccounts), txnItem.account);
+  return Object.keys(bankAccounts).indexOf(txnItem.account) !== -1;
+});
+
 interface State {
   categories: Categories.Category[],
   email: string | null;
-  txns: BankEvent[];
+  txns: DETxn[];
+  bankAccounts: {[key: string]: any};
 }
+
+/*
+interface Getters {
+  isBankAccount: (item: Txns.TxnItem) => boolean;
+  categoryBalances: Map<string, Categories.CategoryBalance>;
+  accountBalances: {account: string, balance: number}[];
+  loggedIn: boolean;
+}
+*/
 
 const store = new Vuex.Store<State>({
     state: {
       categories: [],
       email: null,
       txns: [],
+      bankAccounts: {},
     },
 
     getters: {
-      categoriesFromTxns(state): string[] {
-        return Categories.discoverCategories(state.txns);
+      categoryBalances(state): Map<string, Categories.CategoryBalance> {
+        return new Map(
+          Txns.calcBalances(state.txns, R.complement(isBankAccount(state.bankAccounts))).
+          map((balanceItem) =>
+            [balanceItem.account, balanceItem] as [string, Categories.CategoryBalance]
+          )
+        );
       },
 
-      categoryBalances(state): Map<string, Categories.CategoryBalance> {
-        const categories = state.categories;
-        return Categories.calcBalances(categories, state.txns);
+      accountBalances(state): {account: string, balance: number}[] {
+        return Txns.calcBalances(state.txns, isBankAccount(state.bankAccounts));
       },
 
       loggedIn(state) {
         return Boolean(state.email)
       },
-
-      accountBalances(state): {account: string, balance: number}[] {
-        const groups = utils.groupBy(state.txns.filter((txn) => txn.account), ((txn) => txn.account));
-        return Object.entries(groups).map(([account, txns]) => ({
-          account: account,
-          balance: sumAccountTotal(txns)
-        }));
-      }
     },
 
     mutations: {
@@ -62,17 +75,21 @@ const store = new Vuex.Store<State>({
         state.txns = [];
       },
 
-      addTxn(state, doc: BankEvent) {
+      addTxn(state, doc: DETxn) {
         state.txns.push(doc);
       },
 
-      addTxns(state, docs: BankEvent[]) {
+      addTxns(state, docs: DETxn[]) {
         state.txns.push(...docs);
       },
 
       setCategories(state, categories) {
         state.categories = categories;
       },
+
+      setBankAccounts(state, accounts: {[key: string]: any}) {
+        Vue.set(state, 'bankAccounts', accounts);
+      }
     },
 
     actions: {
@@ -141,6 +158,11 @@ firebase.auth().onAuthStateChanged(async (user) => {
     orderBy('sortOrder').
     onSnapshot((snapshot) => {
       store.commit('setCategories', snapshot.docs.map((doc) => doc.data()));
+    });
+
+    db.
+    onSnapshot((snapshot) => {
+      store.commit('setBankAccounts', snapshot.data()!.bankAccounts);
     });
   }
 });

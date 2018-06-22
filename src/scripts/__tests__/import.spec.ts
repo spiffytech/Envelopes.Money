@@ -1,6 +1,8 @@
-import {GoodBudgetRow, GoodBudgetTxfr} from '../types';
+import {DETxn, groupByAccount, learnAccountsFromTxns, sumAccountTotal} from '../../lib/txns';
 import * as import_ from '../import';
-import {DETxn, sumAccountTotal, learnAccountsFromTxns, groupByAccount} from '../../lib/txns';
+import {GoodBudgetRow, GoodBudgetTxfr} from '../types';
+
+/* tslint:disable:object-literal-sort-keys */
 
 const AssetAccounts = [
   'Checking',
@@ -91,6 +93,7 @@ describe('Parsing categories', () => {
       });
 
       const txn = import_.rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row);
+      /* tslint:disable-next-line:curly */
       if (!txn) throw new Error('txn was null');
       expect(txn.items).toEqual({
         'Liabilities:Groceries': 3080,
@@ -111,6 +114,7 @@ describe('Parsing categories', () => {
     }
 
     const txn = import_.rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row);
+    /* tslint:disable-next-line:curly */
     if (!txn) throw new Error('Txn was not present');
     expect(txn.items).toEqual({
       'Liabilities:Car stuff': 1300,
@@ -196,13 +200,6 @@ describe('It sums up these transactions correctly', () => {
 });
 
 describe('Naming accounts and categories', () => {
-  const AssetAccounts = [
-    'Checking',
-    'Savings',
-  ];
-
-  const LiabilityAccounts = ['Credit Card'];
-
   test('It correctly names asset accounts', () => {
     const actual = import_.nameAccount(AssetAccounts, LiabilityAccounts, mkRow({Account: 'Checking'}));
     expect(actual).toEqual('Assets:Checking');
@@ -221,15 +218,6 @@ describe('Naming accounts and categories', () => {
 });
 
 describe('Naming outbound categories', () => {
-  const AssetAccounts = [
-    'Checking',
-    'Savings',
-  ];
-
-  const LiabilityAccounts = ['Credit Card'];
-
-  const IncomePayees = ['My Company'];
-
   test('It correctly names income events', () => {
     const actual = import_.mkAccountItems(
       AssetAccounts,

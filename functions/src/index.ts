@@ -1,6 +1,6 @@
+import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 
-import * as admin from 'firebase-admin';
 admin.initializeApp();
 
 // // Start writing Firebase Functions
@@ -11,6 +11,7 @@ admin.initializeApp();
 // });
 
 export const setUpUser = functions.auth.user().onCreate((user) => {
+  /* tslint:disable-next-line:no-console */
   console.log('user', user);
   return admin.firestore().collection('users').doc(user.email).set({
     email: user.email,

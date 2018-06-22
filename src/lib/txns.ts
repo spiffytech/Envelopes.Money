@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import * as _ from 'lodash';
 import * as R from 'ramda';
 
 export interface TxnItem {
@@ -62,7 +62,7 @@ export function learnAccountsFromTxns(txns: DETxn[]): string[] {
 }
 
 function txnItemOfTxn(txn: DETxn, account: string): TxnItem {
-  return {account: account, amount: txn.items[account]};
+  return {account, amount: txn.items[account]};
 }
 
 export function journalToLedger(txns: DETxn[]): TxnItem[] {
@@ -87,8 +87,8 @@ export function groupByAccount(acc: {[key: string]: TxnItem[]}, txn: DETxn): {[k
 export function calcBalances(txns: DETxn[], filterFn: (txnItem: TxnItem) => boolean) {
   const txnItems: TxnItem[] = journalToLedger(txns);
   const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(filterFn));
-  return Object.entries(groups).map(([account, txnItems]) => ({
-    account: account,
-    balance: txnItems.map(R.prop('amount')).reduce(R.add, 0),
+  return Object.entries(groups).map(([account, items]) => ({
+    account,
+    balance: items.map(R.prop('amount')).reduce(R.add, 0),
   }));
 }

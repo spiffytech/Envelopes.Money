@@ -1,15 +1,23 @@
-import _ from 'lodash';
-import csv from 'csv-parse';
-import firebase from 'firebase/app';
+import * as csv from 'csv-parse';
+import * as firebase from 'firebase/app';
 import 'firebase/firestore';
+import * as _ from 'lodash';
 import {fs} from 'mz';
-import nconf from 'nconf'
-import * as shortid from 'shortid';
+import * as nconf from 'nconf'
 import * as R from 'ramda';
+import * as shortid from 'shortid';
 import 'source-map-support/register'
-import {DETxn, TxnItem, journalToLedger} from '../lib/txns';
-import {discoverCategories, Category} from '../lib/categories';
+import {Category, discoverCategories} from '../lib/categories';
+import {DETxn, journalToLedger, TxnItem} from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
+
+/* tslint:disable:no-var-requires */
+/* tslint:disable:no-console */
+/* tslint:disable:object-literal-sort-keys */
+
+const IncomePayeesReq = require('./income_payees.json');
+const AssetAccountsReq = require('./asset_accounts.json');
+const LiabilityAccountsReq = require('./liability_accounts.json');
 
 const firebaseConfig = require('../../firebase.config.json');
 firebase.initializeApp(firebaseConfig);
@@ -18,8 +26,8 @@ nconf.argv().env();
 
 function amountOfStr(str: string) {
   return parseInt(
-    str.replace('.', '').
-    replace(',', '')
+    str.replace('.', '').replace(',', ''),
+    10
   );
 }
 
@@ -27,6 +35,7 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
   const contents = await fs.readFile(file);
   return new Promise<GoodBudgetRow[]>((resolve, reject) => {
     csv(contents.toString(), {columns: true, escape: '\\'}, (err: any, data: any) => {
+      /* tslint:disable-next-line:curly */
       if (err) return reject(err);
       return resolve(data);
     })
@@ -34,6 +43,7 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
 }
 
 export function parseCategories(row: {[key: string]: any}): {[key: string]: number} {
+  /* tslint:disable-next-line:curly */
   if (row.Details === '') return {[row.Envelope]: amountOfStr(row.Amount)};
   return (
     row.Envelope ? {[row.Envelope]: amountOfStr(row.Amount)} :
@@ -49,27 +59,29 @@ export function parseCategories(row: {[key: string]: any}): {[key: string]: numb
  * GoodBudget's export breaks account transfers into two transactions, so we'd
  * import double transfers (or transfers with no payees) if we imported as-is
  */
-function mergeAccountTransfers(rows: any): (GoodBudgetRow | GoodBudgetTxfr)[] {
+function mergeAccountTransfers(gbRows: any): Array<GoodBudgetRow | GoodBudgetTxfr> {
   const newRows: GoodBudgetRow[] = [];
   const txfrs: {[key: string]: GoodBudgetRow[]} = {};
-  rows.forEach((row: any) => {
+  gbRows.forEach((row: any) => {
+    /* tslint:disable-next-line:curly */
     if (typeForRow(row) !== 'accountTransfer') return newRows.push(row);
 
     const key = `${row.Date}-${row.Amount.replace('-', '')}`;
     const arr = txfrs[key];
     txfrs[key] = [...(arr || []), row];
+    return;
   });
 
-  Object.values(txfrs).forEach((rows: any[]) => {
-    while (rows.length > 0) {
+  Object.values(txfrs).forEach((txfrRows: any[]) => {
+    while (txfrRows.length > 0) {
       const txfrId = shortid.generate();
-      const from = rows.find((row) => parseFloat(row.Amount) < 0);
-      const to = rows.find((row) => parseFloat(row.Amount) > 0);
-      console.log(rows.length);
+      const from = txfrRows.find((row) => parseFloat(row.Amount) < 0);
+      const to = txfrRows.find((row) => parseFloat(row.Amount) > 0);
+      console.log(txfrRows.length);
 
       // Remove the items from the array
-      rows.splice(rows.indexOf(from), 1);
-      rows.splice(rows.indexOf(to), 1);
+      txfrRows.splice(txfrRows.indexOf(from), 1);
+      txfrRows.splice(txfrRows.indexOf(to), 1);
 
       newRows.push({...from, Name: to.Account, txfrId});
       newRows.push({...to, Name: from.Account, txfrId});
@@ -80,7 +92,6 @@ function mergeAccountTransfers(rows: any): (GoodBudgetRow | GoodBudgetTxfr)[] {
 }
 
 function rowIsAccountTransfer(row: GoodBudgetRow) {
-  //return row.Notes === 'Account Transfer' || (row.Name === '' && row.Envelope !== '[Unallocated]');
   return (
     row.Notes === 'Account Transfer' ||
     (row.Details === '' && row.Envelope === '')
@@ -98,10 +109,6 @@ export function typeForRow(row: GoodBudgetRow) {
     throw new Error(`No categorzation for row: ${JSON.stringify(row)}`)
   }
 }
-
-const IncomePayees = require('./income_payees.json');
-const AssetAccounts = require('./asset_accounts.json');
-const LiabilityAccounts = require('./liability_accounts.json');
 
 /**
  * Given a row, returns the category name for the row's Account
@@ -183,10 +190,12 @@ export function rowToTxn(
   IncomePayees: string[],
   row: GoodBudgetRow
 ): DETxn | null {
+  /* tslint:disable-next-line:curly */
   if (row.Account === '[none]') return null;  // It's a fill
 
   const type = typeForRow(row);
 
+  /* tslint:disable-next-line:curly */
   if (type === 'envelopeTransfer') return null;
 
   const items = ItemsForRow(AssetAccounts, LiabilityAccounts, IncomePayees, row);
@@ -223,9 +232,9 @@ async function learnCategories(txnItems: TxnItem[]) {
 async function writeToFirebase(txns: DETxn[]) {
   const chunks = _.chunk(txns, 500);
   const collRef = firebase.firestore().collection('users').doc(nconf.get('email')).collection('txns');
-  for (let chunk of chunks) {
+  for (const chunk of chunks) {
     const batch = firebase.firestore().batch();
-    for (let txn of chunk) {
+    for (const txn of chunk) {
       batch.set(collRef.doc(txn.id), txn);
     }
     await batch.commit();
@@ -234,8 +243,8 @@ async function writeToFirebase(txns: DETxn[]) {
 }
 
 function isMagicAccount(txnItem: TxnItem) {
-  return AssetAccounts.map((acct: string) => `Assets:${acct}`).indexOf(txnItem.account) !== -1 ||
-    LiabilityAccounts.map((acct: string) => `Liabilities: ${acct}`).indexOf(txnItem.account) !== -1;
+  return AssetAccountsReq.map((acct: string) => `Assets:${acct}`).indexOf(txnItem.account) !== -1 ||
+    LiabilityAccountsReq.map((acct: string) => `Liabilities: ${acct}`).indexOf(txnItem.account) !== -1;
 }
 
 async function main() {
@@ -245,11 +254,12 @@ async function main() {
   const rows = await readCsv(nconf.get('file'));
   const txns: DETxn[] =
     mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]')).
-    map((row) => rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row)).
+    map((row) => rowToTxn(AssetAccountsReq, LiabilityAccountsReq, IncomePayeesReq, row)).
     filter(nullFilter);
 
   const txnItems = journalToLedger(txns);
   const sum = txnItems.map(R.prop('amount')).reduce(R.add);
+  /* tslint:disable-next-line:curly */
   if (sum !== 0) throw new Error(`Expected zero-balanced ledger, got ${sum}`);
 
   const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(isMagicAccount));

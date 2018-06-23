@@ -118,7 +118,11 @@ firebase.initializeApp(firebaseConfig);
 firebase.firestore().settings({timestampsInSnapshots: true});
 
 firebase.auth().onAuthStateChanged(async (user) => {
-  await firebase.firestore().enablePersistence();
+  try {
+    await firebase.firestore().enablePersistence();
+  } catch(ex) {
+    console.error(ex);
+  }
 
   store.setUsername(user ? user.email : null)
 

@@ -1,3 +1,6 @@
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'jquery';
 import {toJS} from 'mobx';
 import {Provider} from 'mobx-react';
 import * as React from 'react';
@@ -5,7 +8,7 @@ import {BrowserRouter, Route} from 'react-router-dom';
 import 'typeface-roboto'
 import './App.css';
 import Login from './components/Login';
-import LogInLogOut from './components/LogInLogOut';
+import Nav from './components/Nav';
 import store from './store';
 
 (window as any).store = store;
@@ -17,7 +20,7 @@ class App extends React.Component {
       <BrowserRouter>
         <Provider store={store}>
           <div>
-            <LogInLogOut />
+            <Nav />
             <Route exact={true} path="/login" component={Login} />
           </div>
         </Provider>

@@ -88,8 +88,7 @@ function mergeAccountTransfers(gbRows: any): Array<GoodBudgetRow | GoodBudgetTxf
       txfrRows.splice(txfrRows.indexOf(to), 1);
 
       newRows.push({...from, Name: to.Account, txfrId});
-      newRows.push({...to, Name: from.Account, txfrId});
-      }
+    }
   })
 
   return newRows;
@@ -117,13 +116,17 @@ export function typeForRow(row: GoodBudgetRow) {
 /**
  * Given a row, returns the category name for the row's Account
  */
-export function nameAccount(AssetAccounts: string[], LiabilityAccounts: string[], row: GoodBudgetRow): string {
-  if (AssetAccounts.indexOf(row.Account) !== -1) {
-    return `Assets:${row.Account}`;
-  } else if (LiabilityAccounts.indexOf(row.Account) !== -1) {
-    return `Liabilities:${row.Account}`;
+export function nameAccount(AssetAccounts: string[], LiabilityAccounts: string[], row: GoodBudgetRow | string): string {
+  const account = typeof row === 'string' ? row : row.Account;
+
+  if (AssetAccounts.indexOf(account) !== -1) {
+    return `Assets:${account}`;
+  } else if (LiabilityAccounts.indexOf(account) !== -1) {
+    /* tslint:disable-next-line:curly */
+    if (!account || account === '') throw new Error(`Invalid row, ${row}`);
+    return `Liabilities:${account}`;
   } else {
-    throw new Error(`Unrecognized account: ${row.Account}`);
+    throw new Error(`Unrecognized account: ${account}`);
   }
 }
 
@@ -161,15 +164,21 @@ export function mkAccountItems(
 }
 
 export function mkCategoryItems(
-  [category, amount]: [string, number],
+  [category, amount, name]: [string, number, string],
   isFill: boolean,
+  AssetAccounts: string[],
+  LiabilityAccounts: string[],
 ): TxnItem[] {
+  /* tslint:disable-next-line:curly */
   if (isFill) {
     return [
       {account: `Liabilities:${category}`, amount: -amount},
       {account: `Expenses:${category}`, amount},
     ]
   }
+
+  /* tslint:disable-next-line:curly */
+  if (category === '') return [{account: nameAccount(AssetAccounts, LiabilityAccounts, name), amount: -amount}];  // Probably an account transfer
 
   return [{account: `Liabilities:${category}`, amount: -amount}];
 }
@@ -184,7 +193,7 @@ export function ItemsForRow(
   return _.flatten([
     ...mkAccountItems(AssetAccounts, LiabilityAccounts, IncomePayees, row),
     ...Object.entries(parseCategories(row)).
-      map(([category, amount]) => mkCategoryItems([category, amount], i)),
+      map(([category, amount]) => mkCategoryItems([category, amount, row.Name], i, AssetAccounts, LiabilityAccounts)),
   ]);
 }
 
@@ -264,7 +273,7 @@ async function writeToFirebase(txns: DETxn[]) {
 
 function isMagicAccount(txnItem: TxnItem) {
   return AssetAccountsReq.map((acct: string) => `Assets:${acct}`).indexOf(txnItem.account) !== -1 ||
-    LiabilityAccountsReq.map((acct: string) => `Liabilities: ${acct}`).indexOf(txnItem.account) !== -1;
+    LiabilityAccountsReq.map((acct: string) => `Liabilities:${acct}`).indexOf(txnItem.account) !== -1;
 }
 
 async function main() {
@@ -277,6 +286,13 @@ async function main() {
     map((row) => rowToTxn(AssetAccountsReq, LiabilityAccountsReq, IncomePayeesReq, row)).
     filter(nullFilter);
 
+  txns.forEach((txn) => {
+    const txnSum = Object.values(txn.items).reduce(R.add);
+    if (txnSum !== 0) {
+      throw new Error(`Txn did not sum to 0: ${JSON.stringify(txn)}`)
+    }
+  })
+
   const txnItems = journalToLedger(txns);
   const sum = txnItems.map(R.prop('amount')).reduce(R.add);
   /* tslint:disable-next-line:curly */
@@ -284,10 +300,18 @@ async function main() {
 
   const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(isMagicAccount));
   console.log('keys', Object.keys(groups));
+  /*c
   console.log(
     Object.values(groups).
-    map((items) => items.map(R.prop('amount')).reduce(R.add, 0)).
+    map((items) => items.map(R.prop('amount')).reduce(R.add)).
     map(R.divide(100))
+  );
+  */
+  console.log(
+    Object.values(groups).
+    map((items) => items.map(R.prop('amount')).reduce(R.add)).
+    map((n) => n / 100)
+    
   );
 
   await writeToFirebase(txns);

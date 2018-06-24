@@ -246,17 +246,33 @@ describe('Naming outbound categories', () => {
 
 describe('Generating items for categories', () => {
   test('It returns one account for regular expenses', () => {
-    expect(import_.mkCategoryItems(['Food', -200], false)).
+    expect(import_.mkCategoryItems(['Food', -200, 'Payee'], false, AssetAccounts, LiabilityAccounts)).
       toEqual([{account: 'Liabilities:Food', amount: 200}])
   });
 
   test('It returns two accounts for fills', () => {
-    expect(import_.mkCategoryItems(['Food', 200], true)).
+    expect(import_.mkCategoryItems(['Food', 200, 'Payee'], true, AssetAccounts, LiabilityAccounts)).
       toEqual([
         {account: 'Liabilities:Food', amount: -200},
         {account: 'Expenses:Food', amount: 200}
       ])
   });
+
+  test('It handles this account transfer', () => {
+    const row: GoodBudgetRow = {
+      "Date":"06/08/2018",
+      "Envelope":"",
+      "Account":"Checking",
+      "Name":"Credit Card",
+      "Notes":"Account Transfer",
+      "Amount":"-2,097.27",
+      "Status":"",
+      "Details":"",
+    }
+
+    /* tslint:disable-next-line:no-console */
+    console.log(import_.ItemsForRow(AssetAccounts, LiabilityAccounts, IncomePayees, row));
+  })
 });
 
 describe('Parsing categories', () => {

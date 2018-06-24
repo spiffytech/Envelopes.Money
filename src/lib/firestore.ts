@@ -75,6 +75,7 @@ export function watchAccounts(
 ){
   return db.collection('accounts').
   onSnapshot((snapshot) => {
+    console.log('Accounts read from cache?', snapshot.metadata.fromCache);
     const accounts = snapshot.docs.map((doc) => doc.data() as Account);
     store.setAllAccounts(accounts);
   });

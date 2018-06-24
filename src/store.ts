@@ -112,7 +112,7 @@ class Store {
 const store = new Store();
 export default store;
 
-let txnWatchUnsubscribe: (() => void) | null = null;
+// let txnWatchUnsubscribe: (() => void) | null = null;
 let accountWatchUnsubscribe: (() => void) | null = null;
 
 firebase.auth().onAuthStateChanged(async (user) => {
@@ -129,11 +129,11 @@ firebase.auth().onAuthStateChanged(async (user) => {
     /* tslint:disable-next-line */
     const db = firebase.firestore().collection('users').doc(u.email!);
 
-    txnWatchUnsubscribe = firestore.watchTransactions(db, store);
+    // txnWatchUnsubscribe = firestore.watchTransactions(db, store);
     accountWatchUnsubscribe = firestore.watchAccounts(db, store);
   } else {
     /* tslint:disable:curly */
-    if (txnWatchUnsubscribe) txnWatchUnsubscribe();
+    // if (txnWatchUnsubscribe) txnWatchUnsubscribe();
     if (accountWatchUnsubscribe) accountWatchUnsubscribe();
     /* tslint:enable:curly */
   }

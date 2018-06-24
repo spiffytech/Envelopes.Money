@@ -12,3 +12,10 @@ export interface DETxn {
   items: {[key: string]: number};
   memo: string;
 }
+
+
+export interface Account {
+  name: string;
+  balance: number;
+  isBankAccount?: boolean;
+}

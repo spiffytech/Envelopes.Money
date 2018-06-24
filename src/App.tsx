@@ -7,6 +7,7 @@ import * as React from 'react';
 import {BrowserRouter, Route} from 'react-router-dom';
 import 'typeface-roboto'
 import './App.css';
+import Home from './components/Home';
 import Login from './components/Login';
 import Nav from './components/Nav';
 import store from './store';
@@ -22,6 +23,7 @@ class App extends React.Component {
           <div>
             <Nav />
             <Route exact={true} path="/login" component={Login} />
+            <Route exact={true} path="/" component={Home} />
           </div>
         </Provider>
       </BrowserRouter>

@@ -2,42 +2,41 @@ import * as firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
-import { action, computed, configure as mobxConfigure, extendObservable, observable } from 'mobx';
+import { action, computed, configure as mobxConfigure, observable, set as mobxSet} from 'mobx';
 import * as R from 'ramda';
 
-import * as Categories from './lib/categories';
+import * as firestore from './lib/firestore';
 import * as Txns from './lib/txns';
+import * as Types from './lib/types';
 
 mobxConfigure({ enforceActions: true });
 
 /* tslint:disable:no-console */
 
-const isBankAccount =
-  R.curry(
-    (bankAccounts: { [key: string]: any }, txnItem: Txns.TxnItem): boolean => {
-      console.log(Object.keys(bankAccounts), txnItem.account);
-      return Object.keys(bankAccounts).indexOf(txnItem.account) !== -1;
-    }
+const isBankAccount = R.pipe(R.unary(R.prop('isBankAccount')), Boolean);
+
+function balances(accounts: {[key: string]: Types.Account}, pred: (account: Types.Account) => boolean) {
+  return new Map(
+    Object.values(accounts).
+    filter(pred).
+    map((account) => [account.name, account] as [string, Types.Account])
   );
+}
+
 class Store {
   @observable public categories = [];
   @observable public email: string | null = null;
   @observable public txns: Txns.DETxn[] = [];
-  @observable public bankAccounts: { [key: string]: any } = {};
+  @observable public accounts: { [key: string]: Types.Account } = {};
 
   @computed
-  get categoryBalances(): Map<string, Categories.CategoryBalance> {
-    return new Map(
-      Txns.calcBalances(this.txns, R.complement(isBankAccount(this.bankAccounts))).
-      map((balanceItem) =>
-        [balanceItem.account, balanceItem] as [string, Categories.CategoryBalance]
-      )
-    );
+  get categoryBalances(): Map<string, Types.Account> {
+    return balances(this.accounts, R.complement(isBankAccount));
   }
 
   @computed
-  get accountBalances(): Array<{account: string, balance: number}> {
-    return Txns.calcBalances(this.txns, isBankAccount(this.bankAccounts));
+  get bankBalances(): Map<string, Types.Account> {
+    return balances(this.accounts, isBankAccount);
   }
 
   @computed
@@ -50,6 +49,12 @@ class Store {
     this.email = email;
   }
 
+  @action
+  public setAllAccounts(accounts: Types.Account[]) {
+    mobxSet(this.accounts, []);
+    accounts.forEach((account) => mobxSet(this.accounts, {[account.name]: account}));
+  }
+
   public clearTxns() {
     this.txns = [];
   }
@@ -60,10 +65,6 @@ class Store {
 
   public addTxns(docs: Txns.DETxn[]) {
     this.txns.push(...docs);
-  }
-
-  public setBankAccounts(accounts: {[key: string]: any}) {
-    extendObservable(this.bankAccounts, accounts);
   }
 
   public async logIn({email}: {email: string}) {
@@ -111,11 +112,8 @@ class Store {
 const store = new Store();
 export default store;
 
-/* tslint:disable:no-var-requires */
-const firebaseConfig = require('./firebase.config.json');
-/* tslint:enable:no-var-requires */
-firebase.initializeApp(firebaseConfig);
-firebase.firestore().settings({timestampsInSnapshots: true});
+let txnWatchUnsubscribe: (() => void) | null = null;
+let accountWatchUnsubscribe: (() => void) | null = null;
 
 firebase.auth().onAuthStateChanged(async (user) => {
   try {
@@ -131,21 +129,12 @@ firebase.auth().onAuthStateChanged(async (user) => {
     /* tslint:disable-next-line */
     const db = firebase.firestore().collection('users').doc(u.email!);
 
-    db.collection('txns').
-    orderBy('date', 'desc').
-    onSnapshot((snapshot) => {
-      console.log('Snapshots came from cache?', snapshot.metadata.fromCache);
-      store.clearTxns();
-      const docs = snapshot.docs.map((doc) => doc.data());
-      store.addTxns(docs as Txns.DETxn[]);
-      console.log('Adding docs', docs.length)
-    });
-
-    db.
-    onSnapshot((snapshot) => {
-      /* tslint:disable */
-      store.setBankAccounts(snapshot.data()!.bankAccounts);
-      /* tslint:enable */
-    });
+    txnWatchUnsubscribe = firestore.watchTransactions(db, store);
+    accountWatchUnsubscribe = firestore.watchAccounts(db, store);
+  } else {
+    /* tslint:disable:curly */
+    if (txnWatchUnsubscribe) txnWatchUnsubscribe();
+    if (accountWatchUnsubscribe) accountWatchUnsubscribe();
+    /* tslint:enable:curly */
   }
 });

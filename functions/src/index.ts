@@ -1,5 +1,14 @@
+/* tslint:disable:no-var-requires */
+const entries = require('object.entries');
+const values = require('object.values');
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+
+/* tslint:disable:no-unnecessary-type-assertion */
+/* tslint:disable:curly */
+
+if (!Object.entries) entries.shim();
+if (!Object.values) values.shim();
 
 admin.initializeApp();
 
@@ -16,4 +25,4 @@ export const setUpUser = functions.auth.user().onCreate((user) => {
   return admin.firestore().collection('users').doc(user.email).set({
     email: user.email,
   });
-})
+});

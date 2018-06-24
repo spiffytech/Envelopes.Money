@@ -1,18 +1,8 @@
 import * as _ from 'lodash';
 import * as R from 'ramda';
 
-export interface TxnItem {
-  account: string;
-  amount: number;
-}
-
-export interface DETxn {
-  id: string;
-  payee: string;
-  date: Date;
-  items: {[key: string]: number};
-  memo: string;
-}
+import {DETxn, TxnItem} from './types';
+export {DETxn, TxnItem} from './types';
 
 export interface LedgerEvent {
   id: string;

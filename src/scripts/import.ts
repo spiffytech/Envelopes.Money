@@ -1,15 +1,22 @@
-import * as csv from 'csv-parse';
+import bluebird from 'bluebird';
+import csv from 'csv-parse';
 import * as firebase from 'firebase/app';
 import 'firebase/firestore';
 import * as _ from 'lodash';
 import {fs} from 'mz';
-import * as nconf from 'nconf'
+import nconf from 'nconf'
 import * as R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register'
-import {Category, discoverCategories} from '../lib/categories';
+// import {Category, discoverCategories} from '../lib/categories';
+import * as firestore from '../lib/firestore';
 import {DETxn, journalToLedger, TxnItem} from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
+
+global.Promise = bluebird;
+(Promise as any).config({
+  longStackTraces: true
+})
 
 /* tslint:disable:no-var-requires */
 /* tslint:disable:no-console */
@@ -18,9 +25,6 @@ import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 const IncomePayeesReq = require('./income_payees.json');
 const AssetAccountsReq = require('./asset_accounts.json');
 const LiabilityAccountsReq = require('./liability_accounts.json');
-
-const firebaseConfig = require('../../firebase.config.json');
-firebase.initializeApp(firebaseConfig);
 
 nconf.argv().env();
 
@@ -214,6 +218,7 @@ function nullFilter<T>(item: T | null | undefined): item is T {
   return Boolean(item);
 }
 
+/*
 async function learnCategories(txnItems: TxnItem[]) {
   const categories = discoverCategories(txnItems);
 
@@ -228,17 +233,32 @@ async function learnCategories(txnItems: TxnItem[]) {
   });
   await batch.commit();
 }
+*/
 
 async function writeToFirebase(txns: DETxn[]) {
-  const chunks = _.chunk(txns, 500);
-  const collRef = firebase.firestore().collection('users').doc(nconf.get('email')).collection('txns');
+  const chunks = _.chunk(txns, 1);
+  const db = firebase.firestore().collection('users').doc(nconf.get('email'));
+  const collRef = db.collection('txns');
   for (const chunk of chunks) {
     const batch = firebase.firestore().batch();
     for (const txn of chunk) {
       batch.set(collRef.doc(txn.id), txn);
     }
     await batch.commit();
-    console.log('Wrote 500');
+
+    console.log(chunk.map(R.prop('items')).map(R.toPairs));
+
+    try {
+      await Promise.all(_.flatten(chunk.map((txn) =>
+        Object.entries(txn.items).map(([account, amount]) =>
+          firestore.updateAccountBalance(db.collection('accounts'), {account, amount})
+        )
+      )));
+      console.log(`Wrote ${chunk.length}`);
+    } catch(ex) {
+      console.error('Error updating entries')
+      throw ex;
+    }
   }
 }
 
@@ -271,7 +291,8 @@ async function main() {
   );
 
   await writeToFirebase(txns);
-  await learnCategories(txnItems);
+
+  // await learnCategories(txnItems);
 }
 if (nconf.get('run')) {
   /* tslint:disable */

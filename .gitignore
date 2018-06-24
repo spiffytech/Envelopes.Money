@@ -5,6 +5,7 @@
 
 functions/node_modules
 functions/lib
+functions/firebase-debug.log
 
 src/scripts/*.json
 

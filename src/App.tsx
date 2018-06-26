@@ -24,6 +24,7 @@ class App extends React.Component {
             <Nav />
             <Route exact={true} path="/login" component={Login} />
             <Route exact={true} path="/" component={Home} />
+            }
           </div>
         </Provider>
       </BrowserRouter>

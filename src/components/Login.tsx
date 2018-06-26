@@ -29,7 +29,7 @@ export default class LoginForm extends React.Component<Props, typeof initialStat
           label="Email"
           value={this.state.email}
           /* tslint:disable */
-          onChange={(event) => this.setState({email: event.target.value})}
+          onChange={(event: any) => this.setState({email: event.target.value})}
           /* tslint:enable */
         />
 

@@ -1,8 +1,8 @@
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
-import { action, computed, configure as mobxConfigure, observable, set as mobxSet} from 'mobx';
+import { action, autorun, computed, configure as mobxConfigure, observable, set as mobxSet} from 'mobx';
 import * as R from 'ramda';
 
 import * as firestore from './lib/firestore';
@@ -28,6 +28,22 @@ class Store {
   @observable public email: string | null = null;
   @observable public txns: Txns.DETxn[] = [];
   @observable public accounts: { [key: string]: Types.Account } = {};
+  @observable public db: firebase.firestore.DocumentReference | null = null;
+  @observable public visibleTxns: Txns.DETxn[] = [];
+
+  public firestoreSnapshots: Map<string, () => void> = new Map();
+
+  public visibleTxnsFirst: firebase.firestore.QueryDocumentSnapshot | null = null;
+  public visibleTxnsLast: firebase.firestore.QueryDocumentSnapshot | null = null;
+
+  constructor() {
+    autorun(() => {
+      if (!this.loggedIn) {
+        Object.values(this.firestoreSnapshots).
+        forEach((unsubscriber) => unsubscriber());
+      }
+    });
+  }
 
   @computed
   get categoryBalances(): Map<string, Types.Account> {
@@ -65,6 +81,11 @@ class Store {
 
   public addTxns(docs: Txns.DETxn[]) {
     this.txns.push(...docs);
+  }
+
+  @action
+  public setDB(db: firebase.firestore.DocumentReference) {
+    this.db = db;
   }
 
   public async logIn({email}: {email: string}) {
@@ -107,13 +128,64 @@ class Store {
     );
     localStorage.removeItem('emailForSignIn');
   }
+
+  public loadTxnsNextPage() {
+    // the ZZZ string represents a value that will always come after any date,
+    // so when txns are sorted desc, it'll always return the first item of the
+    // first page
+    this.loadTxnsPage(this.visibleTxnsLast || 'ZZZZZZZ', 'next');
+  }
+
+  public loadTxnsPrevPage() {
+    this.loadTxnsPage(this.visibleTxnsFirst, 'prev');
+  }
+
+  private loadTxnsPage(
+    sentinelDoc: firebase.firestore.QueryDocumentSnapshot | string | null,
+    direction: 'prev' | 'next'
+  ) {
+    // Remove our existing listen hook for any previous queries
+    const snapshotKey = 'txnslist';
+    if (!this.db) {
+      console.log('DB was not initialized, cannot load transactions');
+      return;
+    }
+    const unsubscriber = this.firestoreSnapshots.get(snapshotKey)
+    if (unsubscriber) {
+      unsubscriber();
+      this.firestoreSnapshots.delete(snapshotKey);
+    }
+
+    if (sentinelDoc && typeof sentinelDoc !== 'string') {
+      const data = sentinelDoc.data()!;
+      console.log(data.payee, data.date.toDate(), direction);
+    }
+    if (!sentinelDoc) console.log('Sentinel was null');
+
+    this.firestoreSnapshots.set(
+      snapshotKey,
+      firestore.listTxns(
+        this.db,
+        sentinelDoc,
+        direction,
+        (docs) => {
+          console.log('Got snapshot');
+          action(() => {
+            if (docs.length === 0) return;  // Otherwise we show an empty table
+            this.visibleTxns = docs.map((doc) => doc.data() as Txns.DETxn);
+            this.visibleTxnsFirst = R.head(docs) || null;
+            this.visibleTxnsLast = R.last(docs) || null;
+          })();
+        }
+      )
+    );
+  }
 }
 
 const store = new Store();
 export default store;
 
 // let txnWatchUnsubscribe: (() => void) | null = null;
-let accountWatchUnsubscribe: (() => void) | null = null;
 
 firebase.auth().onAuthStateChanged(async (user) => {
   try {
@@ -128,13 +200,13 @@ firebase.auth().onAuthStateChanged(async (user) => {
   if (u) {
     /* tslint:disable-next-line */
     const db = firebase.firestore().collection('users').doc(u.email!);
+    store.setDB(db);
 
     // txnWatchUnsubscribe = firestore.watchTransactions(db, store);
-    accountWatchUnsubscribe = firestore.watchAccounts(db, store);
+    store.firestoreSnapshots.set('accountWatch', firestore.watchAccounts(db, store));
   } else {
     /* tslint:disable:curly */
     // if (txnWatchUnsubscribe) txnWatchUnsubscribe();
-    if (accountWatchUnsubscribe) accountWatchUnsubscribe();
     /* tslint:enable:curly */
   }
 });

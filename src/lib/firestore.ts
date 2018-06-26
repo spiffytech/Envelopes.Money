@@ -80,3 +80,31 @@ export function watchAccounts(
     store.setAllAccounts(accounts);
   });
 }
+
+export function listTxns(
+  db: firebase.firestore.DocumentReference,
+  sentinelDoc: firebase.firestore.QueryDocumentSnapshot | string | null,
+  direction: 'prev' | 'next',
+  onSnapshot: (docs: firebase.firestore.QueryDocumentSnapshot[]) => void,
+): () => void {
+  return (
+    db.collection('txns').
+    orderBy('date', direction === 'prev' ? 'asc' : 'desc').
+    startAfter(sentinelDoc).
+    limit(10).
+    onSnapshot(
+      R.pipe(
+        (snapshot: firebase.firestore.QuerySnapshot) => {
+          console.log('Txns read from cache?', snapshot.metadata.fromCache);
+          return snapshot;
+        },
+        R.prop('docs'),
+        R.when<firebase.firestore.QueryDocumentSnapshot[], firebase.firestore.QueryDocumentSnapshot[]>(
+          R.always(R.equals(direction, 'prev')),
+          R.reverse
+        ),
+        onSnapshot
+      )
+    )
+  );
+}

@@ -6,7 +6,7 @@ describe('It selects a new account balance', () => {
   })
 
   test('It adds the old and new amounts together', () => {
-    expect(firestore.balanceUndoTxn({amount: 5})(15)).toBe(10);
+    expect(firestore.balanceUndoTxn(5)(15)).toBe(10);
   })
 });
 
@@ -16,6 +16,6 @@ describe('It adds the new amount to the blance', () => {
   });
 
   test('When there is an oldItem', () => {
-    expect(firestore.getNewBalance(15, 5, {amount: 7})).toBe(13)
+    expect(firestore.getNewBalance(15, 5, 7)).toBe(13)
   });
 });

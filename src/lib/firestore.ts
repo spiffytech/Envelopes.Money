@@ -1,9 +1,15 @@
+import bluebird from 'bluebird';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import * as R from 'ramda';
 
 import * as Txns from './txns';
 import {Account, DETxn } from './types';
+
+global.Promise = bluebird;
+(Promise as any).config({
+  longStackTraces: true
+})
 
 /* tslint:disable-next-line:no-var-requires */
 const firebaseConfig = require('../firebase.config.json');
@@ -15,16 +21,16 @@ firebase.firestore().settings(settings);
  * Returns a function that accepts an old balance and removes the given
  * transaction from that balance
  */
-export function balanceUndoTxn(oldItem?: Pick<Txns.TxnItem, 'amount'>) {
+export function balanceUndoTxn(oldAmount?: number) {
   return R.when(
-    R.always(Boolean(oldItem)),
-    (balance: number) => R.add(R.negate(oldItem!.amount), balance)
+    R.always(Boolean(oldAmount)),
+    (balance: number) => R.add(R.negate(oldAmount!), balance)
   );
 }
 
-export function getNewBalance(oldBalance: number, amount: number, oldItem?: Pick<Txns.TxnItem, 'amount'>) {
+export function getNewBalance(oldBalance: number, amount: number, oldAmount?: number) {
   return R.pipe(
-    balanceUndoTxn(oldItem),
+    balanceUndoTxn(oldAmount),
     R.add(amount)
   )(oldBalance)
 }
@@ -35,19 +41,42 @@ export async function updateAccountBalance(
   oldItem?: Txns.TxnItem
 ) {
   return firebase.firestore().runTransaction(async (transaction) => {
-    const doc = await transaction.get(db.doc(txnItem.account));
+    const doc = await transaction.get(db.doc(encodeURIComponent(txnItem.account)));
     if (!doc.exists) {
       return transaction.set(
-        db.doc(txnItem.account),
+        db.doc(encodeURIComponent(txnItem.account)),
         {balance: txnItem.amount, name: txnItem.account} as Account
       );
     }
     const data = doc.data()!;
 
-    const newBalance: number = getNewBalance(data.balance, txnItem.amount, oldItem);
+    const newBalance: number = getNewBalance(data.balance, txnItem.amount, oldItem ? oldItem.amount : undefined);
     return transaction.update(
-      db.doc(txnItem.account),
+      db.doc(encodeURIComponent(txnItem.account)),
       {balance: newBalance, name: txnItem.account} as Account
+    );
+  });
+}
+
+export async function updatePayee(
+  db: firebase.firestore.CollectionReference,
+  payee: string,
+  oldItem?: string
+) {
+  return firebase.firestore().runTransaction(async (transaction) => {
+    const doc = await transaction.get(db.doc(encodeURIComponent(payee)));
+    if (!doc.exists) {
+      return transaction.set(
+        db.doc(encodeURIComponent(payee)),
+        {count: 1, name: payee}
+      );
+    }
+    const data = doc.data()!;
+
+    const newBalance: number = getNewBalance(data.count, 1);
+    return transaction.update(
+      db.doc(encodeURIComponent(payee)),
+      {count: newBalance, name: payee}
     );
   });
 }

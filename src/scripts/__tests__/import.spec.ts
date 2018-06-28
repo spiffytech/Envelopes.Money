@@ -1,4 +1,5 @@
-import {DETxn, groupByAccount, learnAccountsFromTxns, sumAccountTotal} from '../../lib/txns';
+import {DETxn, groupByAccount, learnAccountsFromTxns} from '../../lib/txns';
+import * as Txns from '../../lib/txns';
 import * as import_ from '../import';
 import {GoodBudgetRow, GoodBudgetTxfr} from '../types';
 
@@ -60,7 +61,7 @@ describe('It categorizes things correctly', () => {
       Envelope: '[Unallocated]'
     });
 
-    expect(import_.typeForRow(row)).toEqual('transaction');
+    expect(import_.typeForRow(row)).toEqual('banktxn');
   });
 
   test('It recognizes a normal transaction', () => {
@@ -75,12 +76,12 @@ describe('It categorizes things correctly', () => {
       Details: '' 
     });
 
-    expect(import_.typeForRow(row)).toEqual('transaction');
+    expect(import_.typeForRow(row)).toEqual('banktxn');
   });
 });
 
 describe('Parsing categories', () => {
-  test('It converts single categories to numbers', () => {
+  describe('With this regular transaction', () => {
       const row = mkRow({
         Date: '12/06/2017',
         Envelope: 'Groceries',
@@ -92,36 +93,25 @@ describe('Parsing categories', () => {
         Details: ''
       });
 
-      const txn = import_.rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row);
-      /* tslint:disable-next-line:curly */
-      if (!txn) throw new Error('txn was null');
-      expect(txn.items).toEqual({
-        'Liabilities:Groceries': 3080,
-        'Assets:Checking': -3080,
+      const txn = import_.rowToTxn(row);
+
+      test('It has the right transaction type', () => {
+        expect(txn.type).toBe('banktxn');
       });
-  });
 
-  test('It categorizes this random transaction', () => {
-    const row: GoodBudgetRow = {
-      Date: '06/07/2018',
-      Envelope: 'Car stuff',
-      Account: 'Credit Card',
-      Name: 'NCDMV',
-      Notes: 'License(Lacey)',
-      Amount: '-13.00',
-      Status: '',
-      Details: ''
-    }
+      test('It has the right account', () => {
+        if (!Txns.isBankTxn(txn)) throw new Error('This should be a bank transaction');
+        expect(txn.account).toBe('Checking');
+      });
 
-    const txn = import_.rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row);
-    /* tslint:disable-next-line:curly */
-    if (!txn) throw new Error('Txn was not present');
-    expect(txn.items).toEqual({
-      'Liabilities:Car stuff': 1300,
-      'Liabilities:Credit Card': -1300,
+      test('It has the right accounts', () => {
+        if (!Txns.isBankTxn(txn)) throw new Error('This should be a bank transaction');
+        expect(txn.categories).toEqual({
+          'Groceries': -3080,
+        });
+      });
     });
   });
-});
 
 describe('It learns accounts correctly', () => {
   test('With a checking account', () => {
@@ -184,15 +174,9 @@ describe('It groups accounts correctly', () => {
 
 describe('It sums up these transactions correctly', () => {
   const rows = require('./fixture_1.json');
-  let txns: DETxn[] = rows.map((row: GoodBudgetRow) =>
-    import_.rowToTxn(AssetAccounts, LiabilityAccounts, IncomePayees, row)
-  ).filter((txn: any) => txn);
+  let txns: Txns.Txn[] = rows.map((row: GoodBudgetRow) => import_.rowToTxn(row));
   txns = txns.filter((txn) => txn !== null);
-  const txnsForChecking = txns.filter((txn) => txn.items['Assets:Checking']);
-
-  test('It gives all rows the right account', () => {
-    expect(sumAccountTotal('Assets:Checking', txnsForChecking)).toEqual(19099);
-  });
+  const txnsForChecking = txns.filter(Txns.touchesAccount('Checking'));
 
   test('It has the right number of transactions', () => {
     expect(txnsForChecking.length).toEqual(28);
@@ -321,6 +305,41 @@ describe('Parsing categories', () => {
 
       {account: 'Liabilities:Grocery', amount: -300},
       {account: 'Expenses:Grocery', amount: 300},
+    ]);
+  });
+});
+
+describe('It converts to a ledger', () => {
+  test('With a bank transaction', () => {
+    const txn: Txns.BankTxn = {
+      id: 'blah',
+      date: new Date(),
+      amount: -5000,
+      memo: '',
+      account: 'Checking',
+      payee: 'Food Lion',
+      categories: {Grocery: -5000},
+      type: 'banktxn',
+    }
+
+    expect(Txns.accountsForTxn(txn)).toEqual([{account: 'Checking', amount: -5000}]);
+  });
+
+  test('With an account transfer', () => {
+    const txn: Txns.AccountTransfer = {
+      id: 'blah',
+      date: new Date(),
+      amount: -5000,
+      memo: '',
+      from: 'Checking',
+      to: 'Credit Card',
+      txfrId: 'blah1',
+      type: 'accountTransfer',
+    }
+
+    expect(Txns.accountsForTxn(txn)).toEqual([
+      {account: 'Checking', amount: -5000},
+      {account: 'Credit Card', amount: 5000},
     ]);
   });
 });

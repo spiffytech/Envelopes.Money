@@ -5,12 +5,13 @@ import 'firebase/firestore';
 import * as _ from 'lodash';
 import {fs} from 'mz';
 import nconf from 'nconf'
-import * as R from 'ramda';
+import R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register'
 // import {Category, discoverCategories} from '../lib/categories';
 import * as firestore from '../lib/firestore';
-import {DETxn, journalToLedger, TxnItem} from '../lib/txns';
+import {TxnItem} from '../lib/txns';
+import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 
 global.Promise = bluebird;
@@ -21,10 +22,6 @@ global.Promise = bluebird;
 /* tslint:disable:no-var-requires */
 /* tslint:disable:no-console */
 /* tslint:disable:object-literal-sort-keys */
-
-const IncomePayeesReq = require('./income_payees.json');
-const AssetAccountsReq = require('./asset_accounts.json');
-const LiabilityAccountsReq = require('./liability_accounts.json');
 
 nconf.argv().env();
 
@@ -46,14 +43,14 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
   })
 }
 
-export function parseCategories(row: {[key: string]: any}): {[key: string]: number} {
+export function parseCategories(row: GoodBudgetRow): {[key: string]: number} {
   /* tslint:disable-next-line:curly */
   if (row.Details === '') return {[row.Envelope]: amountOfStr(row.Amount)};
   return (
     row.Envelope ? {[row.Envelope]: amountOfStr(row.Amount)} :
     row.Details.split('||').
       map((detail: string) => detail.split('|')).
-      reduce((acc: {[key: string]: number}, [category, amount]: [string, string]) =>
+      reduce((acc: {[key: string]: number}, [category, amount]) =>
         ({...acc, [category]: amountOfStr(amount)})
       , {})
   );
@@ -107,7 +104,7 @@ export function typeForRow(row: GoodBudgetRow) {
   } else if (rowIsAccountTransfer(row)) {
     return 'accountTransfer';
   } else if (row.Envelope !== '' || row.Details !== '') {
-    return 'transaction';
+    return 'banktxn';
   } else {
     throw new Error(`No categorzation for row: ${JSON.stringify(row)}`)
   }
@@ -197,30 +194,45 @@ export function ItemsForRow(
   ]);
 }
 
-export function rowToTxn(
-  AssetAccounts: string[],
-  LiabilityAccounts: string[],
-  IncomePayees: string[],
-  row: GoodBudgetRow
-): DETxn | null {
-  /* tslint:disable-next-line:curly */
-  if (row.Account === '[none]') return null;  // It's a fill
-
-  const type = typeForRow(row);
-
-  /* tslint:disable-next-line:curly */
-  if (type === 'envelopeTransfer') return null;
-
-  const items = ItemsForRow(AssetAccounts, LiabilityAccounts, IncomePayees, row);
+export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
   return {
     id: shortid.generate(),
     date: new Date(row.Date),
+    amount: amountOfStr(row.Amount),
+    account: row.Account,
     payee: row.Name,
     memo: row.Notes,
-    items: R.fromPairs(items.map(
-      ({account, amount}): [string, number] => [account, amount]
-    ))
+    categories: parseCategories(row),
+    type: 'banktxn',
   }
+}
+
+export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
+  return {
+    id: shortid.generate(),
+    date: new Date(row.Date),
+    amount: amountOfStr(row.Amount),
+    memo: row.Notes,
+    from: row.Account,
+    to: row.Name,
+    txfrId: row.txfrId,
+    type: 'accountTransfer',
+  };
+}
+
+export function rowToEnvelopeTransfer(row: GoodBudgetRow): Txns.EnvelopeTransfer {
+  throw new Error('Conversion to envelope transfers is not implemented yet');
+}
+
+export function rowToTxn(
+  row: GoodBudgetRow
+): Txns.Txn {
+  const type = typeForRow(row);
+
+  if (type === 'accountTransfer') return rowToAccountTxfr(row as GoodBudgetTxfr);
+  if (type === 'envelopeTransfer') return rowToEnvelopeTransfer(row);
+  if (type === 'banktxn') return rowToBankTxn(row);
+  throw new Error('Did not find type for row')
 }
 
 function nullFilter<T>(item: T | null | undefined): item is T {
@@ -244,10 +256,12 @@ async function learnCategories(txnItems: TxnItem[]) {
 }
 */
 
-async function writeToFirebase(txns: DETxn[]) {
-  const chunks = _.chunk(txns, 1);
+async function writeToFirebase(txns: Txns.Txn[]) {
+  const txnsSorted = txns.sort((txn1, txn2) => txn1.date < txn2.date ? -1 : 1);
+  const chunks = _.chunk(txnsSorted, 1);
   const db = firebase.firestore().collection('users').doc(nconf.get('email'));
   const collRef = db.collection('txns');
+  let total = 0;
   for (const chunk of chunks) {
     const batch = firebase.firestore().batch();
     for (const txn of chunk) {
@@ -255,15 +269,44 @@ async function writeToFirebase(txns: DETxn[]) {
     }
     await batch.commit();
 
-    console.log(chunk.map(R.prop('items')).map(R.toPairs));
-
     try {
-      await Promise.all(_.flatten(chunk.map((txn) =>
-        Object.entries(txn.items).map(([account, amount]) =>
+      console.log(JSON.stringify(
+        chunk.filter(Txns.touchesBank).map((txn) => [txn.date, Txns.accountsForTxn(txn)])
+      ));
+      await Promise.all(
+        _.flatten(
+          chunk.
+          filter(Txns.touchesBank).
+          map(Txns.accountsForTxn)
+        ).
+        map(({account, amount}) =>
           firestore.updateAccountBalance(db.collection('accounts'), {account, amount})
         )
-      )));
-      console.log(`Wrote ${chunk.length}`);
+      );
+
+      await Promise.all(
+        _.flatten(
+          chunk.
+          filter(Txns.isBankTxn).
+          map((txn) => Object.entries(txn.categories).map(([category, amount]) => ({account: category, amount})))
+        ).
+        map(({account, amount}) =>
+          firestore.updateAccountBalance(db.collection('categories'), {account, amount})
+        )
+      );
+
+      await Promise.all(
+        chunk.
+        filter(Txns.isBankTxn).
+        filter(R.pipe(R.prop('payee'), R.complement(R.equals('')))).
+        map((txn) => txn.payee).
+        map((payee) =>
+          firestore.updatePayee(db.collection('payees'), payee)
+        )
+      );
+
+      total += chunk.length;
+      console.log(`Wrote ${total}`);
     } catch(ex) {
       console.error('Error updating entries')
       throw ex;
@@ -271,35 +314,20 @@ async function writeToFirebase(txns: DETxn[]) {
   }
 }
 
-function isMagicAccount(txnItem: TxnItem) {
-  return AssetAccountsReq.map((acct: string) => `Assets:${acct}`).indexOf(txnItem.account) !== -1 ||
-    LiabilityAccountsReq.map((acct: string) => `Liabilities:${acct}`).indexOf(txnItem.account) !== -1;
-}
-
 async function main() {
   // Putting this here so the unit tests don't require these values
   nconf.required(['file', 'email']);
 
   const rows = await readCsv(nconf.get('file'));
-  const txns: DETxn[] =
+  const txns: Txns.Txn[] =
     mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]')).
-    map((row) => rowToTxn(AssetAccountsReq, LiabilityAccountsReq, IncomePayeesReq, row)).
+    filter((row) => typeForRow(row) !== 'envelopeTransfer').
+    filter((row) => row.Account !== '[none]').  // It's a fill
+    map((row) => rowToTxn(row)).
     filter(nullFilter);
 
-  txns.forEach((txn) => {
-    const txnSum = Object.values(txn.items).reduce(R.add);
-    if (txnSum !== 0) {
-      throw new Error(`Txn did not sum to 0: ${JSON.stringify(txn)}`)
-    }
-  })
-
-  const txnItems = journalToLedger(txns);
-  const sum = txnItems.map(R.prop('amount')).reduce(R.add);
-  /* tslint:disable-next-line:curly */
-  if (sum !== 0) throw new Error(`Expected zero-balanced ledger, got ${sum}`);
-
-  const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(isMagicAccount));
-  console.log('keys', Object.keys(groups));
+  // const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(isMagicAccount));
+  // console.log('keys', Object.keys(groups));
   /*c
   console.log(
     Object.values(groups).
@@ -307,12 +335,19 @@ async function main() {
     map(R.divide(100))
   );
   */
+  /*
   console.log(
     Object.values(groups).
     map((items) => items.map(R.prop('amount')).reduce(R.add)).
     map((n) => n / 100)
-    
   );
+  */
+
+  const txnItems = _.flatten(txns.filter(Txns.touchesBank).map(Txns.accountsForTxn));
+  console.log(
+    txnItems.filter(({account}) => account === 'SECU Checking').map(({amount}) => amount).reduce(R.add) / 100,
+    txnItems.filter(({account}) => account === 'AmEx').map(({amount}) => amount).reduce(R.add) / 100,
+  )
 
   await writeToFirebase(txns);
 

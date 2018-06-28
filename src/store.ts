@@ -13,23 +13,13 @@ mobxConfigure({ enforceActions: true });
 
 /* tslint:disable:no-console */
 
-const isBankAccount = R.pipe(R.unary(R.prop('isBankAccount')), Boolean);
-
-function balances(accounts: {[key: string]: Types.Account}, pred: (account: Types.Account) => boolean) {
-  return new Map(
-    Object.values(accounts).
-    filter(pred).
-    map((account) => [account.name, account] as [string, Types.Account])
-  );
-}
-
 class Store {
-  @observable public categories = [];
+  @observable public accounts: {[key: string]: Types.Balance} = {};
+  @observable public categories: {[key: string]: Types.Category} = {};
   @observable public email: string | null = null;
-  @observable public txns: Txns.DETxn[] = [];
-  @observable public accounts: { [key: string]: Types.Account } = {};
+  @observable public txns: Txns.Txn[] = [];
   @observable public db: firebase.firestore.DocumentReference | null = null;
-  @observable public visibleTxns: Txns.DETxn[] = [];
+  @observable public visibleTxns: Txns.Txn[] = [];
 
   public firestoreSnapshots: Map<string, () => void> = new Map();
 
@@ -46,13 +36,19 @@ class Store {
   }
 
   @computed
-  get categoryBalances(): Map<string, Types.Account> {
-    return balances(this.accounts, R.complement(isBankAccount));
+  get categoryBalances(): Map<string, Types.Balance> {
+    return new Map(
+      Object.entries(this.categories).
+      map(([accountName, category]) => [accountName, category] as [string, Types.Balance])
+    );
   }
 
   @computed
-  get bankBalances(): Map<string, Types.Account> {
-    return balances(this.accounts, isBankAccount);
+  get bankBalances(): Map<string, Types.Balance> {
+    return new Map(
+      Object.entries(this.accounts).
+      map(([accountName, account]) => [accountName, account] as [string, Types.Balance])
+    );
   }
 
   @computed
@@ -66,20 +62,26 @@ class Store {
   }
 
   @action
-  public setAllAccounts(accounts: Types.Account[]) {
-    mobxSet(this.accounts, []);
+  public setAccounts(accounts: Types.Balance[]) {
+    mobxSet(this.accounts, {});
     accounts.forEach((account) => mobxSet(this.accounts, {[account.name]: account}));
+  }
+
+  @action
+  public setCategories(accounts: Types.Balance[]) {
+    mobxSet(this.categories, {});
+    accounts.forEach((category) => mobxSet(this.categories, {[category.name]: category}));
   }
 
   public clearTxns() {
     this.txns = [];
   }
 
-  public addTxn(doc: Txns.DETxn) {
+  public addTxn(doc: Txns.Txn) {
     this.txns.push(doc);
   }
 
-  public addTxns(docs: Txns.DETxn[]) {
+  public addTxns(docs: Txns.Txn[]) {
     this.txns.push(...docs);
   }
 
@@ -172,7 +174,7 @@ class Store {
           console.log('Got snapshot');
           action(() => {
             if (docs.length === 0) return;  // Otherwise we show an empty table
-            this.visibleTxns = docs.map((doc) => doc.data() as Txns.DETxn);
+            this.visibleTxns = docs.map((doc) => doc.data() as Txns.Txn);
             this.visibleTxnsFirst = R.head(docs) || null;
             this.visibleTxnsLast = R.last(docs) || null;
           })();
@@ -203,7 +205,15 @@ firebase.auth().onAuthStateChanged(async (user) => {
     store.setDB(db);
 
     // txnWatchUnsubscribe = firestore.watchTransactions(db, store);
-    store.firestoreSnapshots.set('accountWatch', firestore.watchAccounts(db, store));
+    store.firestoreSnapshots.set(
+      'accountWatch',
+      firestore.watch(db.collection('accounts'), store.setAccounts.bind(store))
+    );
+
+    store.firestoreSnapshots.set(
+      'categoryWatch',
+      firestore.watch(db.collection('categories'), store.setCategories.bind(store))
+    );
   } else {
     /* tslint:disable:curly */
     // if (txnWatchUnsubscribe) txnWatchUnsubscribe();

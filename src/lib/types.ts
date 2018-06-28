@@ -14,8 +14,12 @@ export interface DETxn {
 }
 
 
-export interface Account {
+export interface Balance {
   name: string;
   balance: number;
-  isBankAccount?: boolean;
+}
+
+export interface Category {
+  name: string;
+  balance: number;
 }

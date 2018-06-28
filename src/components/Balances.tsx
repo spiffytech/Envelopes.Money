@@ -4,7 +4,7 @@ import * as Types from '../lib/types';
 import * as utils from '../lib/utils';
 
 export default observer(
-  function Balances({accounts}: {accounts: Map<string, Types.Account>}) {
+  function Balances({accounts}: {accounts: Map<string, Types.Balance>}) {
     return (
       <table className="table">
         <tbody>

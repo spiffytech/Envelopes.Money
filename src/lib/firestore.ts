@@ -1,15 +1,9 @@
-import bluebird from 'bluebird';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import * as R from 'ramda';
 
 import * as Txns from './txns';
-import {Account, DETxn } from './types';
-
-global.Promise = bluebird;
-(Promise as any).config({
-  longStackTraces: true
-})
+import {Balance, DETxn } from './types';
 
 /* tslint:disable-next-line:no-var-requires */
 const firebaseConfig = require('../firebase.config.json');
@@ -45,7 +39,7 @@ export async function updateAccountBalance(
     if (!doc.exists) {
       return transaction.set(
         db.doc(encodeURIComponent(txnItem.account)),
-        {balance: txnItem.amount, name: txnItem.account} as Account
+        {balance: txnItem.amount, name: txnItem.account} as Balance
       );
     }
     const data = doc.data()!;
@@ -53,7 +47,7 @@ export async function updateAccountBalance(
     const newBalance: number = getNewBalance(data.balance, txnItem.amount, oldItem ? oldItem.amount : undefined);
     return transaction.update(
       db.doc(encodeURIComponent(txnItem.account)),
-      {balance: newBalance, name: txnItem.account} as Account
+      {balance: newBalance, name: txnItem.account} as Balance
     );
   });
 }
@@ -98,16 +92,18 @@ export function watchTransactions(
   /* tslint:disable:no-console */
 }
 
-export function watchAccounts(
-  db: firebase.firestore.DocumentReference,
-  store: {setAllAccounts(accounts: Account[]): void}
+export function watch<T>(
+  db: firebase.firestore.CollectionReference,
+  onSnapshot: (docs: T[]) => void,
 ){
-  return db.collection('accounts').
-  onSnapshot((snapshot) => {
-    console.log('Accounts read from cache?', snapshot.metadata.fromCache);
-    const accounts = snapshot.docs.map((doc) => doc.data() as Account);
-    store.setAllAccounts(accounts);
-  });
+  return db.
+  onSnapshot(R.pipe(
+    (snapshot: firebase.firestore.QuerySnapshot) => {
+      console.log('Accounts read from cache?', snapshot.metadata.fromCache);
+      return snapshot.docs.map((doc) => doc.data() as T);
+    },
+    onSnapshot
+  ))
 }
 
 export function listTxns(

@@ -2,8 +2,63 @@ import * as dateFns from 'date-fns';
 import {autorun} from 'mobx';
 import {inject, observer} from 'mobx-react';
 import * as React from 'react';
+import * as Txns from '../lib/txns';
 import * as utils from '../lib/utils';
 import Store from '../store';
+
+function formatDate(date: any) {
+  return dateFns.format((date as any).toDate(), 'YYYY-MM-DD')
+}
+
+function BankTxn({txn}: {txn: Txns.BankTxn}) {
+  return (
+    <tr>
+      <td>{formatDate(txn.date)}</td>
+      <td>{txn.payee}</td>
+      <td>
+        {Object.entries(txn.categories).map(([category, amount]) =>
+          <p key={`${txn.id}-${category}`}>{category}: {utils.formatCurrency(amount)}</p>
+        )}
+      </td>
+
+      <td>{txn.memo}</td>
+
+      <td>{utils.formatCurrency(txn.amount)}</td>
+    </tr>
+  );
+}
+
+function AccountTransfer({txn}: {txn: Txns.AccountTransfer}) {
+  return (
+    <tr>
+      <td>{formatDate(txn.date)}</td>
+      <td>{txn.from}</td>
+      <td>
+        {txn.to}
+      </td>
+
+      <td>{txn.memo}</td>
+
+      <td>{utils.formatCurrency(txn.amount)}</td>
+    </tr>
+  );
+}
+
+function EnvelopeTransfer({txn}: {txn: Txns.EnvelopeTransfer}) {
+  return (
+    <tr>
+      <td>{formatDate(txn.date)}</td>
+      <td>{txn.from}</td>
+      <td>
+        {txn.to}
+      </td>
+
+      <td>{txn.memo}</td>
+
+      <td>{utils.formatCurrency(txn.amount)}</td>
+    </tr>
+  );
+}
 
 const initialState = { docs: [] };
 
@@ -54,20 +109,17 @@ export default class TxnList extends React.Component<Props, typeof initialState>
               <tr>
                 <th>Date</th>
                 <th>Payee</th>
-                <th>Accounts</th>
+                <th>Categories</th>
+                <th>Memo</th>
+                <th>Amount</th>
               </tr>
             </thead>
             <tbody>
               {this.props.store!.visibleTxns.map((txn) =>
-                <tr key={txn.id}>
-                  <td>{dateFns.format((txn.date as any).toDate(), 'YYYY-MM-DD')}</td>
-                  <td>{txn.payee}</td>
-                  <td>
-                    {Object.entries(txn.items).map(([account, amount]) =>
-                      <p key={`${txn.id}-${account}`}>{account}: {utils.formatCurrency(amount)}</p>
-                    )}
-                  </td>
-                </tr>
+                txn.type === 'banktxn' ? <BankTxn key={txn.id} txn={txn} /> :
+                txn.type === 'accountTransfer' ? <AccountTransfer key={txn.id} txn={txn} /> :
+                txn.type === 'envelopeTransfer' ? <EnvelopeTransfer key={txn.id} txn={txn} /> :
+                null
               )}
             </tbody>
           </table>

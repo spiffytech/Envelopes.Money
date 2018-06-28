@@ -9,7 +9,7 @@ export default inject((stores) => ({store: (stores as any).store as typeof Store
   function Home({store}: {store: typeof Store}) {
     return (
       <div className="container-fluid">
-        <div className="row">
+        <div className="row flex-nowrap">
           <div className="col-md4">
             <Balances accounts={store.categoryBalances} />
           </div>

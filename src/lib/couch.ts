@@ -1,6 +1,8 @@
+/* tslint:disable:no-console */
 import PouchDB from 'pouchdb';
-import * as PouchDBAuthentication from 'pouchdb-authentication';
+import PouchDBAuthentication from 'pouchdb-authentication';
 import * as PouchDBUpsert from 'pouchdb-upsert';
+console.log(PouchDBAuthentication)
 PouchDB.plugin(PouchDBAuthentication);
 PouchDB.plugin(PouchDBUpsert);
 
@@ -28,46 +30,59 @@ async function testRemoteLogin(db: PouchDB.Database) {
   }
 }
 
-export async function mkRemoteDB(username: string, password: string) {
-  const remoteUrl = new URL(`userdb-${toHex(username)}`, process.env.COUCH_HOST);
-  remoteUrl.username = username;
-  remoteUrl.password = password;
-  const remote = new PouchDB(remoteUrl.toString(), {skip_setup: true});
-  const loginSuccessful = await testRemoteLogin(remote);
-  if (!loginSuccessful) throw new Error('Could not log into CouchDB');
+function isNode() {
+  return typeof window === 'undefined';
+}
 
-  /*
-  // Something something authenticating request against _session
-  const authStr = username + ':' + password;
-  const ajaxOpts = {
-    ajax: {
-      headers: {
-        Authorization: 'Basic ' + (
-          typeof window === 'undefined' ?
-          Buffer.from(authStr).toString('base64') :
-          btoa(authStr)
-        )
+export async function mkRemoteDB(username: string, password: string) {
+  const remoteUrl = new URL(`userdb-${toHex(username)}`, process.env.REACT_APP_COUCH_HOST);
+
+  // Cookie authentication doesn't seem to work in node for unknown reasons
+  if (isNode()) {
+    remoteUrl.username = username;
+    remoteUrl.password = password;
+  }
+  const remote = new PouchDB(remoteUrl.toString(), {skip_setup: true});
+
+  if (isNode()) {
+    const loginSuccessful = await testRemoteLogin(remote);
+    if (!loginSuccessful) throw new Error('Could not log into CouchDB');
+  } else {
+    // Something something authenticating request against _session
+    const authStr = username + ':' + password;
+    const ajaxOpts = {
+      ajax: {
+        headers: {
+          Authorization: 'Basic ' + (
+            typeof window === 'undefined' ?
+            Buffer.from(authStr).toString('base64') :
+            btoa(authStr)
+          )
+        }
       }
-    }
-  };
-  console.log(ajaxOpts);
-  const r = await (remote as any).login(username, password, ajaxOpts);
-  console.log(r)
-  console.log(await remote.getSession());
-  // console.log(remote);
-  */
+    };
+    console.log('Trying to log in...');
+    console.log(remote)
+    console.log(await (remote as any).logIn(username, password, ajaxOpts));
+  }
+
   return remote;
 }
 
-export async function mkLocalDB(username: string, password: string) {
-  const db = new PouchDB('local');
-  const remote = await mkRemoteDB(username, password);
-  PouchDB.sync(db, remote);
+export function mkLocalDB() {
+  return new PouchDB('local');
+}
 
-  return db;
+export function logOut(remote: PouchDB.Database) {
+  return remote.logOut();
+}
+
+export async function syncDBs(local: PouchDB.Database, remote: PouchDB.Database) {
+  PouchDB.sync(local, remote);
 }
 
 export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
+  /* tslint:disable-next-line:no-string-literal */
   return db.upsert(txn._id, (doc) => ({_rev: doc['_rev'], ...txn}));
 }
 

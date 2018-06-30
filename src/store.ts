@@ -2,9 +2,10 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
-import { action, autorun, computed, configure as mobxConfigure, observable, set as mobxSet} from 'mobx';
+import { action, autorun, computed, configure as mobxConfigure, observable, runInAction, set as mobxSet} from 'mobx';
 import * as R from 'ramda';
 
+import * as Couch from './lib/couch';
 import * as firestore from './lib/firestore';
 import * as Txns from './lib/txns';
 import * as Types from './lib/types';
@@ -21,18 +22,24 @@ class Store {
   @observable public db: firebase.firestore.DocumentReference | null = null;
   @observable public visibleTxns: Txns.Txn[] = [];
 
+  public dbC: PouchDB.Database;
+  public remoteDB?: PouchDB.Database;
+  @observable public loggedIn = false;
+
   public firestoreSnapshots: Map<string, () => void> = new Map();
 
   public visibleTxnsFirst: firebase.firestore.QueryDocumentSnapshot | null = null;
   public visibleTxnsLast: firebase.firestore.QueryDocumentSnapshot | null = null;
 
-  constructor() {
+  constructor(local: PouchDB.Database) {
     autorun(() => {
       if (!this.loggedIn) {
         Object.values(this.firestoreSnapshots).
         forEach((unsubscriber) => unsubscriber());
       }
     });
+
+    this.dbC = local;
   }
 
   @computed
@@ -49,11 +56,6 @@ class Store {
       Object.entries(this.accounts).
       map(([accountName, account]) => [accountName, account] as [string, Types.Balance])
     );
-  }
-
-  @computed
-  get loggedIn() {
-    return Boolean(this.email)
   }
 
   @action
@@ -90,45 +92,23 @@ class Store {
     this.db = db;
   }
 
-  public async logIn({email}: {email: string}) {
-    // This is for if the user signs in on a different device than from
-    // which the requested the email link, and we don't have their email in
-    // local storage
-
-    if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
-      return this.tryFinishLogIn();
-    }
-
-    const options = {
-      // This must be true.
-      handleCodeInApp: true,
-      // URL you want to redirect back to. The domain (www.example.com) for this
-      // URL must be whitelisted in the Firebase Console.
-      url: `${process.env.REACT_APP_DOMAIN}/login`,
-    }
-    await firebase.auth().sendSignInLinkToEmail(email, options);
-    localStorage.setItem('emailForSignIn', email); // Will be verified in second half of login
+  public async logIn(username: string, password: string) {
+    console.log('Logging in');
+    const remote = await Couch.mkRemoteDB(username, password);
+    console.log('Login successful');
+    runInAction(() => {
+      this.loggedIn = true;
+    });
+    this.remoteDB = remote;
+    Couch.syncDBs(this.dbC, remote);
   }
 
-  public logOut() {
-    return firebase.auth().signOut();
-  }
-
-  public async tryFinishLogIn() {
-    if (!firebase.auth().isSignInWithEmailLink(window.location.href)) {
-      console.log('Not a link for finishing a login');
-      return;
-    }
-
-    const email = localStorage.getItem('emailForSignIn');
-    
-    /* tslint:disable-next-line:curly */
-    if (!email) throw new Error('Email is not stored in localStorage');
-
-    await firebase.auth().signInWithEmailLink(
-      email, window.location.href
-    );
-    localStorage.removeItem('emailForSignIn');
+  public async logOut() {
+    if (this.remoteDB) await Couch.logOut(this.remoteDB);
+    this.remoteDB = undefined;
+    runInAction(() => {
+      this.loggedIn = false;
+    });
   }
 
   public loadTxnsNextPage() {
@@ -184,7 +164,8 @@ class Store {
   }
 }
 
-const store = new Store();
+const localDB = Couch.mkLocalDB();
+const store = new Store(localDB);
 export default store;
 
 // let txnWatchUnsubscribe: (() => void) | null = null;

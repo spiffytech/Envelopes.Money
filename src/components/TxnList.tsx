@@ -17,7 +17,7 @@ function BankTxn({txn}: {txn: Txns.BankTxn}) {
       <td>{txn.payee}</td>
       <td>
         {Object.entries(txn.categories).map(([category, amount]) =>
-          <p key={`${txn.id}-${category}`}>{category}: {utils.formatCurrency(amount)}</p>
+          <p key={`${txn._id}-${category}`}>{category}: {utils.formatCurrency(amount)}</p>
         )}
       </td>
 
@@ -116,9 +116,9 @@ export default class TxnList extends React.Component<Props, typeof initialState>
             </thead>
             <tbody>
               {this.props.store!.visibleTxns.map((txn) =>
-                txn.type === 'banktxn' ? <BankTxn key={txn.id} txn={txn} /> :
-                txn.type === 'accountTransfer' ? <AccountTransfer key={txn.id} txn={txn} /> :
-                txn.type === 'envelopeTransfer' ? <EnvelopeTransfer key={txn.id} txn={txn} /> :
+                txn.type === 'banktxn' ? <BankTxn key={txn._id} txn={txn} /> :
+                txn.type === 'accountTransfer' ? <AccountTransfer key={txn._id} txn={txn} /> :
+                txn.type === 'envelopeTransfer' ? <EnvelopeTransfer key={txn._id} txn={txn} /> :
                 null
               )}
             </tbody>

@@ -1,4 +1,3 @@
-import TextField from '@material-ui/core/TextField';
 import {inject, observer} from 'mobx-react';
 import * as React from 'react';
 import {Redirect} from 'react-router-dom';
@@ -6,16 +5,11 @@ import store from '../store';
 
 interface Props {store?: typeof store};
 
-const initialState = {email: ''};
+const initialState = {username: '', password: ''};
 @inject((stores) => ({store: (stores as any).store as typeof store}))
 @observer
 export default class LoginForm extends React.Component<Props, typeof initialState> {
   public readonly state = initialState;
-
-  constructor(props: Props) {
-    super(props);
-    store.tryFinishLogIn();
-  }
 
   public render() {
     if (this.props.store!.loggedIn) {
@@ -25,22 +19,40 @@ export default class LoginForm extends React.Component<Props, typeof initialStat
     return (
       /* tslint:disable-next-line */
       <form onSubmit={this.handleSubmit.bind(this)}>
-        <TextField
-          label="Email"
-          value={this.state.email}
-          /* tslint:disable */
-          onChange={(event: any) => this.setState({email: event.target.value})}
-          /* tslint:enable */
-        />
+        <div className="form-group">
+          <label htmlFor="username">Username</label>
+          <input
+            type="username"
+            className="form-control"
+            id="username"
+            value={this.state.username}
+            /* tslint:disable */
+            onChange={(event: any) => this.setState({username: event.target.value})}
+            /* tslint:enable */
+          />
+        </div>
 
-        <input type="submit" value="Log In" />
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            className="form-control"
+            id="password"
+            value={this.state.password}
+            /* tslint:disable */
+            onChange={(event: any) => this.setState({password: event.target.value})}
+            /* tslint:enable */
+          />
+        </div>
+
+        <input type="submit" className="btn btn-primary" value="Log In" />
       </form>
     )
   }
 
   private async handleSubmit(event: any) {
     event.preventDefault();
-    await this.props.store!.logIn({email: this.state.email});
-    alert('Go to your email');
+    await this.props.store!.logIn(this.state.username, this.state.password);
+    alert('Go to your username');
   }
 }

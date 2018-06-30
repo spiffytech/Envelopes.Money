@@ -312,7 +312,7 @@ describe('Parsing categories', () => {
 describe('It converts to a ledger', () => {
   test('With a bank transaction', () => {
     const txn: Txns.BankTxn = {
-      id: 'blah',
+      _id: 'blah',
       date: new Date(),
       amount: -5000,
       memo: '',
@@ -327,7 +327,7 @@ describe('It converts to a ledger', () => {
 
   test('With an account transfer', () => {
     const txn: Txns.AccountTransfer = {
-      id: 'blah',
+      _id: 'blah',
       date: new Date(),
       amount: -5000,
       memo: '',

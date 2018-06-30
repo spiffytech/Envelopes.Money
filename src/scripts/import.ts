@@ -1,7 +1,7 @@
 import bluebird from 'bluebird';
 import csv from 'csv-parse';
-import * as firebase from 'firebase/app';
-import 'firebase/firestore';
+// import * as firebase from 'firebase/app';
+// import 'firebase/firestore';
 import * as _ from 'lodash';
 import {fs} from 'mz';
 import nconf from 'nconf'
@@ -9,7 +9,8 @@ import R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register'
 // import {Category, discoverCategories} from '../lib/categories';
-import * as firestore from '../lib/firestore';
+// import * as firestore from '../lib/firestore';
+import * as Couch from '../lib/couch';
 import {TxnItem} from '../lib/txns';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
@@ -22,6 +23,9 @@ global.Promise = bluebird;
 /* tslint:disable:no-var-requires */
 /* tslint:disable:no-console */
 /* tslint:disable:object-literal-sort-keys */
+
+require('dotenv').config();
+console.log('host', process.env.COUCH_HOST);
 
 nconf.argv().env();
 
@@ -196,7 +200,7 @@ export function ItemsForRow(
 
 export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
   return {
-    id: shortid.generate(),
+    _id: shortid.generate(),
     date: new Date(row.Date),
     amount: amountOfStr(row.Amount),
     account: row.Account,
@@ -209,7 +213,7 @@ export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
 
 export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
   return {
-    id: shortid.generate(),
+    _id: shortid.generate(),
     date: new Date(row.Date),
     amount: amountOfStr(row.Amount),
     memo: row.Notes,
@@ -256,6 +260,7 @@ async function learnCategories(txnItems: TxnItem[]) {
 }
 */
 
+/*
 async function writeToFirebase(txns: Txns.Txn[]) {
   const txnsSorted = txns.sort((txn1, txn2) => txn1.date < txn2.date ? -1 : 1);
   const chunks = _.chunk(txnsSorted, 1);
@@ -313,6 +318,7 @@ async function writeToFirebase(txns: Txns.Txn[]) {
     }
   }
 }
+*/
 
 async function main() {
   // Putting this here so the unit tests don't require these values
@@ -349,12 +355,25 @@ async function main() {
     txnItems.filter(({account}) => account === 'AmEx').map(({amount}) => amount).reduce(R.add) / 100,
   )
 
-  await writeToFirebase(txns);
+  // await writeToFirebase(txns);
 
   // await learnCategories(txnItems);
+
+  const remote = await Couch.mkRemoteDB(process.env.COUCH_USER!, process.env.COUCH_PASS!);
+  try {
+    console.log(remote === null);
+    /*
+    const chunks = _.chunk(txns, 500);
+    for (const chunk of chunks) {
+      await Couch.bulkImport(remote, chunk);
+    }
+    */
+  } catch(ex) {
+    console.log('error')
+    console.error(ex)
+    console.error(JSON.stringify(ex))
+  }
 }
 if (nconf.get('run')) {
-  /* tslint:disable */
-  main().then(console.log);
-  /* tslint:enable */
+  main();
 }

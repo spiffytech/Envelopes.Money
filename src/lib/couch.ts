@@ -7,6 +7,8 @@ console.log(PouchDBAuthentication)
 PouchDB.plugin(PouchDBAuthentication);
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBUpsert);
+/* tslint:disable-next-line:no-var-requires */
+PouchDB.plugin(require('pouchdb-live-find'));
 
 import * as Txns from './txns';
 

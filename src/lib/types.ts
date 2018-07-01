@@ -19,7 +19,10 @@ export interface Balance {
   balance: number;
 }
 
+export interface Account {
+  name: string;
+}
+
 export interface Category {
   name: string;
-  balance: number;
 }

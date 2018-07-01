@@ -2,7 +2,7 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
-import { action, autorun, computed, configure as mobxConfigure, observable, runInAction, set as mobxSet} from 'mobx';
+import { action, autorun, computed, configure as mobxConfigure, observable, runInAction} from 'mobx';
 import * as R from 'ramda';
 
 import * as Couch from './lib/couch';
@@ -15,10 +15,8 @@ mobxConfigure({ enforceActions: true });
 /* tslint:disable:no-console */
 
 class Store {
-  @observable public accounts: {[key: string]: Types.Balance} = {};
-  @observable public categories: {[key: string]: Types.Category} = {};
   @observable public email: string | null = null;
-  @observable public txns: Txns.Txn[] = [];
+  @observable public txns: Map<string,Txns.Txn> = new Map();
   @observable public db: firebase.firestore.DocumentReference | null = null;
   @observable public visibleTxns: Txns.Txn[] = [];
 
@@ -65,6 +63,7 @@ class Store {
       console.log();
       this.username = session.userCtx.name;
     });
+    await this.subscribeTxns();
   }
 
   @computed
@@ -73,19 +72,86 @@ class Store {
   }
 
   @computed
-  get categoryBalances(): Map<string, Types.Balance> {
+  get accounts(): Map<string, Types.Account> {
+    const all: string[][] =
+      Object.values(this.txns).
+      filter(Txns.touchesBank).
+      map((txn) => {
+        if (Txns.isBankTxn(txn)) {
+          return [txn.account];
+        } else if (Txns.isAccountTxfr(txn)) {
+          return [txn.from, txn.to];
+        }
+        const n: never = txn;
+        return n;
+      });
+
     return new Map(
-      Object.entries(this.categories).
-      map(([accountName, category]) => [accountName, category] as [string, Types.Balance])
+      R.uniq(R.flatten<string>(all)).
+      map((name): [string, Types.Account] => [name, {name}])
     );
   }
 
   @computed
-  get bankBalances(): Map<string, Types.Balance> {
-    return new Map(
-      Object.entries(this.accounts).
-      map(([accountName, account]) => [accountName, account] as [string, Types.Balance])
+  get categories(): Map<string, Types.Category> {
+    return (
+      new Map(
+        R.uniq(R.flatten<string>(
+          Object.values(this.txns).
+          filter(Txns.hasCategories).
+          map((txn) => {
+            if (Txns.isBankTxn(txn)) {
+              return Object.keys(txn.categories);
+            } else if (Txns.isEnvelopeTxfr(txn)) {
+              return [txn.from, txn.to];
+            }
+            const n: never = txn;
+            return n;
+          })
+        )).
+        map((name): [string, Types.Category] => [name, {name}])
+      )
     );
+  }
+
+  @computed
+  get categoryBalances(): Map<string, Types.Balance> {
+    const ledger = R.flatten<Txns.TxnItem>(
+      Array.from(this.txns.values()).
+        filter(Txns.hasCategories).
+        map(Txns.categoriesForTxn)
+    );
+    const groups = R.groupBy(
+      (txnItem) => txnItem.account,
+      ledger
+    );
+
+    const totals =
+      Object.entries(groups).
+      map(([account, txnItems]): [string, Types.Balance] => 
+        [
+          account,
+          {name: account, balance: txnItems.map(R.prop('amount')).reduce(R.add)}
+        ]
+      );
+    return new Map(totals);
+  }
+
+  @computed
+  get bankBalances(): Map<string, Types.Balance> {
+    const groups = R.groupBy(
+      (txnItem) => txnItem.account,
+      Txns.journalToLedger(Array.from(this.txns.values()))
+    );
+    const totals =
+      Object.entries(groups).
+      map(([account, txnItems]): [string, Types.Balance] => 
+        [
+          account,
+          {name: account, balance: txnItems.map(R.prop('amount')).reduce(R.add)}
+        ]
+      );
+    return new Map(totals);
   }
 
   @action
@@ -93,33 +159,36 @@ class Store {
     this.email = email;
   }
 
-  @action
-  public setAccounts(accounts: Types.Balance[]) {
-    mobxSet(this.accounts, {});
-    accounts.forEach((account) => mobxSet(this.accounts, {[account.name]: account}));
+  public setTxn(doc: Txns.Txn) {
+    this.txns.set(doc._id, doc);
   }
 
-  @action
-  public setCategories(accounts: Types.Balance[]) {
-    mobxSet(this.categories, {});
-    accounts.forEach((category) => mobxSet(this.categories, {[category.name]: category}));
-  }
-
-  public clearTxns() {
-    this.txns = [];
-  }
-
-  public addTxn(doc: Txns.Txn) {
-    this.txns.push(doc);
-  }
-
-  public addTxns(docs: Txns.Txn[]) {
-    this.txns.push(...docs);
+  public removeTxn(doc: Txns.Txn) {
+    this.txns.delete(doc._id);
   }
 
   @action
   public setDB(db: firebase.firestore.DocumentReference) {
     this.db = db;
+  }
+
+  public async subscribeTxns() {
+    const subscription = (this.dbC as any).liveFind({
+      selector: {
+        "$or": [
+          {type: 'banktxn'},
+          {type: 'accountTransfer'},
+          {type: 'envelopeTransfer'},
+        ]
+      }
+    });
+
+    subscription.on('update', action(({action: couchAction, doc}) => {
+      if (couchAction === 'ADD') return this.setTxn(doc);
+      if (couchAction === 'UPDATE') return this.setTxn(doc);
+      if (couchAction === 'REMOVE') return this.removeTxn(doc);
+    }));
+    subscription.on('error', console.error);
   }
 
   public async logIn(username: string, password: string) {
@@ -205,39 +274,5 @@ const localDB = Couch.mkLocalDB();
 const store = new Store(localDB);
 store.init();
 export default store;
-
-// let txnWatchUnsubscribe: (() => void) | null = null;
-
-firebase.auth().onAuthStateChanged(async (user) => {
-  try {
-    await firebase.firestore().enablePersistence();
-  } catch(ex) {
-    console.error(ex);
-  }
-
-  store.setUsername(user ? user.email : null)
-
-  const u = firebase.auth().currentUser;
-  if (u) {
-    /* tslint:disable-next-line */
-    const db = firebase.firestore().collection('users').doc(u.email!);
-    store.setDB(db);
-
-    // txnWatchUnsubscribe = firestore.watchTransactions(db, store);
-    store.firestoreSnapshots.set(
-      'accountWatch',
-      firestore.watch(db.collection('accounts'), store.setAccounts.bind(store))
-    );
-
-    store.firestoreSnapshots.set(
-      'categoryWatch',
-      firestore.watch(db.collection('categories'), store.setCategories.bind(store))
-    );
-  } else {
-    /* tslint:disable:curly */
-    // if (txnWatchUnsubscribe) txnWatchUnsubscribe();
-    /* tslint:enable:curly */
-  }
-});
 
 (window as any).stuff = Couch.getSession();

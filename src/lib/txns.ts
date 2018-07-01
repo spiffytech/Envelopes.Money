@@ -51,10 +51,8 @@ function txnItemOfTxn(txn: DETxn, account: string): TxnItem {
   return {account, amount: txn.items[account]};
 }
 
-export function journalToLedger(txns: DETxn[]): TxnItem[] {
-  return _.flatten(
-    txns.map((txn) => Object.keys(txn.items).map((account) => txnItemOfTxn(txn, account)))
-  );
+export function journalToLedger(txns: Txn[]): TxnItem[] {
+  return _.flatten(txns.filter(touchesBank).map(accountsForTxn));
 }
 
 /**
@@ -70,15 +68,6 @@ export function groupByAccount(acc: {[key: string]: TxnItem[]}, txn: DETxn): {[k
   return acc;
 }
 
-export function calcBalances(txns: DETxn[], filterFn: (txnItem: TxnItem) => boolean) {
-  const txnItems: TxnItem[] = journalToLedger(txns);
-  const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(filterFn));
-  return Object.entries(groups).map(([account, items]) => ({
-    account,
-    balance: items.map(R.prop('amount')).reduce(R.add, 0),
-  }));
-}
-
 export function accountsForTxn(txn: BankTxn | AccountTransfer): Array<{account: string, amount: number}> {
   if (txn.type === 'banktxn') return [{account: txn.account, amount: txn.amount}];
 
@@ -86,6 +75,24 @@ export function accountsForTxn(txn: BankTxn | AccountTransfer): Array<{account: 
     {account: txn.from, amount: txn.amount},
     {account: txn.to, amount: -txn.amount},
   ];
+}
+
+export function categoriesForTxn(txn: BankTxn | EnvelopeTransfer): TxnItem[] {
+  if (isBankTxn(txn)) {
+    return (
+      Object.entries(txn.categories).
+      map(([category, amount]): TxnItem =>
+        ({account: category, amount})
+      )
+    )
+  } else if (isEnvelopeTxfr(txn)) {
+    return [
+      {account: txn.from, amount: txn.amount},
+      {account: txn.to, amount: -txn.amount},
+    ];
+  }
+  const n: never = txn;
+  return n;
 }
 
 export function isBankTxn(txn: Txn): txn is BankTxn {
@@ -101,7 +108,25 @@ export function isEnvelopeTxfr(txn: Txn): txn is EnvelopeTransfer {
 }
 
 export function touchesBank(txn: Txn): txn is BankTxn | AccountTransfer {
-  return txn.type === 'banktxn' || txn.type === 'accountTransfer';
+  switch (txn.type) {
+    case 'banktxn': return true;
+    case 'accountTransfer': return true;
+    case 'envelopeTransfer': return false;
+    default:
+      const n: never = txn;
+      return n;
+  }
+}
+
+export function hasCategories(txn: Txn): txn is BankTxn | EnvelopeTransfer {
+  switch (txn.type) {
+    case 'banktxn': return true;
+    case 'envelopeTransfer': return true;
+    case 'accountTransfer': return false;
+    default:
+      const n: never = txn;
+      return n;
+  }
 }
 
 export const touchesAccount = R.curry((account: string, txn: Txn): boolean => {

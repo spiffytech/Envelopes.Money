@@ -183,11 +183,32 @@ class Store {
       }
     });
 
-    subscription.on('update', action(({action: couchAction, doc}) => {
-      if (couchAction === 'ADD') return this.setTxn(doc);
-      if (couchAction === 'UPDATE') return this.setTxn(doc);
-      if (couchAction === 'REMOVE') return this.removeTxn(doc);
-    }));
+    // On page load, accumulate txns so we can import them synchronously and not
+    // bring mobx to its knees
+    const pendingTxns: Txns.Txn[] = [];
+    let hasFinishedInitialQuery = false;  // Signals whether to accumulate
+    // Do accumulation
+    subscription.on('update', ({doc}: {doc: Txns.Txn}) => {
+      if (!hasFinishedInitialQuery) pendingTxns.push(doc);
+    });
+    // Consume accumulated and set up permanent listeners
+    subscription.on('ready', (...args: any[]) => {
+      hasFinishedInitialQuery = true;
+
+      // Set up our real update listeners
+      subscription.on('update', action(({action: couchAction, doc}) => {
+        if (couchAction === 'ADD') return this.setTxn(doc);
+        if (couchAction === 'UPDATE') return this.setTxn(doc);
+        if (couchAction === 'REMOVE') return this.removeTxn(doc);
+      }));
+
+      // Consume our list of pending documents in a performant synchronous transaction
+      runInAction(() => {
+        pendingTxns.forEach((txn) => this.setTxn(txn));
+        pendingTxns.length = 0;
+      });
+    });
+
     subscription.on('error', console.error);
   }
 

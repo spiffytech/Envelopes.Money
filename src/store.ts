@@ -24,7 +24,8 @@ class Store {
 
   public dbC: PouchDB.Database;
   public remoteDB?: PouchDB.Database;
-  @observable public loggedIn = false;
+  public pouchReplicator?: PouchDB.Replication.Sync<{}> = undefined;
+  @observable public username: string | null = null;
 
   public firestoreSnapshots: Map<string, () => void> = new Map();
 
@@ -39,7 +40,36 @@ class Store {
       }
     });
 
+    autorun(async () => {
+      if (this.username) {
+        console.log('Logged in')
+        this.remoteDB = await Couch.mkRemoteDB(this.username);
+        this.pouchReplicator = Couch.syncDBs(this.dbC, this.remoteDB!);
+      } else {
+        this.remoteDB = undefined;
+        if (this.pouchReplicator) this.pouchReplicator.cancel();
+      }
+    });
+
     this.dbC = local;
+  }
+
+  public async init() {
+    const session = await Couch.getSession();
+    if (session.userCtx.name === null) {
+      console.log('No user session');
+      return;
+    }
+    this.remoteDB = Couch.mkRemoteDB(session.userCtx.name);
+    runInAction(() => {
+      console.log();
+      this.username = session.userCtx.name;
+    });
+  }
+
+  @computed
+  get loggedIn(): boolean {
+    return Boolean(this.username);
   }
 
   @computed
@@ -94,20 +124,27 @@ class Store {
 
   public async logIn(username: string, password: string) {
     console.log('Logging in');
-    const remote = await Couch.mkRemoteDB(username, password);
+    const remote = await Couch.mkRemoteDB(username);
+    await Couch.logIn(remote, username, password);
+    const session = await remote.getSession();
     console.log('Login successful');
     runInAction(() => {
-      this.loggedIn = true;
+      this.username = session.userCtx.name;
     });
+    this.dbC = Couch.mkLocalDB();  // Covers recreating the DB after a logout destroys it
     this.remoteDB = remote;
     Couch.syncDBs(this.dbC, remote);
   }
 
   public async logOut() {
-    if (this.remoteDB) await Couch.logOut(this.remoteDB);
-    this.remoteDB = undefined;
+    console.log('Logging out...');
+    if (this.remoteDB) {
+      await Couch.logOut(this.remoteDB);
+      console.log('Logged out from CouchDB');
+    }
+    await this.dbC.destroy();
     runInAction(() => {
-      this.loggedIn = false;
+      this.username = null;
     });
   }
 
@@ -166,6 +203,7 @@ class Store {
 
 const localDB = Couch.mkLocalDB();
 const store = new Store(localDB);
+store.init();
 export default store;
 
 // let txnWatchUnsubscribe: (() => void) | null = null;
@@ -201,3 +239,5 @@ firebase.auth().onAuthStateChanged(async (user) => {
     /* tslint:enable:curly */
   }
 });
+
+(window as any).stuff = Couch.getSession();

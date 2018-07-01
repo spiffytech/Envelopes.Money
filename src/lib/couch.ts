@@ -1,9 +1,11 @@
 /* tslint:disable:no-console */
 import PouchDB from 'pouchdb';
 import PouchDBAuthentication from 'pouchdb-authentication';
+import PouchDBFind from 'pouchdb-find';
 import * as PouchDBUpsert from 'pouchdb-upsert';
 console.log(PouchDBAuthentication)
 PouchDB.plugin(PouchDBAuthentication);
+PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBUpsert);
 
 import * as Txns from './txns';
@@ -34,39 +36,32 @@ function isNode() {
   return typeof window === 'undefined';
 }
 
-export async function mkRemoteDB(username: string, password: string) {
+export function getSession() {
+  const remoteUrl = new URL(`/`, process.env.REACT_APP_COUCH_HOST);
+  const remote = new PouchDB(remoteUrl.toString(), {skip_setup: true});
+  (window as any).remote = remote;
+  return remote.getSession();
+}
+
+export function mkRemoteDB(username: string, password?: string) {
   const remoteUrl = new URL(`userdb-${toHex(username)}`, process.env.REACT_APP_COUCH_HOST);
 
   // Cookie authentication doesn't seem to work in node for unknown reasons
-  if (isNode()) {
+  if (password && isNode()) {
     remoteUrl.username = username;
     remoteUrl.password = password;
   }
-  const remote = new PouchDB(remoteUrl.toString(), {skip_setup: true});
+  return new PouchDB(remoteUrl.toString(), {skip_setup: true});
+}
 
+export async function logIn(remote: PouchDB.Database, username: string, password: string) {
   if (isNode()) {
     const loginSuccessful = await testRemoteLogin(remote);
     if (!loginSuccessful) throw new Error('Could not log into CouchDB');
   } else {
-    // Something something authenticating request against _session
-    const authStr = username + ':' + password;
-    const ajaxOpts = {
-      ajax: {
-        headers: {
-          Authorization: 'Basic ' + (
-            typeof window === 'undefined' ?
-            Buffer.from(authStr).toString('base64') :
-            btoa(authStr)
-          )
-        }
-      }
-    };
     console.log('Trying to log in...');
-    console.log(remote)
-    console.log(await (remote as any).logIn(username, password, ajaxOpts));
+    console.log(await remote.logIn(username, password));
   }
-
-  return remote;
 }
 
 export function mkLocalDB() {
@@ -77,8 +72,8 @@ export function logOut(remote: PouchDB.Database) {
   return remote.logOut();
 }
 
-export async function syncDBs(local: PouchDB.Database, remote: PouchDB.Database) {
-  PouchDB.sync(local, remote);
+export function syncDBs(local: PouchDB.Database, remote: PouchDB.Database): PouchDB.Replication.Sync<{}> {
+  return PouchDB.sync(local, remote, {live: true});
 }
 
 export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {

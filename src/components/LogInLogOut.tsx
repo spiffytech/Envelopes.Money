@@ -13,7 +13,9 @@ export default class LogInLogOut extends React.Component<Props, typeof initialSt
     if (this.props.store!.loggedIn) {
       return (
         <button
-          onClick={this.props.store!.logOut}
+          /* tslint:disable */
+          onClick={() => this.props.store!.logOut()}
+          /* tslint:enable */
           className="btn"
         >Log Out
         </button>

@@ -313,7 +313,7 @@ describe('It converts to a ledger', () => {
   test('With a bank transaction', () => {
     const txn: Txns.BankTxn = {
       _id: 'blah',
-      date: new Date(),
+      date: new Date().toISOString(),
       amount: -5000,
       memo: '',
       account: 'Checking',
@@ -328,7 +328,7 @@ describe('It converts to a ledger', () => {
   test('With an account transfer', () => {
     const txn: Txns.AccountTransfer = {
       _id: 'blah',
-      date: new Date(),
+      date: new Date().toISOString(),
       amount: -5000,
       memo: '',
       from: 'Checking',

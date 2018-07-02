@@ -6,7 +6,6 @@ import { action, autorun, computed, configure as mobxConfigure, observable, runI
 import * as R from 'ramda';
 
 import * as Couch from './lib/couch';
-import * as firestore from './lib/firestore';
 import * as Txns from './lib/txns';
 import * as Types from './lib/types';
 
@@ -18,25 +17,20 @@ class Store {
   @observable public email: string | null = null;
   @observable public txns: Map<string,Txns.Txn> = new Map();
   @observable public db: firebase.firestore.DocumentReference | null = null;
+
   @observable public visibleTxns: Txns.Txn[] = [];
+  @observable public visibleTxnsOffset = 0;
 
   public dbC: PouchDB.Database;
   public remoteDB?: PouchDB.Database;
   public pouchReplicator?: PouchDB.Replication.Sync<{}> = undefined;
   @observable public username: string | null = null;
 
-  public firestoreSnapshots: Map<string, () => void> = new Map();
-
-  public visibleTxnsFirst: firebase.firestore.QueryDocumentSnapshot | null = null;
-  public visibleTxnsLast: firebase.firestore.QueryDocumentSnapshot | null = null;
+  private visibleTxnsObserver: any = null;
+  private visibleTxnsPerPage = 20;
 
   constructor(local: PouchDB.Database) {
-    autorun(() => {
-      if (!this.loggedIn) {
-        Object.values(this.firestoreSnapshots).
-        forEach((unsubscriber) => unsubscriber());
-      }
-    });
+    this.dbC = local;
 
     autorun(async () => {
       if (this.username) {
@@ -49,7 +43,49 @@ class Store {
       }
     });
 
-    this.dbC = local;
+    autorun(() => {
+      if (this.visibleTxnsObserver) this.visibleTxnsObserver.cancel();
+      /* tslint:disable:object-literal-sort-keys */
+      this.visibleTxnsObserver = (this.dbC as any).liveFind({
+        selector: {
+          "$or": [
+            {type: 'banktxn'},
+            {type: 'accountTransfer'},
+            {type: 'envelopeTransfer'},
+          ]
+        },
+        limit: this.visibleTxnsPerPage,
+        skip: this.visibleTxnsOffset,
+        sort: [{date: 'desc'}],
+        aggregate: true,
+      });
+
+      let initialQueryFinished = false;
+      let pendingAggregate: Txns.Txn[] = [];
+      this.visibleTxnsObserver.on('ready', () => {
+        initialQueryFinished = true
+          runInAction(() => {
+            this.visibleTxns.length = 0;
+            pendingAggregate.forEach((txn) => this.visibleTxns.push(txn))
+          });
+      });
+
+      this.visibleTxnsObserver.on(
+        'update',
+        (_: any, aggregate: Txns.Txn[]) => {
+          if (!initialQueryFinished) {
+            pendingAggregate = aggregate;
+            return;
+          }
+
+          console.log(new Date())
+          runInAction(() => {
+            this.visibleTxns.length = 0;
+            aggregate.forEach((txn) => this.visibleTxns.push(txn));
+          });
+        }
+      );
+    });
   }
 
   public async init() {
@@ -64,6 +100,16 @@ class Store {
       this.username = session.userCtx.name;
     });
     await this.subscribeTxns();
+  }
+
+  @computed
+  get visibleIsFirstPage() {
+    return this.visibleTxnsOffset >= 0;
+  }
+
+  @computed
+  get visibleIsLastPage() {
+    return this.visibleTxnsOffset + this.visibleTxnsPerPage >= this.txns.size;
   }
 
   @computed
@@ -172,7 +218,7 @@ class Store {
     this.db = db;
   }
 
-  public async subscribeTxns() {
+  public subscribeTxns() {
     const subscription = (this.dbC as any).liveFind({
       selector: {
         "$or": [
@@ -191,25 +237,34 @@ class Store {
     subscription.on('update', ({doc}: {doc: Txns.Txn}) => {
       if (!hasFinishedInitialQuery) pendingTxns.push(doc);
     });
-    // Consume accumulated and set up permanent listeners
-    subscription.on('ready', (...args: any[]) => {
-      hasFinishedInitialQuery = true;
 
-      // Set up our real update listeners
-      subscription.on('update', action(({action: couchAction, doc}) => {
-        if (couchAction === 'ADD') return this.setTxn(doc);
-        if (couchAction === 'UPDATE') return this.setTxn(doc);
-        if (couchAction === 'REMOVE') return this.removeTxn(doc);
-      }));
+    return new Promise((resolve, reject) => {
+      // Consume accumulated and set up permanent listeners
+      subscription.on('ready', (...args: any[]) => {
+        hasFinishedInitialQuery = true;
 
-      // Consume our list of pending documents in a performant synchronous transaction
-      runInAction(() => {
-        pendingTxns.forEach((txn) => this.setTxn(txn));
-        pendingTxns.length = 0;
+        // Set up our real update listeners
+        subscription.on('update', action(({action: couchAction, doc}) => {
+          if (couchAction === 'ADD') return this.setTxn(doc);
+          if (couchAction === 'UPDATE') return this.setTxn(doc);
+          if (couchAction === 'REMOVE') return this.removeTxn(doc);
+        }));
+
+        // Consume our list of pending documents in a performant synchronous transaction
+        runInAction(() => {
+          pendingTxns.forEach((txn) => this.setTxn(txn));
+          pendingTxns.length = 0;
+        });
+
+        console.log('Resolving')
+        resolve();
       });
-    });
 
-    subscription.on('error', console.error);
+      subscription.on('error', (err: any) => {
+        console.error(err);
+        reject(err);
+      });
+    })
   }
 
   public async logIn(username: string, password: string) {
@@ -238,56 +293,17 @@ class Store {
     });
   }
 
+  @action
   public loadTxnsNextPage() {
-    // the ZZZ string represents a value that will always come after any date,
-    // so when txns are sorted desc, it'll always return the first item of the
-    // first page
-    this.loadTxnsPage(this.visibleTxnsLast || 'ZZZZZZZ', 'next');
-  }
-
-  public loadTxnsPrevPage() {
-    this.loadTxnsPage(this.visibleTxnsFirst, 'prev');
-  }
-
-  private loadTxnsPage(
-    sentinelDoc: firebase.firestore.QueryDocumentSnapshot | string | null,
-    direction: 'prev' | 'next'
-  ) {
-    // Remove our existing listen hook for any previous queries
-    const snapshotKey = 'txnslist';
-    if (!this.db) {
-      console.log('DB was not initialized, cannot load transactions');
-      return;
-    }
-    const unsubscriber = this.firestoreSnapshots.get(snapshotKey)
-    if (unsubscriber) {
-      unsubscriber();
-      this.firestoreSnapshots.delete(snapshotKey);
-    }
-
-    if (sentinelDoc && typeof sentinelDoc !== 'string') {
-      const data = sentinelDoc.data()!;
-      console.log(data.payee, data.date.toDate(), direction);
-    }
-    if (!sentinelDoc) console.log('Sentinel was null');
-
-    this.firestoreSnapshots.set(
-      snapshotKey,
-      firestore.listTxns(
-        this.db,
-        sentinelDoc,
-        direction,
-        (docs) => {
-          console.log('Got snapshot');
-          action(() => {
-            if (docs.length === 0) return;  // Otherwise we show an empty table
-            this.visibleTxns = docs.map((doc) => doc.data() as Txns.Txn);
-            this.visibleTxnsFirst = R.head(docs) || null;
-            this.visibleTxnsLast = R.last(docs) || null;
-          })();
-        }
-      )
+    this.visibleTxnsOffset = Math.min(
+      this.visibleTxnsOffset + this.visibleTxnsPerPage, 
+      this.txns.size - this.visibleTxnsPerPage
     );
+  }
+
+  @action
+  public loadTxnsPrevPage() {
+    this.visibleTxnsOffset = Math.max(this.visibleTxnsOffset - this.visibleTxnsPerPage, 0);
   }
 }
 

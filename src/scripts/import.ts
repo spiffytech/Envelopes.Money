@@ -201,7 +201,7 @@ export function ItemsForRow(
 export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
   return {
     _id: shortid.generate(),
-    date: new Date(row.Date),
+    date: new Date(row.Date).toString(),
     amount: amountOfStr(row.Amount),
     account: row.Account,
     payee: row.Name,
@@ -214,7 +214,7 @@ export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
 export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
   return {
     _id: shortid.generate(),
-    date: new Date(row.Date),
+    date: new Date(row.Date).toString(),
     amount: amountOfStr(row.Amount),
     memo: row.Notes,
     from: row.Account,

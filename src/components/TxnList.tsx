@@ -6,8 +6,8 @@ import * as Txns from '../lib/txns';
 import * as utils from '../lib/utils';
 import Store from '../store';
 
-function formatDate(date: any) {
-  return dateFns.format((date as any).toDate(), 'YYYY-MM-DD')
+function formatDate(date: string) {
+  return dateFns.format(date, 'YYYY-MM-DD')
 }
 
 function BankTxn({txn}: {txn: Txns.BankTxn}) {
@@ -83,7 +83,7 @@ export default class TxnList extends React.Component<Props, typeof initialState>
       <div>
         <nav aria-label="Recent transactions">
           <ul className="pagination">
-            { this.props.store!.visibleTxnsFirst ?
+            { !this.props.store!.visibleIsFirstPage ?
               <li className="page-item">
                 <button className="page-link" onClick={() => this.props.store!.loadTxnsPrevPage()}>
                   Previous
@@ -92,7 +92,7 @@ export default class TxnList extends React.Component<Props, typeof initialState>
               : null
             }
 
-            { this.props.store!.visibleTxnsLast ?
+            { !this.props.store!.visibleIsLastPage ?
             <li className="page-item">
               <button className="page-link" onClick={() => this.props.store!.loadTxnsNextPage()}>
                 Next

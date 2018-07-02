@@ -6,7 +6,7 @@ export {DETxn, TxnItem} from './types';
 
 export interface LedgerEvent {
   _id: string;
-  date: Date;
+  date: string;
   amount: number;
   memo: string;
 }

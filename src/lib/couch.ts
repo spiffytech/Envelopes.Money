@@ -56,6 +56,10 @@ export function mkRemoteDB(username: string, password?: string) {
   return new PouchDB(remoteUrl.toString(), {skip_setup: true});
 }
 
+export function mkLocalDB() {
+  return new PouchDB('local');
+}
+
 export async function logIn(remote: PouchDB.Database, username: string, password: string) {
   if (isNode()) {
     const loginSuccessful = await testRemoteLogin(remote);
@@ -64,10 +68,6 @@ export async function logIn(remote: PouchDB.Database, username: string, password
     console.log('Trying to log in...');
     console.log(await remote.logIn(username, password));
   }
-}
-
-export function mkLocalDB() {
-  return new PouchDB('local');
 }
 
 export function logOut(remote: PouchDB.Database) {

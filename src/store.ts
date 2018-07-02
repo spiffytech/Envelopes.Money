@@ -18,7 +18,6 @@ class Store {
   @observable public txns: Map<string,Txns.Txn> = new Map();
   @observable public db: firebase.firestore.DocumentReference | null = null;
 
-  @observable public visibleTxns: Txns.Txn[] = [];
   @observable public visibleTxnsOffset = 0;
 
   public dbC: PouchDB.Database;
@@ -26,7 +25,6 @@ class Store {
   public pouchReplicator?: PouchDB.Replication.Sync<{}> = undefined;
   @observable public username: string | null = null;
 
-  private visibleTxnsObserver: any = null;
   private visibleTxnsPerPage = 20;
 
   constructor(local: PouchDB.Database) {
@@ -41,50 +39,6 @@ class Store {
         this.remoteDB = undefined;
         if (this.pouchReplicator) this.pouchReplicator.cancel();
       }
-    });
-
-    autorun(() => {
-      if (this.visibleTxnsObserver) this.visibleTxnsObserver.cancel();
-      /* tslint:disable:object-literal-sort-keys */
-      this.visibleTxnsObserver = (this.dbC as any).liveFind({
-        selector: {
-          "$or": [
-            {type: 'banktxn'},
-            {type: 'accountTransfer'},
-            {type: 'envelopeTransfer'},
-          ]
-        },
-        limit: this.visibleTxnsPerPage,
-        skip: this.visibleTxnsOffset,
-        sort: [{date: 'desc'}],
-        aggregate: true,
-      });
-
-      let initialQueryFinished = false;
-      let pendingAggregate: Txns.Txn[] = [];
-      this.visibleTxnsObserver.on('ready', () => {
-        initialQueryFinished = true
-          runInAction(() => {
-            this.visibleTxns.length = 0;
-            pendingAggregate.forEach((txn) => this.visibleTxns.push(txn))
-          });
-      });
-
-      this.visibleTxnsObserver.on(
-        'update',
-        (_: any, aggregate: Txns.Txn[]) => {
-          if (!initialQueryFinished) {
-            pendingAggregate = aggregate;
-            return;
-          }
-
-          console.log(new Date())
-          runInAction(() => {
-            this.visibleTxns.length = 0;
-            aggregate.forEach((txn) => this.visibleTxns.push(txn));
-          });
-        }
-      );
     });
   }
 
@@ -103,8 +57,18 @@ class Store {
   }
 
   @computed
+  get visibleTxns(): Txns.Txn[] {
+    const txns = Array.from(this.txns.values());
+    return (
+      txns.
+      sort((a, b) => a.date < b.date ? 1 : -1).
+      slice(Math.max(0, Math.min(this.visibleTxnsOffset, txns.length - this.visibleTxnsPerPage)))
+    );
+  }
+
+  @computed
   get visibleIsFirstPage() {
-    return this.visibleTxnsOffset >= 0;
+    return this.visibleTxnsOffset === 0;
   }
 
   @computed

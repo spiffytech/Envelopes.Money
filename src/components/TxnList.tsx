@@ -10,6 +10,42 @@ function formatDate(date: string) {
   return dateFns.format(date, 'YYYY-MM-DD')
 }
 
+const TxnListNavComponent: React.StatelessComponent<{store?: typeof Store}> = ({store}) => {
+  return (
+    <nav aria-label="Recent transactions">
+      <ul className="pagination">
+        <li className="page-item">
+          <button
+            className="page-link btn"
+            disabled={store!.visibleIsFirstPage}
+            /* tslint:disable-next-line */
+            onClick={() => store!.loadTxnsPrevPage()}
+          >
+            Previous
+          </button>
+        </li>
+
+        <li className="page-item">
+          <button
+            className="page-link btn"
+            disabled={store!.visibleIsLastPage}
+            /* tslint:disable-next-line */
+            onClick={() => store!.loadTxnsNextPage()}
+          >
+            Next
+          </button>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+const TxnListNav = inject((stores) => ({store: (stores as any).store as typeof Store}))(
+  observer(
+    TxnListNavComponent
+  )
+);
+
+
 function BankTxn({txn}: {txn: Txns.BankTxn}) {
   return (
     <tr>
@@ -81,27 +117,7 @@ export default class TxnList extends React.Component<Props, typeof initialState>
     return (
       /* tslint:disable:jsx-no-lambda */
       <div>
-        <nav aria-label="Recent transactions">
-          <ul className="pagination">
-            { !this.props.store!.visibleIsFirstPage ?
-              <li className="page-item">
-                <button className="page-link" onClick={() => this.props.store!.loadTxnsPrevPage()}>
-                  Previous
-                </button>
-              </li>
-              : null
-            }
-
-            { !this.props.store!.visibleIsLastPage ?
-            <li className="page-item">
-              <button className="page-link" onClick={() => this.props.store!.loadTxnsNextPage()}>
-                Next
-              </button>
-            </li>
-            : null
-            }
-          </ul>
-        </nav>
+        <TxnListNav />
 
         <div className="table-responsive">
           <table className="table">
@@ -125,21 +141,7 @@ export default class TxnList extends React.Component<Props, typeof initialState>
           </table>
         </div>
 
-        <nav aria-label="Recent transactions">
-          <ul className="pagination">
-            <li className="page-item">
-              <button className="page-link" onClick={() => this.props.store!.loadTxnsPrevPage()}>
-                Previous
-              </button>
-            </li>
-
-            <li className="page-item">
-              <button className="page-link" onClick={() => this.props.store!.loadTxnsNextPage()}>
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
+        <TxnListNav />
       </div>
     );
   }

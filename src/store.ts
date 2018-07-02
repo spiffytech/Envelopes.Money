@@ -59,10 +59,11 @@ class Store {
   @computed
   get visibleTxns(): Txns.Txn[] {
     const txns = Array.from(this.txns.values());
+    const start = Math.max(0, Math.min(this.visibleTxnsOffset, txns.length - this.visibleTxnsPerPage))
     return (
       txns.
       sort((a, b) => a.date < b.date ? 1 : -1).
-      slice(Math.max(0, Math.min(this.visibleTxnsOffset, txns.length - this.visibleTxnsPerPage)))
+      slice(start, start + this.visibleTxnsPerPage)
     );
   }
 

@@ -1,22 +1,21 @@
-import {inject, observer} from 'mobx-react';
+import {observer} from 'mobx-react';
 import * as React from 'react';
-import {Redirect} from 'react-router-dom';
 import store from '../store';
 
 /* tslint:disable:no-console */
 
-interface Props {store?: typeof store};
+interface Props {store: typeof store};
 
 const initialState = {username: '', password: ''};
-@inject((stores) => ({store: (stores as any).store as typeof store}))
 @observer
 export default class LoginForm extends React.Component<Props, typeof initialState> {
   public readonly state = initialState;
 
   public render() {
-    if (this.props.store!.loggedIn) {
+    if (this.props.store.loggedIn) {
       console.log('You are logged in, redirecting to /');
-      return <Redirect to="/" />
+      store.showHome();
+      return null;
     }
 		console.log('Showing login form');
 

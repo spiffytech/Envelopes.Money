@@ -6,6 +6,7 @@ import { action, autorun, computed, configure as mobxConfigure, observable, runI
 import * as R from 'ramda';
 
 import * as Couch from './lib/couch';
+import {pushRoute} from './lib/router';
 import * as Txns from './lib/txns';
 import * as Types from './lib/types';
 import * as Views from './lib/Views';
@@ -43,6 +44,11 @@ class Store {
         if (this.pouchReplicator) this.pouchReplicator.cancel();
       }
     });
+
+    autorun(() => {
+      const path = this.urlPath;
+      if (path !== window.location.pathname) pushRoute(path);
+    })
   }
 
   public async init() {
@@ -283,7 +289,21 @@ class Store {
   @action
   public showLogin() {
     const view: Views.Login = {name: 'login'};
+    console.log('here')
     this.currentView = view;
+  }
+
+  @computed
+  public get urlPath() {
+    const name = this.currentView.name;
+    console.log('Showing page', name);
+    switch (name) {
+      case 'home': return '/'
+      case 'login': return '/login'
+      default:
+        const n: never = name;
+        return n;
+    }
   }
 }
 

@@ -19,7 +19,8 @@ export default class LogInLogOut extends React.Component<Props, typeof initialSt
         </button>
       );
     } else {
-      return <a href="/login" className="btn btn-primary">Log In</a>;
+      /* tslint:disable-next-line:jsx-no-lambda */
+      return <button onClick={() => store.showLogin()} className="btn btn-primary">Log In</button>;
     }
   }
 }

@@ -17,10 +17,16 @@ import Store from './store';
 
 initRouter(Store);
 
+const Guarded: React.StatelessComponent<{store: typeof Store}> = (props) => {
+  const store = props.store;
+  if (!store.loggedIn) return <Login store={store} />
+  return <div>{props.children}</div>;
+}
+
 function renderCurrentView(store: typeof Store) {
   const viewName = store.currentView.name;
   switch (viewName) {
-    case 'home': return <Home store={store} />
+    case 'home': return <Guarded store={store}><Home store={store} /></Guarded>
     case 'login': return <Login store={store} />
     default:
       const n: never = viewName;

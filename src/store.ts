@@ -2,6 +2,7 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 
+import * as bacon from 'baconjs';
 import { action, autorun, computed, configure as mobxConfigure, observable, runInAction} from 'mobx';
 import * as R from 'ramda';
 
@@ -203,39 +204,24 @@ class Store {
       }
     });
 
-    // On page load, accumulate txns so we can import them synchronously and not
-    // bring mobx to its knees
-    const pendingTxns: Txns.Txn[] = [];
-    let hasFinishedInitialQuery = false;  // Signals whether to accumulate
-    // Do accumulation
-    subscription.on('update', ({doc}: {doc: Txns.Txn}) => {
-      if (!hasFinishedInitialQuery) pendingTxns.push(doc);
-    });
+    bacon.fromEvent(subscription, 'update').
+      bufferWithTime(500).
+      onValue(action((values: any[]) => {
+        values.map(({action: couchAction, doc}) => {
+          if (couchAction === 'ADD') return this.setTxn(doc);
+          if (couchAction === 'UPDATE') return this.setTxn(doc);
+          if (couchAction === 'REMOVE') return this.removeTxn(doc);
+        })
+      }));
 
     return new Promise((resolve, reject) => {
       // Consume accumulated and set up permanent listeners
       subscription.on('ready', (...args: any[]) => {
-        hasFinishedInitialQuery = true;
-
-        // Set up our real update listeners
-        subscription.on('update', action(({action: couchAction, doc}) => {
-          if (couchAction === 'ADD') return this.setTxn(doc);
-          if (couchAction === 'UPDATE') return this.setTxn(doc);
-          if (couchAction === 'REMOVE') return this.removeTxn(doc);
-        }));
-
-        // Consume our list of pending documents in a performant synchronous transaction
-        runInAction(() => {
-          pendingTxns.forEach((txn) => this.setTxn(txn));
-          pendingTxns.length = 0;
-        });
-
-        console.log('Resolving')
         resolve();
       });
 
       subscription.on('error', (err: any) => {
-        console.error(err);
+        console.error('Hit an error subscribing to txns', err);
         reject(err);
       });
     })
@@ -253,6 +239,7 @@ class Store {
     this.dbC = Couch.mkLocalDB();  // Covers recreating the DB after a logout destroys it
     this.remoteDB = remote;
     Couch.syncDBs(this.dbC, remote);
+    console.log('blah')
   }
 
   public async logOut() {

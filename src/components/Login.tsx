@@ -3,6 +3,8 @@ import * as React from 'react';
 import {Redirect} from 'react-router-dom';
 import store from '../store';
 
+/* tslint:disable:no-console */
+
 interface Props {store?: typeof store};
 
 const initialState = {username: '', password: ''};
@@ -13,8 +15,10 @@ export default class LoginForm extends React.Component<Props, typeof initialStat
 
   public render() {
     if (this.props.store!.loggedIn) {
+      console.log('You are logged in, redirecting to /');
       return <Redirect to="/" />
     }
+		console.log('Showing login form');
 
     return (
       /* tslint:disable-next-line */

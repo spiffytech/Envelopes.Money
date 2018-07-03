@@ -261,10 +261,11 @@ class Store {
       await Couch.logOut(this.remoteDB);
       console.log('Logged out from CouchDB');
     }
-    await this.dbC.destroy();
     runInAction(() => {
       this.username = null;
     });
+
+    await this.dbC.destroy();
   }
 
   @action

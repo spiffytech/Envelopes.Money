@@ -264,6 +264,7 @@ class Store {
     runInAction(() => {
       this.username = null;
     });
+    this.txns.clear();  // Make sure the web page is emptied out in case we don't really redirect to /login
 
     await this.dbC.destroy();
   }

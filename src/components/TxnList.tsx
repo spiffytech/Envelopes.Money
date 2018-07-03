@@ -1,6 +1,6 @@
 import * as dateFns from 'date-fns';
 import {autorun} from 'mobx';
-import {inject, observer} from 'mobx-react';
+import {observer} from 'mobx-react';
 import * as React from 'react';
 import * as Txns from '../lib/txns';
 import * as utils from '../lib/utils';
@@ -39,11 +39,7 @@ const TxnListNavComponent: React.StatelessComponent<{store?: typeof Store}> = ({
     </nav>
   );
 }
-const TxnListNav = inject((stores) => ({store: (stores as any).store as typeof Store}))(
-  observer(
-    TxnListNavComponent
-  )
-);
+const TxnListNav = observer(TxnListNavComponent);
 
 
 function BankTxn({txn}: {txn: Txns.BankTxn}) {
@@ -98,9 +94,8 @@ function EnvelopeTransfer({txn}: {txn: Txns.EnvelopeTransfer}) {
 
 const initialState = { docs: [] };
 
-interface Props {store?: typeof Store}
+interface Props {store: typeof Store}
 
-@inject((stores) => ({store: (stores as any).store as typeof Store}))
 @observer
 export default class TxnList extends React.Component<Props, typeof initialState> {
   public readonly state = initialState;
@@ -117,7 +112,7 @@ export default class TxnList extends React.Component<Props, typeof initialState>
     return (
       /* tslint:disable:jsx-no-lambda */
       <div>
-        <TxnListNav />
+        <TxnListNav store={this.props.store} />
 
         <div className="table-responsive">
           <table className="table">
@@ -141,7 +136,7 @@ export default class TxnList extends React.Component<Props, typeof initialState>
           </table>
         </div>
 
-        <TxnListNav />
+        <TxnListNav store={this.props.store} />
       </div>
     );
   }

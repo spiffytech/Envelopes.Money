@@ -1,8 +1,10 @@
 import * as React from 'react';
 import LogInLogOut from './LogInLogOut';
 
+import Store from '../store';
 
-export default function Nav() {
+
+export default function Nav({store}: {store: typeof Store}) {
   return (
     <nav className="navbar navbar-expand-sm navbar-light bg-light">
       <a className="navbar-brand" href="/">Hacker Budget</a>
@@ -10,7 +12,7 @@ export default function Nav() {
         <span className="navbar-toggler-icon" />
       </button>
       <div className="collapse navbar-collapse">
-        <span className="ml-auto"><LogInLogOut /></span>
+        <span className="ml-auto"><LogInLogOut store={store} /></span>
       </div>
     </nav>
   );

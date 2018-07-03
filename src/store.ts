@@ -8,6 +8,7 @@ import * as R from 'ramda';
 import * as Couch from './lib/couch';
 import * as Txns from './lib/txns';
 import * as Types from './lib/types';
+import * as Views from './lib/Views';
 
 mobxConfigure({ enforceActions: true });
 
@@ -24,6 +25,8 @@ class Store {
   public remoteDB?: PouchDB.Database;
   public pouchReplicator?: PouchDB.Replication.Sync<{}> = undefined;
   @observable public username: string | null = null;
+
+  @observable public currentView: Views.All = {name: 'home'};
 
   private visibleTxnsPerPage = 20;
 
@@ -269,6 +272,18 @@ class Store {
   @action
   public loadTxnsPrevPage() {
     this.visibleTxnsOffset = Math.max(this.visibleTxnsOffset - this.visibleTxnsPerPage, 0);
+  }
+
+  @action
+  public showHome() {
+    const view: Views.Home = {name: 'home'};
+    this.currentView = view;
+  }
+
+  @action
+  public showLogin() {
+    const view: Views.Login = {name: 'login'};
+    this.currentView = view;
   }
 }
 

@@ -1,16 +1,14 @@
-import { inject, observer } from 'mobx-react';
+import {observer} from 'mobx-react';
 import * as React from 'react';
-import { Link } from 'react-router-dom';
 import store from '../store';
 
-interface Props { store?: typeof store };
+interface Props { store: typeof store };
 
 const initialState = { email: '' };
-@inject((stores) => ({ store: (stores as any).store as typeof store }))
 @observer
 export default class LogInLogOut extends React.Component<Props, typeof initialState> {
   public render() {
-    if (this.props.store!.loggedIn) {
+    if (this.props.store.loggedIn) {
       return (
         <button
           /* tslint:disable */
@@ -21,7 +19,7 @@ export default class LogInLogOut extends React.Component<Props, typeof initialSt
         </button>
       );
     } else {
-      return <Link to="/login" className="btn btn-primary">Log In</Link>;
+      return <a href="/login" className="btn btn-primary">Log In</a>;
     }
   }
 }

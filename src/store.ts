@@ -59,10 +59,11 @@ class Store {
     if (needsMemoryPouch) this.dbC = Couch.mkLocalDB(true);
     if (needsMemoryPouch) console.log('Assigned an in-memory DB');
 
-    await this.lookUpLocalSession(action((username: string) => this.username = username));
+    await this.lookUpLocalSession(action(async (username: string) => {
+      this.username = username
+      await this.subscribeTxns();
+    }));
     if (navigator.onLine) await this.lookUpRemoteSession();
-
-    await this.subscribeTxns();
   }
 
   public async lookUpLocalSession(onSuccess: (username: string) => any) {

@@ -1,7 +1,5 @@
 import bluebird from 'bluebird';
 import csv from 'csv-parse';
-// import * as firebase from 'firebase/app';
-// import 'firebase/firestore';
 import * as _ from 'lodash';
 import {fs} from 'mz';
 import nconf from 'nconf'
@@ -9,7 +7,6 @@ import R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register'
 // import {Category, discoverCategories} from '../lib/categories';
-// import * as firestore from '../lib/firestore';
 import * as Couch from '../lib/couch';
 import {TxnItem} from '../lib/txns';
 import * as Txns from '../lib/txns';
@@ -243,83 +240,6 @@ function nullFilter<T>(item: T | null | undefined): item is T {
   return Boolean(item);
 }
 
-/*
-async function learnCategories(txnItems: TxnItem[]) {
-  const categories = discoverCategories(txnItems);
-
-  const collRef = firebase.firestore().collection('users').doc(nconf.get('email')).collection('categories');
-  const batch = firebase.firestore().batch();
-  categories.forEach((category) => {
-    const cat: Category = {name: category, interval: 'weekly', target: 1, sortOrder: 0, group: null}
-    batch.set(
-      collRef.doc(category),
-      cat
-    )
-  });
-  await batch.commit();
-}
-*/
-
-/*
-async function writeToFirebase(txns: Txns.Txn[]) {
-  const txnsSorted = txns.sort((txn1, txn2) => txn1.date < txn2.date ? -1 : 1);
-  const chunks = _.chunk(txnsSorted, 1);
-  const db = firebase.firestore().collection('users').doc(nconf.get('email'));
-  const collRef = db.collection('txns');
-  let total = 0;
-  for (const chunk of chunks) {
-    const batch = firebase.firestore().batch();
-    for (const txn of chunk) {
-      batch.set(collRef.doc(txn.id), txn);
-    }
-    await batch.commit();
-
-    try {
-      console.log(JSON.stringify(
-        chunk.filter(Txns.touchesBank).map((txn) => [txn.date, Txns.accountsForTxn(txn)])
-      ));
-      await Promise.all(
-        _.flatten(
-          chunk.
-          filter(Txns.touchesBank).
-          map(Txns.accountsForTxn)
-        ).
-        map(({account, amount}) =>
-          firestore.updateAccountBalance(db.collection('accounts'), {account, amount})
-        )
-      );
-
-      await Promise.all(
-        _.flatten(
-          chunk.
-          filter(Txns.isBankTxn).
-          map((txn) => Object.entries(txn.categories).map(([category, amount]) => ({account: category, amount})))
-        ).
-        map(({account, amount}) =>
-          firestore.updateAccountBalance(db.collection('categories'), {account, amount})
-        )
-      );
-
-      await Promise.all(
-        chunk.
-        filter(Txns.isBankTxn).
-        filter(R.pipe(R.prop('payee'), R.complement(R.equals('')))).
-        map((txn) => txn.payee).
-        map((payee) =>
-          firestore.updatePayee(db.collection('payees'), payee)
-        )
-      );
-
-      total += chunk.length;
-      console.log(`Wrote ${total}`);
-    } catch(ex) {
-      console.error('Error updating entries')
-      throw ex;
-    }
-  }
-}
-*/
-
 async function main() {
   // Putting this here so the unit tests don't require these values
   nconf.required(['file', 'email']);
@@ -354,10 +274,6 @@ async function main() {
     txnItems.filter(({account}) => account === 'SECU Checking').map(({amount}) => amount).reduce(R.add) / 100,
     txnItems.filter(({account}) => account === 'AmEx').map(({amount}) => amount).reduce(R.add) / 100,
   )
-
-  // await writeToFirebase(txns);
-
-  // await learnCategories(txnItems);
 
   const remote = await Couch.mkRemoteDB(process.env.COUCH_USER!, process.env.COUCH_PASS!);
   try {

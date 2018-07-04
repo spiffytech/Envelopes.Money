@@ -9,6 +9,10 @@ PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBUpsert);
 /* tslint:disable-next-line:no-var-requires */
 PouchDB.plugin(require('pouchdb-live-find'));
+/* tslint:disable-next-line:no-var-requires */
+PouchDB.plugin(require('pouchdb-adapter-memory').default);
+
+(window as any).P = PouchDB;
 
 import * as Txns from './txns';
 
@@ -56,7 +60,8 @@ export function mkRemoteDB(username: string, password?: string) {
   return new PouchDB(remoteUrl.toString(), {skip_setup: true});
 }
 
-export function mkLocalDB() {
+export function mkLocalDB(memory = false) {
+  if (memory) return new PouchDB('local', {adapter: 'memory'});
   return new PouchDB('local');
 }
 

@@ -1,7 +1,3 @@
-import firebase from 'firebase/app';
-import 'firebase/auth';
-import 'firebase/firestore';
-
 import * as bacon from 'baconjs';
 import { action, autorun, computed, configure as mobxConfigure, observable, runInAction} from 'mobx';
 import * as R from 'ramda';
@@ -19,7 +15,6 @@ mobxConfigure({ enforceActions: true });
 class Store {
   @observable public email: string | null = null;
   @observable public txns: Map<string,Txns.Txn> = new Map();
-  @observable public db: firebase.firestore.DocumentReference | null = null;
 
   @observable public visibleTxnsOffset = 0;
 
@@ -52,7 +47,11 @@ class Store {
     })
   }
 
-  public async init() {
+  public async init(hasIndexDB: Promise<boolean>) {
+    const needsMemoryPouch = await hasIndexDB;
+    if (needsMemoryPouch) this.dbC = Couch.mkLocalDB(true);
+    if (needsMemoryPouch) console.log('Assigned an in-memory DB');
+
     const session = await Couch.getSession();
     if (session.userCtx.name === null) {
       console.log('No user session');
@@ -188,11 +187,6 @@ class Store {
     this.txns.delete(doc._id);
   }
 
-  @action
-  public setDB(db: firebase.firestore.DocumentReference) {
-    this.db = db;
-  }
-
   public subscribeTxns() {
     const subscription = (this.dbC as any).liveFind({
       selector: {
@@ -295,9 +289,20 @@ class Store {
   }
 }
 
+/** 
+ * Firefox private browsing doesn't have indexeddb support
+ */
+function isFFPrivateBrowsing() {
+  return new Promise<boolean>((resolve) => {
+    const db = indexedDB.open("test");
+    db.onerror = () => resolve(true)
+    db.onsuccess = () => resolve(false);
+  });
+}
+
 const localDB = Couch.mkLocalDB();
 const store = new Store(localDB);
-store.init();
+store.init(isFFPrivateBrowsing());
 export default store;
 
 (window as any).stuff = Couch.getSession();

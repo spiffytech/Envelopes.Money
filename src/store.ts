@@ -239,7 +239,7 @@ class Store {
     this.dbC = Couch.mkLocalDB();  // Covers recreating the DB after a logout destroys it
     this.remoteDB = remote;
     Couch.syncDBs(this.dbC, remote);
-    console.log('blah')
+    await this.subscribeTxns();
   }
 
   public async logOut() {

@@ -1,5 +1,4 @@
 import * as dateFns from 'date-fns';
-import {autorun} from 'mobx';
 import {observer} from 'mobx-react';
 import * as React from 'react';
 import * as Txns from '../lib/txns';
@@ -99,14 +98,6 @@ interface Props {store: typeof Store}
 @observer
 export default class TxnList extends React.Component<Props, typeof initialState> {
   public readonly state = initialState;
-
-  public componentDidMount() {
-    /* tslint:disable-next-line */
-    console.log('Running didMount')
-    autorun(() => {
-      if (this.props.store!.db) this.props.store!.loadTxnsNextPage();
-    })
-  }
 
   public render() {
     return (

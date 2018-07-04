@@ -285,7 +285,6 @@ class Store {
   @computed
   public get urlPath() {
     const name = this.currentView.name;
-    console.log('Showing page', name);
     switch (name) {
       case 'home': return '/'
       case 'login': return '/login'

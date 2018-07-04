@@ -20,9 +20,6 @@ initRouter(Store);
 /* tslint:disable:no-console */
 
 const Guarded: React.StatelessComponent<{store: typeof Store}> = observer((props) => {
-  console.log('here')
-  console.log(props.store.loggedIn)
-  console.log(props.store.username)
   const store = props.store;
   if (!store.loggedIn) return <Login store={store} />
   return <div>{props.children}</div>;

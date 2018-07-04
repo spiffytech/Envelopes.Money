@@ -15,7 +15,7 @@ export default observer(
           </div>
 
           <div className="col-md4">
-            <Balances accounts={store.bankBalances} />
+            { false ? <Balances accounts={store.bankBalances} />  : null}
           </div>
 
           <div className="col-md4">

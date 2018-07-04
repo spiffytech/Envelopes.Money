@@ -1,9 +1,16 @@
+import * as Txns from './txns';
+
 export interface Home {
-  name: 'home',
+  name: 'home';
 }
 
 export interface Login {
-  name: 'login',
+  name: 'login';
 }
 
-export type All = Home | Login;
+export interface EditTxn {
+  name: 'editTxn';
+  txn: Txns.Txn;
+}
+
+export type All = Home | Login | EditTxn;

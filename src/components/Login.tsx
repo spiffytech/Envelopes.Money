@@ -56,6 +56,5 @@ export default class LoginForm extends React.Component<Props, typeof initialStat
   private async handleSubmit(event: any) {
     event.preventDefault();
     await this.props.store!.logIn(this.state.username, this.state.password);
-    alert('Go to your username');
   }
 }

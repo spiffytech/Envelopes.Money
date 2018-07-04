@@ -43,7 +43,7 @@ const TxnListNav = observer(TxnListNavComponent);
 
 function BankTxn({txn}: {txn: Txns.BankTxn}) {
   return (
-    <tr>
+    <>
       <td>{formatDate(txn.date)}</td>
       <td>{txn.payee}</td>
       <td>
@@ -55,13 +55,13 @@ function BankTxn({txn}: {txn: Txns.BankTxn}) {
       <td>{txn.memo}</td>
 
       <td>{utils.formatCurrency(txn.amount)}</td>
-    </tr>
+    </>
   );
 }
 
 function AccountTransfer({txn}: {txn: Txns.AccountTransfer}) {
   return (
-    <tr>
+    <>
       <td>{formatDate(txn.date)}</td>
       <td>{txn.from}</td>
       <td>
@@ -71,13 +71,13 @@ function AccountTransfer({txn}: {txn: Txns.AccountTransfer}) {
       <td>{txn.memo}</td>
 
       <td>{utils.formatCurrency(txn.amount)}</td>
-    </tr>
+    </>
   );
 }
 
 function EnvelopeTransfer({txn}: {txn: Txns.EnvelopeTransfer}) {
   return (
-    <tr>
+    <>
       <td>{formatDate(txn.date)}</td>
       <td>{txn.from}</td>
       <td>
@@ -87,7 +87,7 @@ function EnvelopeTransfer({txn}: {txn: Txns.EnvelopeTransfer}) {
       <td>{txn.memo}</td>
 
       <td>{utils.formatCurrency(txn.amount)}</td>
-    </tr>
+    </>
   );
 }
 
@@ -117,11 +117,14 @@ export default class TxnList extends React.Component<Props, typeof initialState>
               </tr>
             </thead>
             <tbody>
-              {this.props.store!.visibleTxns.map((txn) =>
-                txn.type === 'banktxn' ? <BankTxn key={txn._id} txn={txn} /> :
-                txn.type === 'accountTransfer' ? <AccountTransfer key={txn._id} txn={txn} /> :
-                txn.type === 'envelopeTransfer' ? <EnvelopeTransfer key={txn._id} txn={txn} /> :
-                null
+              {this.props.store!.visibleTxns.map((txn) => <tr key={txn._id} onClick={this.props.store.showEditTxn.bind(this.props.store, txn._id)}>
+                {
+                  txn.type === 'banktxn' ? <BankTxn key={txn._id} txn={txn} /> :
+                  txn.type === 'accountTransfer' ? <AccountTransfer key={txn._id} txn={txn} /> :
+                  txn.type === 'envelopeTransfer' ? <EnvelopeTransfer key={txn._id} txn={txn} /> :
+                  null
+                }
+                </tr>
               )}
             </tbody>
           </table>

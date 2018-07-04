@@ -47,6 +47,7 @@ class Store {
 
     autorun(() => {
       const path = this.urlPath;
+      console.log(path);
       if (path !== window.location.pathname) pushRoute(path);
     })
 
@@ -206,6 +207,10 @@ class Store {
     this.txns.set(doc._id, doc);
   }
 
+  public upsertTxn(txn: Txns.Txn) {
+    return Couch.upsertTxn(this.dbC, txn);
+  }
+
   public removeTxn(doc: Txns.Txn) {
     this.txns.delete(doc._id);
   }
@@ -296,18 +301,26 @@ class Store {
   @action
   public showLogin() {
     const view: Views.Login = {name: 'login'};
-    console.log('here')
+    this.currentView = view;
+  }
+
+  @action
+  public showEditTxn(txnId: string) {
+    const txn = this.txns.get(txnId);
+    if (!txn) return this.showHome();
+
+    const view: Views.EditTxn = {name: 'editTxn', txn};
     this.currentView = view;
   }
 
   @computed
   public get urlPath() {
-    const name = this.currentView.name;
-    switch (name) {
+    switch (this.currentView.name) {
       case 'home': return '/'
       case 'login': return '/login'
+      case 'editTxn': return `/editTxn/${this.currentView.txn._id}`
       default:
-        const n: never = name;
+        const n: never = this.currentView;
         return n;
     }
   }

@@ -5,10 +5,13 @@ import {toJS} from 'mobx';
 import {observer} from 'mobx-react';
 import * as React from 'react';
 import 'typeface-roboto'
+
 import './App.css';
+import EditTxn from './components/EditTxn';
 import Home from './components/Home';
 import Login from './components/Login';
 import Nav from './components/Nav';
+
 import initRouter from './lib/router';
 import Store from './store';
 
@@ -26,12 +29,13 @@ const Guarded: React.StatelessComponent<{store: typeof Store}> = observer((props
 });
 
 function renderCurrentView(store: typeof Store) {
-  const viewName = store.currentView.name;
-  switch (viewName) {
+  console.log('Switching view to', store.currentView.name);
+  switch (store.currentView.name) {
     case 'home': return <Guarded store={store}><Home store={store} /></Guarded>
     case 'login': return <Login store={store} />
+    case 'editTxn': return <EditTxn  store={store} txn={toJS(store.currentView.txn)} />
     default:
-      const n: never = viewName;
+      const n: never = store.currentView;
       return n;
   }
 }

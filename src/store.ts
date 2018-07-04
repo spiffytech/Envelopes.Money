@@ -25,17 +25,21 @@ class Store {
 
   @observable public currentView: Views.All = {name: 'home'};
 
+  @observable private isOnline = navigator.onLine;
+
   private visibleTxnsPerPage = 20;
 
   constructor(local: PouchDB.Database) {
     this.dbC = local;
 
+    // Handle replication
     autorun(async () => {
-      if (this.username) {
-        console.log('Logged in')
+      if (this.username && this.isOnline) {
+        console.log('Logged in, beginning replication')
         this.remoteDB = await Couch.mkRemoteDB(this.username);
         this.pouchReplicator = Couch.syncDBs(this.dbC, this.remoteDB!);
       } else {
+        console.log('Cannot replicate, no username or is offline');
         this.remoteDB = undefined;
         if (this.pouchReplicator) this.pouchReplicator.cancel();
       }
@@ -45,6 +49,9 @@ class Store {
       const path = this.urlPath;
       if (path !== window.location.pathname) pushRoute(path);
     })
+
+    window.addEventListener('online', action(() => this.isOnline = true));
+    window.addEventListener('offline', action(() => this.isOnline = false));
   }
 
   public async init(hasIndexDB: Promise<boolean>) {
@@ -52,17 +59,32 @@ class Store {
     if (needsMemoryPouch) this.dbC = Couch.mkLocalDB(true);
     if (needsMemoryPouch) console.log('Assigned an in-memory DB');
 
+    await this.lookUpLocalSession(action((username: string) => this.username = username));
+    if (navigator.onLine) await this.lookUpRemoteSession();
+
+    await this.subscribeTxns();
+  }
+
+  public async lookUpLocalSession(onSuccess: (username: string) => any) {
+    try {
+      const doc = await this.dbC.get<{username: string}>('_local/session');
+      console.log('Found local session', doc);
+      return onSuccess(doc.username);
+    } catch(ex) {
+      console.log('Error looking up local session', ex);
+      if (ex.status === 404) return;
+      throw ex;
+    }
+  }
+
+  public async lookUpRemoteSession() {
     const session = await Couch.getSession();
     if (session.userCtx.name === null) {
       console.log('No user session');
+      await this.logOut();
       return;
     }
     this.remoteDB = Couch.mkRemoteDB(session.userCtx.name);
-    runInAction(() => {
-      console.log();
-      this.username = session.userCtx.name;
-    });
-    await this.subscribeTxns();
   }
 
   @computed
@@ -231,6 +253,7 @@ class Store {
       this.username = session.userCtx.name;
     });
     this.dbC = Couch.mkLocalDB();  // Covers recreating the DB after a logout destroys it
+    await this.dbC.put({_id: '_local/session', username: session.userCtx.name});
     this.remoteDB = remote;
     Couch.syncDBs(this.dbC, remote);
     await this.subscribeTxns();

@@ -1,13 +1,8 @@
-import * as dateFns from 'date-fns';
 import {observer} from 'mobx-react';
 import * as React from 'react';
 import * as Txns from '../lib/txns';
 import * as utils from '../lib/utils';
 import Store from '../store';
-
-function formatDate(date: string) {
-  return dateFns.format(date, 'YYYY-MM-DD')
-}
 
 const TxnListNavComponent: React.StatelessComponent<{store?: typeof Store}> = ({store}) => {
   return (
@@ -44,17 +39,17 @@ const TxnListNav = observer(TxnListNavComponent);
 function BankTxn({txn}: {txn: Txns.BankTxn}) {
   return (
     <>
-      <td>{formatDate(txn.date)}</td>
+      <td>{Txns.formatDate(txn.date)}</td>
       <td>{txn.payee}</td>
       <td>
         {Object.entries(txn.categories).map(([category, amount]) =>
-          <p key={`${txn._id}-${category}`}>{category}: {utils.formatCurrency(amount)}</p>
+          <p key={`${txn._id}-${category}`}>{category}: {utils.formatCurrency(Txns.penniesToDollars(amount))}</p>
         )}
       </td>
 
       <td>{txn.memo}</td>
 
-      <td>{utils.formatCurrency(txn.amount)}</td>
+      <td>{utils.formatCurrency(Txns.penniesToDollars(txn.amount))}</td>
     </>
   );
 }
@@ -62,7 +57,7 @@ function BankTxn({txn}: {txn: Txns.BankTxn}) {
 function AccountTransfer({txn}: {txn: Txns.AccountTransfer}) {
   return (
     <>
-      <td>{formatDate(txn.date)}</td>
+      <td>{Txns.formatDate(txn.date)}</td>
       <td>{txn.from}</td>
       <td>
         {txn.to}
@@ -70,7 +65,7 @@ function AccountTransfer({txn}: {txn: Txns.AccountTransfer}) {
 
       <td>{txn.memo}</td>
 
-      <td>{utils.formatCurrency(txn.amount)}</td>
+      <td>{utils.formatCurrency(Txns.penniesToDollars(txn.amount))}</td>
     </>
   );
 }
@@ -78,7 +73,7 @@ function AccountTransfer({txn}: {txn: Txns.AccountTransfer}) {
 function EnvelopeTransfer({txn}: {txn: Txns.EnvelopeTransfer}) {
   return (
     <>
-      <td>{formatDate(txn.date)}</td>
+      <td>{Txns.formatDate(txn.date)}</td>
       <td>{txn.from}</td>
       <td>
         {txn.to}
@@ -86,7 +81,7 @@ function EnvelopeTransfer({txn}: {txn: Txns.EnvelopeTransfer}) {
 
       <td>{txn.memo}</td>
 
-      <td>{utils.formatCurrency(txn.amount)}</td>
+      <td>{utils.formatCurrency(Txns.penniesToDollars(txn.amount))}</td>
     </>
   );
 }

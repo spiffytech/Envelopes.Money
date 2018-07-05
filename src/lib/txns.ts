@@ -1,3 +1,4 @@
+import * as dateFns from 'date-fns';
 import * as _ from 'lodash';
 import * as R from 'ramda';
 
@@ -134,3 +135,15 @@ export const touchesAccount = R.curry((account: string, txn: Txn): boolean => {
   if(isBankTxn(txn)) return txn.account === account;
   return txn.from === account || txn.to === account;
 });
+
+export function formatDate(date: string) {
+  return dateFns.format(date, 'YYYY-MM-DD')
+}
+
+export function penniesToDollars(pennies: number) {
+  return pennies / 100;
+}
+
+export function dollarsToPennies(dollars: number) {
+  return Math.round(dollars * 100);
+}

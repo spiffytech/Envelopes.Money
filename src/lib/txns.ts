@@ -2,13 +2,21 @@ import * as dateFns from 'date-fns';
 import * as _ from 'lodash';
 import * as R from 'ramda';
 
-import {DETxn, TxnItem} from './types';
-export {DETxn, TxnItem} from './types';
+import {DETxn} from './types';
+export {DETxn} from './types';
+
+export type Dollars = number & {_type: 'dollars'};
+export type Pennies = number & {_type: 'pennies'};
+
+export interface TxnItem {
+  account: string;
+  amount: Pennies;
+}
 
 export interface LedgerEvent {
   _id: string;
   date: string;
-  amount: number;
+  amount: Pennies;
   memo: string;
 }
 
@@ -21,7 +29,7 @@ export interface EnvelopeTransfer extends LedgerEvent {
 export interface BankTxn extends LedgerEvent {
   account: string;
   payee: string;
-  categories: {[key: string]: number};
+  categories: {[key: string]: Pennies};
   type: 'banktxn';
 }
 
@@ -33,6 +41,11 @@ export interface AccountTransfer extends LedgerEvent {
 }
 
 export type Txn = BankTxn | AccountTransfer | EnvelopeTransfer;
+
+export interface Balance {
+  name: string;
+  balance: Pennies;
+}
 
 export function learnAccountsFromTxns(txns: DETxn[]): string[] {
   return _.flatten(
@@ -48,33 +61,16 @@ export function learnAccountsFromTxns(txns: DETxn[]): string[] {
   );
 }
 
-function txnItemOfTxn(txn: DETxn, account: string): TxnItem {
-  return {account, amount: txn.items[account]};
-}
-
 export function journalToLedger(txns: Txn[]): TxnItem[] {
   return _.flatten(txns.filter(touchesBank).map(accountsForTxn));
 }
 
-/**
- * A reducer factory for grouping Txns into TxnItems grouped by account they
- * affect, including all nested account levels
- */
-export function groupByAccount(acc: {[key: string]: TxnItem[]}, txn: DETxn): {[key: string]: TxnItem[]} {
-  Object.keys(txn.items).
-  forEach((account) =>
-    acc[account] = [...acc[account] || [], txnItemOfTxn(txn, account)]
-  );
-
-  return acc;
-}
-
-export function accountsForTxn(txn: BankTxn | AccountTransfer): Array<{account: string, amount: number}> {
+export function accountsForTxn(txn: BankTxn | AccountTransfer): TxnItem[] {
   if (txn.type === 'banktxn') return [{account: txn.account, amount: txn.amount}];
 
   return [
     {account: txn.from, amount: txn.amount},
-    {account: txn.to, amount: -txn.amount},
+    {account: txn.to, amount: -txn.amount as Pennies},
   ];
 }
 
@@ -89,7 +85,7 @@ export function categoriesForTxn(txn: BankTxn | EnvelopeTransfer): TxnItem[] {
   } else if (isEnvelopeTxfr(txn)) {
     return [
       {account: txn.from, amount: txn.amount},
-      {account: txn.to, amount: -txn.amount},
+      {account: txn.to, amount: -txn.amount as Pennies},
     ];
   }
   const n: never = txn;
@@ -140,10 +136,10 @@ export function formatDate(date: string) {
   return dateFns.format(date, 'YYYY-MM-DD')
 }
 
-export function penniesToDollars(pennies: number) {
-  return pennies / 100;
+export function penniesToDollars(pennies: Pennies): Dollars {
+  return pennies / 100 as Dollars;
 }
 
-export function dollarsToPennies(dollars: number) {
-  return Math.round(dollars * 100);
+export function dollarsToPennies(dollars: Dollars): Pennies {
+  return Math.round(dollars * 100) as Pennies;
 }

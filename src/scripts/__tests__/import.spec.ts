@@ -1,4 +1,4 @@
-import {DETxn, groupByAccount, learnAccountsFromTxns} from '../../lib/txns';
+import {DETxn, learnAccountsFromTxns} from '../../lib/txns';
 import * as Txns from '../../lib/txns';
 import * as import_ from '../import';
 import {GoodBudgetRow, GoodBudgetTxfr} from '../types';
@@ -136,42 +136,6 @@ describe('It learns accounts correctly', () => {
   });
 });
 
-describe('It groups accounts correctly', () => {
-  test('With a checking account', () => {
-    const txns: DETxn[] = [
-      {
-        id: 'stuff',
-        payee: 'whomever',
-        date: new Date(),
-        memo: '',
-        items: {
-          'Assets:Checking': -500,
-          'Liabilities:Food:Grocery:Fancy': 500,
-        }
-      },
-      {
-        id: 'stuff2',
-        payee: 'whomever2',
-        date: new Date(),
-        memo: '',
-        items: {
-          'Liabilities:Credit Card': -500,
-          'Liabilities:Food:Grocery:Fancy': 500,
-        }
-      }
-    ];
-
-    expect(txns.reduce(groupByAccount, {} as {[key: string]: any})).toEqual({
-      'Assets:Checking': [{account: 'Assets:Checking', amount: -500}],
-      'Liabilities:Credit Card': [{account: 'Liabilities:Credit Card', amount: -500}],
-      'Liabilities:Food:Grocery:Fancy': [
-        {account: 'Liabilities:Food:Grocery:Fancy', amount: 500},
-        {account: 'Liabilities:Food:Grocery:Fancy', amount: 500},
-      ],
-    })
-  });
-});
-
 describe('It sums up these transactions correctly', () => {
   const rows = require('./fixture_1.json');
   let txns: Txns.Txn[] = rows.map((row: GoodBudgetRow) => import_.rowToTxn(row));
@@ -230,82 +194,16 @@ describe('Naming outbound categories', () => {
 
 describe('Generating items for categories', () => {
   test('It returns one account for regular expenses', () => {
-    expect(import_.mkCategoryItems(['Food', -200, 'Payee'], false, AssetAccounts, LiabilityAccounts)).
+    expect(import_.mkCategoryItems(['Food', -200 as Txns.Pennies, 'Payee'], false, AssetAccounts, LiabilityAccounts)).
       toEqual([{account: 'Liabilities:Food', amount: 200}])
   });
 
   test('It returns two accounts for fills', () => {
-    expect(import_.mkCategoryItems(['Food', 200, 'Payee'], true, AssetAccounts, LiabilityAccounts)).
+    expect(import_.mkCategoryItems(['Food', 200 as Txns.Pennies, 'Payee'], true, AssetAccounts, LiabilityAccounts)).
       toEqual([
         {account: 'Liabilities:Food', amount: -200},
         {account: 'Expenses:Food', amount: 200}
       ])
-  });
-
-  test('It handles this account transfer', () => {
-    const row: GoodBudgetRow = {
-      "Date":"06/08/2018",
-      "Envelope":"",
-      "Account":"Checking",
-      "Name":"Credit Card",
-      "Notes":"Account Transfer",
-      "Amount":"-2,097.27",
-      "Status":"",
-      "Details":"",
-    }
-
-    /* tslint:disable-next-line:no-console */
-    console.log(import_.ItemsForRow(AssetAccounts, LiabilityAccounts, IncomePayees, row));
-  })
-});
-
-describe('Parsing categories', () => {
-  const itemsOneCategory = import_.ItemsForRow(
-    AssetAccounts, LiabilityAccounts, IncomePayees,
-    mkRow({Amount: '-5.00', Account: 'Checking', Envelope: 'Food'})
-  );
-  const itemsTwoCategories = import_.ItemsForRow(
-    AssetAccounts, LiabilityAccounts, IncomePayees,
-    mkRow({Amount: '-5.02', Account: 'Checking', Details:  'Food|-2.01||Grocery|-3.01'})
-  );
-  const incomeTwoCategories = import_.ItemsForRow(
-    AssetAccounts, LiabilityAccounts, IncomePayees,
-    mkRow({Amount: '05.00', Name: 'My Company', Account: 'Checking', Details:  'Food|2.00||Grocery|3.00'})
-  );
-
-  test('It parses this test transaction', () => {
-    const actual = import_.parseCategories(
-      mkRow({Amount: '05.00', Name: 'My Company', Account: 'Checking', Details:  'Food|2.00||Grocery|3.00'})
-    );
-    expect(actual).toEqual({'Food': 200, 'Grocery': 300});
-  });
-
-  test('Single category transactions have the right Items', () => {
-    expect(itemsOneCategory).toEqual([
-      {account: 'Assets:Checking', amount: -500},
-      {account: 'Liabilities:Food', amount: 500},
-    ]);
-  });
-
-  test('Two category transactions have the right Items', () => {
-    expect(itemsTwoCategories).toEqual([
-      {account: 'Assets:Checking', amount: -502},
-      {account: 'Liabilities:Food', amount: 201},
-      {account: 'Liabilities:Grocery', amount: 301},
-    ]);
-  });
-
-  test('Income transactions have the right Items', () => {
-    expect(incomeTwoCategories).toEqual([
-      {account: 'Income:Salary', amount: -500},
-      {account: 'Assets:Checking', amount: 500},
-
-      {account: 'Liabilities:Food', amount: -200},
-      {account: 'Expenses:Food', amount: 200},
-
-      {account: 'Liabilities:Grocery', amount: -300},
-      {account: 'Expenses:Grocery', amount: 300},
-    ]);
   });
 });
 
@@ -314,11 +212,11 @@ describe('It converts to a ledger', () => {
     const txn: Txns.BankTxn = {
       _id: 'blah',
       date: new Date().toISOString(),
-      amount: -5000,
+      amount: -5000 as Txns.Pennies,
       memo: '',
       account: 'Checking',
       payee: 'Food Lion',
-      categories: {Grocery: -5000},
+      categories: {Grocery: -5000 as Txns.Pennies},
       type: 'banktxn',
     }
 
@@ -329,7 +227,7 @@ describe('It converts to a ledger', () => {
     const txn: Txns.AccountTransfer = {
       _id: 'blah',
       date: new Date().toISOString(),
-      amount: -5000,
+      amount: -5000 as Txns.Pennies,
       memo: '',
       from: 'Checking',
       to: 'Credit Card',

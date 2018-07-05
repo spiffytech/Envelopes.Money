@@ -159,7 +159,7 @@ class Store {
   }
 
   @computed
-  get categoryBalances(): Map<string, Types.Balance> {
+  get categoryBalances(): Map<string, Txns.Balance> {
     const ledger = R.flatten<Txns.TxnItem>(
       Array.from(this.txns.values()).
         filter(Txns.hasCategories).
@@ -172,27 +172,33 @@ class Store {
 
     const totals =
       Object.entries(groups).
-      map(([account, txnItems]): [string, Types.Balance] => 
+      map(([account, txnItems]): [string, Txns.Balance] => 
         [
           account,
-          {name: account, balance: txnItems.map(R.prop('amount')).reduce(R.add)}
+          {
+            balance: txnItems.map(item => item.amount as number).reduce(R.add) as Txns.Pennies,
+            name: account,
+          }
         ]
       );
     return new Map(totals);
   }
 
   @computed
-  get bankBalances(): Map<string, Types.Balance> {
+  get bankBalances(): Map<string, Txns.Balance> {
     const groups = R.groupBy(
       (txnItem) => txnItem.account,
       Txns.journalToLedger(Array.from(this.txns.values()))
     );
     const totals =
       Object.entries(groups).
-      map(([account, txnItems]): [string, Types.Balance] => 
+      map(([account, txnItems]): [string, Txns.Balance] => 
         [
           account,
-          {name: account, balance: txnItems.map(R.prop('amount')).reduce(R.add)}
+          {
+            balance: txnItems.map(item => item.amount as number).reduce(R.add) as Txns.Pennies,
+            name: account,
+          }
         ]
       );
     return new Map(totals);

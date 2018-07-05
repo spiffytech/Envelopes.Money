@@ -3,7 +3,6 @@ import csv from 'csv-parse';
 import * as _ from 'lodash';
 import {fs} from 'mz';
 import nconf from 'nconf'
-import R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register'
 // import {Category, discoverCategories} from '../lib/categories';
@@ -30,7 +29,7 @@ function amountOfStr(str: string) {
   return parseInt(
     str.replace('.', '').replace(',', ''),
     10
-  );
+  ) as Txns.Pennies;
 }
 
 async function readCsv(file: string): Promise<GoodBudgetRow[]> {
@@ -44,7 +43,7 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
   })
 }
 
-export function parseCategories(row: GoodBudgetRow): {[key: string]: number} {
+export function parseCategories(row: GoodBudgetRow): {[key: string]: Txns.Pennies} {
   /* tslint:disable-next-line:curly */
   if (row.Details === '') return {[row.Envelope]: amountOfStr(row.Amount)};
   return (
@@ -154,15 +153,19 @@ export function mkAccountItems(
 ): TxnItem[] {
   if (isIncome(IncomePayees, row.Name)) {
     return [
-      {account: 'Income:Salary', amount: -amountOfStr(row.Amount)},
-      {account: nameAccount(AssetAccounts, LiabilityAccounts, row), amount: amountOfStr(row.Amount)}, ];
+      {account: 'Income:Salary', amount: -amountOfStr(row.Amount) as Txns.Pennies},
+      {
+        account: nameAccount(AssetAccounts, LiabilityAccounts, row),
+        amount: amountOfStr(row.Amount)
+      }
+    ];
   }
 
   return [{account: nameAccount(AssetAccounts, LiabilityAccounts, row), amount: amountOfStr(row.Amount)}];
 }
 
 export function mkCategoryItems(
-  [category, amount, name]: [string, number, string],
+  [category, amount, name]: [string, Txns.Pennies, string],
   isFill: boolean,
   AssetAccounts: string[],
   LiabilityAccounts: string[],
@@ -170,29 +173,18 @@ export function mkCategoryItems(
   /* tslint:disable-next-line:curly */
   if (isFill) {
     return [
-      {account: `Liabilities:${category}`, amount: -amount},
+      {account: `Liabilities:${category}`, amount: -amount as Txns.Pennies},
       {account: `Expenses:${category}`, amount},
     ]
   }
 
   /* tslint:disable-next-line:curly */
-  if (category === '') return [{account: nameAccount(AssetAccounts, LiabilityAccounts, name), amount: -amount}];  // Probably an account transfer
+  if (category === '') return [{
+    account: nameAccount(AssetAccounts, LiabilityAccounts, name),
+    amount: -amount as Txns.Pennies
+  }];  // Probably an account transfer
 
-  return [{account: `Liabilities:${category}`, amount: -amount}];
-}
-
-export function ItemsForRow(
-  AssetAccounts: string[],
-  LiabilityAccounts: string[],
-  IncomePayees: string[],
-  row: GoodBudgetRow
-): TxnItem[] {
-  const i = isIncome(IncomePayees, row.Name);
-  return _.flatten([
-    ...mkAccountItems(AssetAccounts, LiabilityAccounts, IncomePayees, row),
-    ...Object.entries(parseCategories(row)).
-      map(([category, amount]) => mkCategoryItems([category, amount, row.Name], i, AssetAccounts, LiabilityAccounts)),
-  ]);
+  return [{account: `Liabilities:${category}`, amount: -amount as Txns.Pennies}];
 }
 
 export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
@@ -271,8 +263,10 @@ async function main() {
 
   const txnItems = _.flatten(txns.filter(Txns.touchesBank).map(Txns.accountsForTxn));
   console.log(
-    txnItems.filter(({account}) => account === 'SECU Checking').map(({amount}) => amount).reduce(R.add) / 100,
-    txnItems.filter(({account}) => account === 'AmEx').map(({amount}) => amount).reduce(R.add) / 100,
+    txnItems.filter(({account}) => account === 'SECU Checking').
+      map(({amount}) => amount).reduce((acc, i) => acc + i, 0) / 100,
+    txnItems.filter(({account}) => account === 'AmEx').
+      map(({amount}) => amount).reduce((acc, i) => acc + i, 0) / 100,
   )
 
   const remote = await Couch.mkRemoteDB(process.env.COUCH_USER!, process.env.COUCH_PASS!);

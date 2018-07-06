@@ -70,7 +70,7 @@ class Store {
   public async lookUpLocalSession(onSuccess: (username: string) => any) {
     try {
       const doc = await this.dbC.get<{username: string}>('_local/session');
-      console.log('Found local session', doc);
+      console.log('Found local session');
       return onSuccess(doc.username);
     } catch(ex) {
       console.log('Error looking up local session', ex);

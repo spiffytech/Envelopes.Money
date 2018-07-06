@@ -5,17 +5,10 @@ import Store from '../store';
 import Balances from './Balances';
 import TxnList from './TxnList';
 
-import R from './R';
-
-import * as Rx from 'rxjs';
-
-const interval$ = Rx.interval(1000);
-
 export default observer(
   function Home({store}: {store: typeof Store}) {
     return (
       <div className="container-fluid">
-        <R interval$={interval$} />
         <div className="row flex-nowrap">
           <div className="col-md4">
             <Balances accounts={store.categoryBalances} />

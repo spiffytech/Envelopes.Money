@@ -6,6 +6,7 @@ import * as Txns from '../lib/txns';
 import Store from '../store';
 
 /* tslint:disable:jsx-no-lambda */
+/* tslint:disable:no-console */
 
 const setAttr = (txn: Txns.Txn, field: string) => action((event: any) => txn[field] = event.target.value);
 
@@ -29,6 +30,7 @@ class EditBankTxn extends React.Component<Props> {
     const txn = this.txn;
     return (
       <form onSubmit={this.props.onSubmit(txn)}>
+        <p>{JSON.stringify(this.txn)}</p>
         <div className="form-group">
           <label htmlFor="date">Date</label>
           <input
@@ -59,6 +61,11 @@ class EditBankTxn extends React.Component<Props> {
             /* tslint:disable:jsx-no-bind */
             onChange={this.setAmount.bind(this)}
           />
+
+          <select className="custom-select" onChange={this.setCreditDebit.bind(this)}>
+            <option value="debit">Debit</option>
+            <option value="credit">Credit</option>
+          </select>
         </div>
 
         <input type="submit" className="btn btn-primary" value="Save Transaction" />
@@ -69,6 +76,11 @@ class EditBankTxn extends React.Component<Props> {
   @action
   private setAmount(event: any) {
     this.absDollars = event.target.value as Txns.Dollars;
+  }
+
+  @action
+  private setCreditDebit(event: any) {
+    this.isDebit = event.target.value === 'debit';
   }
 }
 

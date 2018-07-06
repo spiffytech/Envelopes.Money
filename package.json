@@ -16,6 +16,7 @@
     "lodash": "^4.17.10",
     "mobx": "^5.0.3",
     "mobx-react": "^5.2.3",
+    "mobx-react-devtools": "^5.0.1",
     "mobx-utils": "^5.0.0",
     "mz": "^2.7.0",
     "nconf": "^0.10.0",

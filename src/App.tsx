@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'jquery';
 import {toJS} from 'mobx';
 import {observer} from 'mobx-react';
+import DevTools from 'mobx-react-devtools';
 import * as React from 'react';
 import 'typeface-roboto'
 
@@ -43,6 +44,7 @@ function renderCurrentView(store: typeof Store) {
 function AppComponent({store}: {store: typeof Store}) {
   return (
     <>
+      <DevTools />
       <Nav store={store} />
       {renderCurrentView(store)}
     </>

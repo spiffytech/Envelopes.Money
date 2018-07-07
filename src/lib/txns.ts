@@ -57,7 +57,7 @@ export function learnAccountsFromTxns(txns: DETxn[]): string[] {
         ret.push(account.split(':', i).join(':'));
       }
       return ret;
-    })
+    }),
   );
 }
 
@@ -79,9 +79,9 @@ export function categoriesForTxn(txn: BankTxn | EnvelopeTransfer): TxnItem[] {
     return (
       Object.entries(txn.categories).
       map(([category, amount]): TxnItem =>
-        ({account: category, amount})
+        ({account: category, amount}),
       )
-    )
+    );
   } else if (isEnvelopeTxfr(txn)) {
     return [
       {account: txn.from, amount: txn.amount},
@@ -128,12 +128,12 @@ export function hasCategories(txn: Txn): txn is BankTxn | EnvelopeTransfer {
 
 export const touchesAccount = R.curry((account: string, txn: Txn): boolean => {
   if (isEnvelopeTxfr(txn)) return false;
-  if(isBankTxn(txn)) return txn.account === account;
+  if (isBankTxn(txn)) return txn.account === account;
   return txn.from === account || txn.to === account;
 });
 
 export function formatDate(date: string) {
-  return dateFns.format(date, 'YYYY-MM-DD')
+  return dateFns.format(date, 'YYYY-MM-DD');
 }
 
 export function penniesToDollars(pennies: Pennies): Dollars {

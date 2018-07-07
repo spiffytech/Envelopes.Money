@@ -8,7 +8,6 @@ export interface DETxn {
   memo: string;
 }
 
-
 export interface Account {
   name: string;
 }

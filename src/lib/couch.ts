@@ -3,7 +3,6 @@ import PouchDB from 'pouchdb';
 import PouchDBAuthentication from 'pouchdb-authentication';
 import PouchDBFind from 'pouchdb-find';
 import * as PouchDBUpsert from 'pouchdb-upsert';
-console.log(PouchDBAuthentication)
 PouchDB.plugin(PouchDBAuthentication);
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBUpsert);
@@ -19,19 +18,19 @@ import * as Txns from './txns';
 // https://gist.github.com/valentinkostadinov/5875467
 function toHex(str: string) {
   // utf8 to latin1
-  const s = unescape(encodeURIComponent(str))
-  let h = ''
+  const s = unescape(encodeURIComponent(str));
+  let h = '';
   for (let i = 0; i < s.length; i++) {
-      h += s.charCodeAt(i).toString(16)
+      h += s.charCodeAt(i).toString(16);
   }
-  return h
+  return h;
 }
 
 async function testRemoteLogin(db: PouchDB.Database) {
   try {
     await db.allDocs({limit: 1});
     return true;
-  } catch(ex) {
+  } catch (ex) {
     /* tslint:disable-next-line:no-console */
     if (ex.status === 401) console.log('CouchDB returned 401 Unauthorized');
     throw ex;
@@ -85,7 +84,7 @@ export function syncDBs(local: PouchDB.Database, remote: PouchDB.Database): Pouc
 
 export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
   /* tslint:disable-next-line:no-string-literal */
-  return db.upsert(txn._id, (doc) => ({_rev: doc['_rev'], ...txn}));
+  return db.upsert(txn._id, (doc: any) => ({_rev: doc['_rev'], ...txn}));
 }
 
 export async function bulkImport(db: PouchDB.Database, txns: Txns.Txn[]) {

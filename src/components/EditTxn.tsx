@@ -11,25 +11,23 @@ import Store from '../store';
 
 const setAttr = (txn: Txns.Txn, field: string) => action((event: any) => txn[field] = event.target.value);
 
-const penniesOnChange = action((isDebit: boolean, setValue: (p: Txns.Pennies) => void) => {
+const penniesOnChange = action('penniesOnChange', (setValue: (p: Txns.Pennies) => void) => {
   return (event: any) => {
     const newAmount = Txns.dollarsToPennies(event.target.value as Txns.Dollars);
-    runInAction(() =>
-      setValue(isDebit ? newAmount * -1 as Txns.Pennies: newAmount)
-    );
+    runInAction('Pennies set value', () => setValue(newAmount));
     console.log(newAmount, event.target.value);
   }
 });
 
 const PenniesEditor = observer((
-  {getValue, setValue, isDebit}:
-  {getValue: () => Txns.Pennies, isDebit: boolean, setValue: (p: Txns.Pennies) => void}
+  {getValue, setValue}:
+  {getValue: () => Txns.Pennies, setValue: (p: Txns.Pennies) => void}
 ) => {
   return <input
     type="number"
     step="0.01"
     value={Txns.penniesToDollars(Math.abs(getValue()) as Txns.Pennies)}
-    onChange={penniesOnChange(isDebit, setValue)}
+    onChange={penniesOnChange(setValue)}
   />
 });
 
@@ -37,17 +35,10 @@ interface Props  {txn: Txns.BankTxn, onSubmit: (txn: Txns.BankTxn) => (event: an
 @observer
 class EditBankTxn extends React.Component<Props> {
   @observable private txn = this.props.txn;
-  @observable private absDollars: Txns.Dollars = Txns.penniesToDollars(Math.abs(this.props.txn.amount) as Txns.Pennies);
   @observable private isDebit = this.props.txn.amount < 0;
 
   constructor(props: Props) {
     super(props);
-
-    autorun(() => {
-      const signedAmount = this.isDebit ? this.absDollars * -1 as Txns.Dollars: this.absDollars;
-      runInAction(() => this.txn.amount = Txns.dollarsToPennies(signedAmount));
-    });
-
 
     autorun(() =>
       console.log(JSON.stringify(this.txn))
@@ -57,7 +48,7 @@ class EditBankTxn extends React.Component<Props> {
   public render() {
     const txn = this.txn;
     return (
-      <form onSubmit={this.props.onSubmit(txn)}>
+      <form onSubmit={this.onSubmit()}>
         <div className="form-group">
           <label htmlFor="date">Date</label>
           <input
@@ -84,7 +75,6 @@ class EditBankTxn extends React.Component<Props> {
           <PenniesEditor
             getValue={() => txn.amount}
             setValue={(amount: Txns.Pennies) => txn.amount = amount}
-            isDebit={this.isDebit}
           />
 
           <select className="custom-select" onChange={this.setCreditDebit.bind(this)}>
@@ -99,7 +89,6 @@ class EditBankTxn extends React.Component<Props> {
             <PenniesEditor
               getValue={() => txn.categories[name]}
               setValue={(amount: Txns.Pennies) => txn.categories[name] = amount}
-              isDebit={this.isDebit}
             />
           </div>
         )}
@@ -112,6 +101,22 @@ class EditBankTxn extends React.Component<Props> {
   @action
   private setCreditDebit(event: any) {
     this.isDebit = event.target.value === 'debit';
+  }
+
+  private getSignedValue(value: Txns.Pennies): Txns.Pennies {
+    return this.isDebit ? value * -1 as Txns.Pennies: value;
+  }
+
+  private onSubmit() {
+    return action((event: any) => {
+      this.txn.amount = this.getSignedValue(this.txn.amount);
+      Object.entries(this.txn.categories).
+        map(([category, value]) =>
+          this.txn.categories[category] = this.getSignedValue(value)
+        )
+
+      this.props.onSubmit(this.txn)(event)
+    });
   }
 }
 

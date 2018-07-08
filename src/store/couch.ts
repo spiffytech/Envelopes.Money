@@ -17,33 +17,32 @@ function hasIndexDB() {
   });
 }
 
-interface State {
-  pouch: PouchDB.Database;
-  couch?: PouchDB.Database;
-  replicator?: PouchDB.Replication.Sync<{}>;
-}
+let pouch = Couch.mkLocalDB();
+let couch: PouchDB.Database | undefined;
+let replicator: PouchDB.Replication.Sync<{}> | undefined;
 
-const module: Module<State, Types.RootState> = {
+(window as any).Couch = Couch;
+
+const module: Module<{}, Types.RootState> = {
   namespaced: true,
 
   state: {
-    pouch: Couch.mkLocalDB(),
   },
 
   mutations: {
     /**
      * Used if we have to recreate pouch with an in-memory database
      */
-    setPouch(state, pouch: PouchDB.Database) {
-      state.pouch = pouch;
+    setPouch(state, newPouch: PouchDB.Database) {
+      pouch = newPouch;
     },
 
-    setCouch(state, couch?: PouchDB.Database) {
-      state.couch = couch;
+    setCouch(state, newCouch?: PouchDB.Database) {
+      couch = newCouch;
     },
 
-    setReplicator(state, replicator?: PouchDB.Replication.Sync<{}>) {
-      state.replicator = replicator;
+    setReplicator(state, newReplicator?: PouchDB.Replication.Sync<{}>) {
+      replicator = newReplicator;
     },
   },
 
@@ -55,12 +54,11 @@ const module: Module<State, Types.RootState> = {
         console.log('Using in-memory PouchDB');
         commit('setPouch', Couch.mkLocalDB(true));
       }
-      return dispatch('replicate');
     },
 
     async lookUpLocalSession({commit, state}) {
       try {
-        const doc = await state.pouch.get<{username: string}>('_local/session');
+        const doc = await pouch.get<{username: string}>('_local/session');
         console.log('Found local session');
         return commit('setUsername', doc.username);
       } catch (ex) {
@@ -73,14 +71,33 @@ const module: Module<State, Types.RootState> = {
     async replicate({commit, state, rootState}) {
       if (rootState.username && rootState.isOnline) {
         console.log('Logged in, beginning replication');
-        const couch = await Couch.mkRemoteDB(rootState.username);
-        commit('setCouch', couch);
-        commit('setReplicator', Couch.syncDBs(state.pouch, couch));
+        if (!couch) throw new Error('Can\'t replicate, CouchDB remote is undefined');
+        commit('setReplicator', Couch.syncDBs(pouch, couch));
       } else {
         console.log('Cannot replicate, no username or is offline');
-        commit('setCouch', null);
-        if (state.replicator) state.replicator.cancel();
+        if (replicator) replicator.cancel();
       }
+    },
+
+    async logIn({commit, dispatch}, {username, password}: {username: string, password: string}) {
+      console.log('Logging in');
+      const remote = await Couch.mkRemoteDB(username);
+      await Couch.logIn(remote, username, password);
+      console.log(await remote.getSession());
+      console.log('Login successful');
+
+      commit('setPouch', Couch.mkLocalDB());  // Covers recreating the DB after a logout destroys it
+      commit('setUsername', username, {root: true});
+      try {
+        await pouch.upsert('_local/session', (doc: any) => ({...doc, username}));
+      } catch (ex) {
+        console.error(ex);
+      }
+
+      commit('setCouch', remote);
+      console.log(await(remote.allDocs()));
+      return dispatch('replicate');
+      // TODO: Subscribe to Txns feed
     },
   },
 };
@@ -90,6 +107,7 @@ export const watchers = [
     getter: (state: Types.RootState) => [state.isOnline, state.username],
     handler: (store: Store<Types.RootState>) => () => store.dispatch('couch/replicate'),
   },
+
   {
     getter: (state: Types.RootState) => [state.isOnline, state.username],
     handler: (store: Store<Types.RootState>) => () => console.log('here2'),

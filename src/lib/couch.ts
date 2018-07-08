@@ -69,8 +69,11 @@ export async function logIn(remote: PouchDB.Database, username: string, password
     const loginSuccessful = await testRemoteLogin(remote);
     if (!loginSuccessful) throw new Error('Could not log into CouchDB');
   } else {
+    console.log(remote);
     console.log('Trying to log in...');
     console.log(await remote.logIn(username, password));
+    const loginSuccessful = await testRemoteLogin(remote);
+    if (!loginSuccessful) throw new Error('Could not log into CouchDB');
   }
 }
 

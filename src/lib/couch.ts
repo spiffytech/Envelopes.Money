@@ -81,8 +81,10 @@ export function logOut(remote: PouchDB.Database) {
   return remote.logOut();
 }
 
-export function syncDBs(local: PouchDB.Database, remote: PouchDB.Database): PouchDB.Replication.Sync<{}> {
-  return PouchDB.sync(local, remote, {live: true});
+export function syncDBs(
+  local: PouchDB.Database, remote: PouchDB.Database, live = true,
+): PouchDB.Replication.Sync<{}> {
+  return PouchDB.sync(local, remote, {live});
 }
 
 export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {

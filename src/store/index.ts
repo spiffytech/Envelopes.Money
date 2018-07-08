@@ -11,6 +11,7 @@ const store = new Vuex.Store<Types.RootState>({
   state: {
     isOnline: navigator.onLine,
     username: null,
+    flash: null,
   },
   mutations: {
     setOnline(state, isOnline) {
@@ -19,6 +20,14 @@ const store = new Vuex.Store<Types.RootState>({
 
     setUsername(state, username: string) {
       state.username = username;
+    },
+
+    setFlash(state, flash) {
+      state.flash = flash;
+    },
+
+    clearFlash(state) {
+      state.flash = null;
     },
   },
   actions: {

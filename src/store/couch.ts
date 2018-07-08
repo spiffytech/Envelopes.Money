@@ -68,7 +68,18 @@ const module: Module<{}, Types.RootState> = {
       }
     },
 
-    async replicate({commit, state, rootState}) {
+    /**
+     * Used when logging in so the user doesn't stare at a blank page waiting
+     * for replication
+     */
+    async oneTimeSync({commit}) {
+      if (!couch) throw new Error('Cannot sync couch, it doesn\'t exist');
+      commit('setFlash', {msg: 'Loading data'}, {root: true});
+      const sync = Couch.syncDBs(pouch, couch, false);
+      sync.on('complete', () => commit('clearFlash', null, {root: true}));
+    },
+
+    async replicate({commit, rootState}) {
       if (rootState.username && rootState.isOnline) {
         console.log('Logged in, beginning replication');
         if (!couch) throw new Error('Can\'t replicate, CouchDB remote is undefined');
@@ -96,6 +107,7 @@ const module: Module<{}, Types.RootState> = {
 
       commit('setCouch', remote);
       console.log(await(remote.allDocs()));
+      await dispatch('oneTimeSync');
       return dispatch('replicate');
       // TODO: Subscribe to Txns feed
     },

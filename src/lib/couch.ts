@@ -42,14 +42,14 @@ function isNode() {
 }
 
 export function getSession() {
-  const remoteUrl = new URL(`/`, process.env.REACT_APP_COUCH_HOST);
+  const remoteUrl = new URL(`/`, process.env.VUE_APP_COUCH_HOST);
   const remote = new PouchDB(remoteUrl.toString(), {skip_setup: true});
   (window as any).remote = remote;
   return remote.getSession();
 }
 
 export function mkRemoteDB(username: string, password?: string) {
-  const remoteUrl = new URL(`userdb-${toHex(username)}`, process.env.REACT_APP_COUCH_HOST);
+  const remoteUrl = new URL(`userdb-${toHex(username)}`, process.env.VUE_APP_COUCH_HOST);
 
   // Cookie authentication doesn't seem to work in node for unknown reasons
   if (password && isNode()) {

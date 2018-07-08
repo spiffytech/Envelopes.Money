@@ -13,6 +13,13 @@ const store = new Vuex.Store<Types.RootState>({
     username: null,
     flash: null,
   },
+
+  getters: {
+    loggedIn(state) {
+      return state.username !== null;
+    },
+  },
+
   mutations: {
     setOnline(state, isOnline) {
       state.isOnline = isOnline;

@@ -21,6 +21,8 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
+import router from '@/router';
+
 /* tslint:disable:no-console */
 
 @Component({
@@ -33,7 +35,8 @@ export default class Login extends Vue {
 
   public async onSubmit(event: any) {
     event.preventDefault();
-    return this.$store.dispatch('couch/logIn', {username: this.username, password: this.password});
+    await this.$store.dispatch('couch/logIn', {username: this.username, password: this.password});
+    router.push({name: 'home'});
   }
 }
 </script>

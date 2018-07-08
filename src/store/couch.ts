@@ -111,6 +111,15 @@ const module: Module<{}, Types.RootState> = {
       return dispatch('replicate');
       // TODO: Subscribe to Txns feed
     },
+
+    async logOut({commit}) {
+      console.log('Logging out');
+      if (couch) {
+        await Couch.logOut(couch);
+      }
+      commit('setUsername', null, {root: true});
+      await pouch.destroy();
+    },
   },
 };
 

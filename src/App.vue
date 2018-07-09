@@ -25,8 +25,7 @@ import { Component, Vue } from 'vue-property-decorator';
 
 import router from '@/router';
 
-@Component({
-})
+@Component({})
 export default class App extends Vue {
   get loggedIn() {
     return this.$store.getters.loggedIn;

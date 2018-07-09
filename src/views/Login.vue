@@ -25,10 +25,7 @@ import router from '@/router';
 
 /* tslint:disable:no-console */
 
-@Component({
-  components: {
-  },
-})
+@Component({})
 export default class Login extends Vue {
   public username = '';
   public password = '';
@@ -37,6 +34,12 @@ export default class Login extends Vue {
     event.preventDefault();
     await this.$store.dispatch('couch/logIn', {username: this.username, password: this.password});
     router.push({name: 'home'});
+  }
+
+  public mounted() {
+    if (this.$store.getters.loggedIn) {
+      router.push({name: 'home'});
+    }
   }
 }
 </script>

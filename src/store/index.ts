@@ -50,10 +50,9 @@ window.addEventListener('online', () => store.commit('setOnline', false));
 
 store.dispatch('couch/init').then(console.log).catch(console.error);
 
-CouchWatchers.forEach(({getter, handler}) => store.watch(getter, handler(store), {immediate: true}));
+CouchWatchers.forEach(({getter, handler, immediate}) =>
+  store.watch(getter, handler(store), {immediate}));
 
 (window as any).store = store;
-/* tslint:disable:no-console */
-console.log('here');
 
 export default store;

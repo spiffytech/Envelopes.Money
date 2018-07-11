@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 
 import CouchStore from './couch';
 import {watchers as CouchWatchers} from './couch';
+import TxnsStore from './txns';
 import * as Types from './types';
 
 Vue.use(Vuex);
@@ -40,15 +41,19 @@ const store = new Vuex.Store<Types.RootState>({
   actions: {
 
   },
+
   modules: {
     couch: CouchStore,
+    txns: TxnsStore,
   },
 });
 
 window.addEventListener('online', () => store.commit('setOnline', true));
 window.addEventListener('online', () => store.commit('setOnline', false));
 
-store.dispatch('couch/init').then(console.log).catch(console.error);
+store.dispatch('couch/init').
+  then(() => store.dispatch('txns/init')).
+  catch(console.error);
 
 CouchWatchers.forEach(({getter, handler, immediate}) =>
   store.watch(getter, handler(store), {immediate}));

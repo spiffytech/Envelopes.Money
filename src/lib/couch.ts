@@ -1,4 +1,5 @@
 /* tslint:disable:no-console */
+import * as kefir from 'kefir';
 import PouchDB from 'pouchdb';
 import PouchDBAuthentication from 'pouchdb-authentication';
 import PouchDBFind from 'pouchdb-find';
@@ -94,4 +95,31 @@ export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
 
 export async function bulkImport(db: PouchDB.Database, txns: Txns.Txn[]) {
   return db.bulkDocs(txns);
+}
+
+type LiveFindHandler<T> = (items: T[]) => any;
+export interface LiveFindValue<T> { action: string; doc: T; }
+
+export function liveFind<T>(
+  db: PouchDB.Database,
+  query: PouchDB.Find.FindRequest<{}>,
+  handleEvents: (items: Array<LiveFindValue<T>>) => any,
+) {
+  const subscription = (db as any).liveFind(query);
+
+  kefir.fromEvents<LiveFindValue<T>, {}>(subscription, 'update').
+    bufferWithTimeOrCount(500, 1000).
+    onValue(handleEvents);
+
+  return new Promise((resolve, reject) => {
+    // Consume accumulated and set up permanent listeners
+    subscription.on('ready', (...args: any[]) => {
+      resolve();
+    });
+
+    subscription.on('error', (err: any) => {
+      console.error('Hit an error subscribing to txns', err);
+      reject(err);
+    });
+  });
 }

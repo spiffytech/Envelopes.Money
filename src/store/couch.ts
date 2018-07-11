@@ -17,16 +17,11 @@ function hasIndexDB() {
   });
 }
 
-let pouch = Couch.mkLocalDB();
-let couch: PouchDB.Database | undefined;
-let replicator: PouchDB.Replication.Sync<{}> | undefined;
-
-(window as any).couch = {pouch, couch};
-
-const module: Module<{}, Types.RootState> = {
+const module: Module<Types.CouchState, Types.RootState> = {
   namespaced: true,
 
   state: {
+    pouch: Couch.mkLocalDB(),
   },
 
   mutations: {
@@ -34,15 +29,15 @@ const module: Module<{}, Types.RootState> = {
      * Used if we have to recreate pouch with an in-memory database
      */
     setPouch(state, newPouch: PouchDB.Database) {
-      pouch = newPouch;
+      state.pouch = newPouch;
     },
 
     setCouch(state, newCouch?: PouchDB.Database) {
-      couch = newCouch;
+      state.couch = newCouch;
     },
 
     setReplicator(state, newReplicator?: PouchDB.Replication.Sync<{}>) {
-      replicator = newReplicator;
+      state.replicator = newReplicator;
     },
   },
 
@@ -57,9 +52,9 @@ const module: Module<{}, Types.RootState> = {
       return dispatch('lookUpLocalSession');
     },
 
-    async lookUpLocalSession({commit, dispatch}) {
+    async lookUpLocalSession({commit, dispatch, state}) {
       try {
-        const doc = await pouch.get<{username: string}>('_local/session');
+        const doc = await state.pouch.get<{username: string}>('_local/session');
         console.log('Found local session');
         commit('setUsername', doc.username, {root: true});
 
@@ -79,30 +74,30 @@ const module: Module<{}, Types.RootState> = {
      * Used when logging in so the user doesn't stare at a blank page waiting
      * for replication
      */
-    async oneTimeSync({commit, rootState}) {
-      if (!couch) throw new Error('Cannot sync couch, it doesn\'t exist');
+    async oneTimeSync({commit, rootState, state}) {
+      if (!state.couch) throw new Error('Cannot sync couch, it doesn\'t exist');
       if (!rootState.isOnline) {
         console.error('Can\'t sync because we\'re offline');
         return null;
       }
       console.log('Performing one-time sync');
       commit('setFlash', {msg: 'Loading data'}, {root: true});
-      const sync = Couch.syncDBs(pouch, couch, false);
+      const sync = Couch.syncDBs(state.pouch, state.couch, false);
       sync.on('complete', () => commit('clearFlash', null, {root: true}));
     },
 
-    async replicate({commit, rootState}) {
+    async replicate({commit, rootState, state}) {
       if (rootState.username && rootState.isOnline) {
         console.log('Beginning replication');
-        if (!couch) throw new Error('Can\'t replicate, CouchDB remote is undefined');
-        commit('setReplicator', Couch.syncDBs(pouch, couch));
+        if (!state.couch) throw new Error('Can\'t replicate, CouchDB remote is undefined');
+        commit('setReplicator', Couch.syncDBs(state.pouch, state.couch));
       } else {
         console.log('Cannot replicate, no username or is offline');
-        if (replicator) replicator.cancel();
+        if (state.replicator) state.replicator.cancel();
       }
     },
 
-    async logIn({commit, dispatch}, {username, password}: {username: string, password: string}) {
+    async logIn({commit, dispatch, state}, {username, password}: {username: string, password: string}) {
       console.log('Logging in');
       const remote = await Couch.mkRemoteDB(username);
       await Couch.logIn(remote, username, password);
@@ -111,7 +106,7 @@ const module: Module<{}, Types.RootState> = {
       commit('setPouch', Couch.mkLocalDB());  // Covers recreating the DB after a logout destroys it
       commit('setUsername', username, {root: true});
       try {
-        await pouch.upsert('_local/session', (doc: any) => ({...doc, username}));
+        await state.pouch.upsert('_local/session', (doc: any) => ({...doc, username}));
       } catch (ex) {
         console.error(ex);
       }
@@ -122,13 +117,13 @@ const module: Module<{}, Types.RootState> = {
       // TODO: Subscribe to Txns feed
     },
 
-    async logOut({commit}) {
+    async logOut({commit, state}) {
       console.log('Logging out');
-      if (couch) {
-        await Couch.logOut(couch);
+      if (state.couch) {
+        await Couch.logOut(state.couch);
       }
       commit('setUsername', null, {root: true});
-      await pouch.destroy();
+      await state.pouch.destroy();
     },
   },
 };

@@ -61,6 +61,10 @@ export function learnAccountsFromTxns(txns: DETxn[]): string[] {
   );
 }
 
+/**
+ * Returns TxnItems for each bank-touching transaction, including separate
+ * TxnItems for each side of an account transfer
+ */
 export function journalToLedger(txns: Txn[]): TxnItem[] {
   return _.flatten(txns.filter(touchesBank).map(accountsForTxn));
 }
@@ -142,4 +146,38 @@ export function penniesToDollars(pennies: Pennies): Dollars {
 
 export function dollarsToPennies(dollars: Dollars): Pennies {
   return Math.round(dollars * 100) as Pennies;
+}
+
+function balancesFromTxnItems(items: Array<[string, TxnItem[]]>): Balance[] {
+  return (
+    items.map(([account, txnItems]): Balance =>
+      ({
+        balance: txnItems.map((item) => item.amount as number).reduce(R.add) as Pennies,
+        name: account,
+      }),
+    )
+  );
+}
+
+export function accountBalances(txns: Txn[]): Balance[] {
+  const groups = R.groupBy(
+    (txnItem) => txnItem.account,
+    journalToLedger(Array.from(txns)),
+  );
+
+  return balancesFromTxnItems(Object.entries(groups));
+}
+
+export function categoryBalances(txns: Txn[]): Balance[] {
+  const ledger = R.flatten<TxnItem>(
+    Array.from(txns).
+      filter(hasCategories).
+      map(categoriesForTxn),
+  );
+  const groups = R.groupBy(
+    (txnItem) => txnItem.account,
+    ledger,
+  );
+
+  return balancesFromTxnItems(Object.entries(groups));
 }

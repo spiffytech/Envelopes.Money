@@ -14,7 +14,7 @@
       </b-col>
 
       <b-col cols="8">
-        <Transactions></Transactions>
+        <Transactions :txns="txns"></Transactions>
       </b-col>
     </b-row>
   </b-container>
@@ -34,5 +34,13 @@ import Transactions from '@/components/Transactions.vue';
     Transactions,
   },
 })
-export default class Home extends Vue {}
+export default class Home extends Vue {
+  get txns() {
+    const txns: Txns.Txn[] =
+      Object.values(this.$store.state.txns.txns).
+      sort((a, b) => a.date < b.date ? 1 : -1);
+
+    return txns;
+  }
+}
 </script>

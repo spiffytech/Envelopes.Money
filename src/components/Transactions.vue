@@ -35,16 +35,8 @@ import { Component, Vue } from 'vue-property-decorator';
 import * as utils from '@/lib/utils';
 import * as StoreTypes from '@/store/types';
 
-@Component({})
+@Component({props: {txns: Array}})
 export default class Transactions extends Vue {
-  get txns() {
-    const txns: Txns.Txn[] =
-      Object.values(this.$store.state.txns.txns).
-      sort((a, b) => a.date < b.date ? 1 : -1);
-
-    return txns;
-  }
-
   public fields = ['date', 'type', 'payee', 'memo', 'amount'];
 
   public formatDate = utils.formatDate;

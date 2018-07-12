@@ -2,7 +2,7 @@
   <b-list-group>
     <b-list-group-item v-for="category in categories" :key="category.category.name">
       <div class="d-flex w-100 justify-content-between">
-        <h5>{{category.category.name}}</h5>
+        <h6>{{category.category.name}}</h6>
         <small>{{formatAmount(category.balance)}}</small>
       </div>
 
@@ -10,6 +10,7 @@
         <b-progress
           :value="progressAmount(category.balance, category.category.target)"
           :variant="category.balance < 1 ? 'danger' : 'success'"
+          height="0.5rem"
           class="w-75"
         ></b-progress>
         <small>{{formatAmount(category.category.target)}}</small>

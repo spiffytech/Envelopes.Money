@@ -47,6 +47,15 @@ export interface Balance {
   balance: Pennies;
 }
 
+export interface Category {
+  name: string;
+  target: Pennies;
+  interval: 'weekly' | 'monthly' | 'yearly' | 'once';
+  due?: string;
+  type: 'category';
+  _id: string;
+}
+
 export function learnAccountsFromTxns(txns: DETxn[]): string[] {
   return _.flatten(
     _.uniq(_.flatten(txns.map((txn) => Object.keys(txn.items)))).
@@ -180,4 +189,8 @@ export function categoryBalances(txns: Txn[]): Balance[] {
   );
 
   return balancesFromTxnItems(Object.entries(groups));
+}
+
+export function idForCategoryName(name: string) {
+  return `category-${name}`;
 }

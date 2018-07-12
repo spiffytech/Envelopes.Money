@@ -60,4 +60,33 @@ CouchWatchers.forEach(({getter, handler, immediate}) =>
 
 (window as any).store = store;
 
+import * as Couch from '@/lib/couch';
+import * as Txns from '@/lib/txns';
+import * as R from 'ramda';
+/* tslint:disable:no-console */
+(window as any).discoverCategories = () => {
+  const txns = Object.values((store.state as Types.RootState & {txns: Types.TxnsState}).txns.txns);
+  const categories =
+    R.uniq(
+      R.flatten<Txns.TxnItem>(
+        txns.filter(Txns.hasCategories).
+        map(Txns.categoriesForTxn),
+      ).
+      map(({account}) => account),
+    );
+
+  console.log(categories);
+  return Promise.all(categories.map((category) =>
+    Couch.upsertCategory(
+      (store.state as Types.RootState & {couch: Types.CouchState}).couch.pouch,
+      {name: category,
+        target: 0 as Txns.Pennies,
+        interval: 'weekly',
+        type: 'category',
+        _id: Txns.idForCategoryName(category),
+      },
+    ),
+  ));
+};
+
 export default store;

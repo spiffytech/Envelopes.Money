@@ -6,6 +6,8 @@ import * as Types from './types';
 
 /* tslint:disable:no-console */
 
+(window as any).Couch = Couch;
+
 /**
  * Firefox private browsing doesn't have indexeddb support
  */

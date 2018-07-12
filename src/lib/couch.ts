@@ -123,3 +123,7 @@ export function liveFind<T>(
     });
   });
 }
+
+export function upsertCategory(db: PouchDB.Database, category: Txns.Category) {
+  return db.upsert(category._id, (doc) => ({...doc, ...category}));
+}

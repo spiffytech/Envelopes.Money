@@ -109,7 +109,7 @@ export function liveFind<T>(
 
   kefir.fromEvents<LiveFindValue<T>, {}>(subscription, 'update').
     bufferWithTimeOrCount(500, 1000).
-    onValue(handleEvents);
+    onValue((events) => events.length > 0 && handleEvents(events));
 
   return new Promise((resolve, reject) => {
     // Consume accumulated and set up permanent listeners

@@ -14,4 +14,5 @@ export interface CouchState {
 
 export interface TxnsState {
   txns: {[key: string]: Txns.Txn};
+  categories: {[key: string]: Txns.Category};
 }

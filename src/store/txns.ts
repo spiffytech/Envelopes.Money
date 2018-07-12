@@ -1,14 +1,19 @@
+import Vue from 'vue';
 import {Module} from 'vuex';
 
 import * as Couch from '../lib/couch';
 import * as Txns from '../lib/txns';
 import * as Types from './types';
 
+(window as any).Txns = Txns;
+/* tslint:disable:no-console */
+
 const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchState}> = {
   namespaced: true,
 
   state: {
     txns: {},
+    categories: {},
   },
 
   getters: {
@@ -23,6 +28,14 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         if (couchAction === 'ADD') return Vue.set(state.txns, doc._id, doc);
         if (couchAction === 'UPDATE') return Vue.set(state.txns, doc._id, doc);
         if (couchAction === 'REMOVE') return Vue.delete(state.txns, doc._id);
+      });
+    },
+
+    handleCategoryUpdates(state, values: Array<Couch.LiveFindValue<Txns.Category>>) {
+      values.map(({action: couchAction, doc}) => {
+        if (couchAction === 'ADD') return Vue.set(state.categories, doc._id, doc);
+        if (couchAction === 'UPDATE') return Vue.set(state.categories, doc._id, doc);
+        if (couchAction === 'REMOVE') return Vue.delete(state.categories, doc._id);
       });
     },
   },
@@ -41,6 +54,16 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           },
         },
         (values) => commit('handleTxnUpdates', values),
+      );
+
+      await Couch.liveFind<Txns.Category>(
+        rootState.couch!.pouch,
+        {
+          selector: {
+            type: 'category',
+          },
+        },
+        (values) => commit('handleCategoryUpdates', values),
       );
     },
   },

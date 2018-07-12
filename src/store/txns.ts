@@ -20,9 +20,9 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
   mutations: {
     handleTxnUpdates(state, values: Array<Couch.LiveFindValue<Txns.Txn>>) {
       values.map(({action: couchAction, doc}) => {
-        if (couchAction === 'ADD') return state.txns[doc._id] = doc;
-        if (couchAction === 'UPDATE') return state.txns[doc._id] = doc;
-        if (couchAction === 'REMOVE') return delete state.txns[doc._id];
+        if (couchAction === 'ADD') return Vue.set(state.txns, doc._id, doc);
+        if (couchAction === 'UPDATE') return Vue.set(state.txns, doc._id, doc);
+        if (couchAction === 'REMOVE') return Vue.delete(state.txns, doc._id);
       });
     },
   },

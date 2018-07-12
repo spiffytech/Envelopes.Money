@@ -1,5 +1,12 @@
 <template>
   <b-list-group>
+    <b-list-group-item>
+      <div class="d-flex w-100 justify-content-between">
+        <h5>Total</h5>
+        <span>{{formatAmount(totalBalance)}}</span>
+      </div>
+    </b-list-group-item>
+
     <b-list-group-item v-for="category in categories" :key="category.category.name">
       <div class="d-flex w-100 justify-content-between">
         <h6>{{category.category.name}}</h6>
@@ -41,6 +48,11 @@ export default class Categories extends Vue {
     return Object.values(categories).
       sort((a, b) => a.name < b.name ? -1 : 1).
       map((category) => ({category, balance: balances[category.name]}));
+  }
+
+  get totalBalance() {
+    const balances: Txns.Balance[] = this.$store.getters['txns/categoryBalances'];
+    return balances.map(({balance}) => balance as number).reduce(R.add, 0);
   }
 
   private formatAmount(amount: Txns.Pennies): string {

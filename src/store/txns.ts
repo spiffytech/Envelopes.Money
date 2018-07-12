@@ -17,6 +17,10 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
   },
 
   getters: {
+    accountBalances(state) {
+      return Txns.accountBalances(Object.values(state.txns));
+    },
+
     categoryBalances(state) {
       return Txns.categoryBalances(Object.values(state.txns));
     },

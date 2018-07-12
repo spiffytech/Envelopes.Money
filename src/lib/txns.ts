@@ -47,6 +47,10 @@ export interface Balance {
   balance: Pennies;
 }
 
+export interface Account {
+  name: string;
+}
+
 export interface Category {
   name: string;
   target: Pennies;

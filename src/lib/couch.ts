@@ -88,11 +88,6 @@ export function syncDBs(
   return PouchDB.sync(local, remote, {live});
 }
 
-export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
-  /* tslint:disable-next-line:no-string-literal */
-  return db.upsert(txn._id, (doc: any) => ({_rev: doc['_rev'], ...txn}));
-}
-
 export async function bulkImport(db: PouchDB.Database, txns: Txns.Txn[]) {
   return db.bulkDocs(txns);
 }
@@ -125,5 +120,11 @@ export function liveFind<T>(
 }
 
 export function upsertCategory(db: PouchDB.Database, category: Txns.Category) {
-  return db.upsert(category._id, (doc) => ({...doc, ...category}));
+  /* tslint:disable-next-line:no-string-literal */
+  return db.upsert(category._id, (doc: any) => ({_rev: doc['rev'], ...category}));
+}
+
+export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
+  /* tslint:disable-next-line:no-string-literal */
+  return db.upsert(txn._id, (doc: any) => ({_rev: doc['_rev'], ...txn}));
 }

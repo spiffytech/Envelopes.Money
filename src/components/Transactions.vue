@@ -1,5 +1,5 @@
 <template>
-  <b-table :fields="fields" :items="txns">
+  <b-table :fields="fields" :items="txns" @row-clicked="rowClicked">
     <template slot="date" slot-scope="data">
       {{formatDate(data.value)}}
     </template>
@@ -30,9 +30,11 @@
 </template>
 
 <script lang="ts">
+/* tslint:disable:no-console */
 import { Component, Vue } from 'vue-property-decorator';
 
 import * as utils from '@/lib/utils';
+import router from '@/router';
 import * as StoreTypes from '@/store/types';
 
 @Component({props: {txns: Array}})
@@ -40,6 +42,10 @@ export default class Transactions extends Vue {
   public fields = ['date', 'type', 'payee', 'memo', 'amount'];
 
   public formatDate = utils.formatDate;
+
+  public rowClicked(txn: Txns.Txn) {
+    router.push({name: 'editTxn', params: {txnId: txn._id}});
+  }
 
   private formatAmount(amount: Txns.Pennies): string {
     return utils.formatCurrency(Txns.penniesToDollars(amount));

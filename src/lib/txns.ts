@@ -161,6 +161,10 @@ export function dollarsToPennies(dollars: Dollars): Pennies {
   return Math.round(dollars * 100) as Pennies;
 }
 
+export function stringToPennies(str: string): Pennies {
+  return parseInt(str.replace('.', ''), 10) as Pennies;
+}
+
 function balancesFromTxnItems(items: Array<[string, TxnItem[]]>): Balance[] {
   return (
     items.map(([account, txnItems]): Balance =>

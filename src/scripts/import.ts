@@ -3,6 +3,7 @@ import csv from 'csv-parse';
 import * as _ from 'lodash';
 import {fs} from 'mz';
 import nconf from 'nconf';
+import * as R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register';
 // import {Category, discoverCategories} from '../lib/categories';
@@ -232,9 +233,51 @@ function nullFilter<T>(item: T | null | undefined): item is T {
   return Boolean(item);
 }
 
+async function discoverCategories(db: PouchDB.Database, txns: Txns.Txn[]) {
+  const categorieNames =
+    R.uniq(
+      R.flatten<Txns.TxnItem>(
+        txns.filter(Txns.hasCategories).
+        map(Txns.categoriesForTxn),
+      ).
+      map(({account}) => account),
+    );
+
+  console.log(categorieNames);
+  const categories: Txns.Category[] = categorieNames.map((category) =>
+    ({name: category,
+      target: 0 as Txns.Pennies,
+      interval: 'weekly' as 'weekly',
+      type: 'category' as 'category',
+      _id: shortid.generate(),
+    }),
+  );
+
+  await Promise.all(categories.map((category) => Couch.upsertCategory(db, category)));
+  return R.fromPairs(categories.map((category) => [category.name, category._id] as [string, string]));
+}
+
+async function discoverAccounts(db: PouchDB.Database, txns: Txns.Txn[]) {
+  const accountNames = R.uniq(
+    Txns.journalToLedger(txns).
+    map((item: Txns.TxnItem) => item.account),
+  );
+
+  const accounts: Txns.Account[] = accountNames.map((account) =>
+    ({
+      name: account,
+      _id: shortid.generate(),
+      type: 'account' as 'account',
+    }),
+  );
+
+  await Promise.all(accounts.map((account) => Couch.upsertAccount(db, account)));
+  return R.fromPairs(accounts.map((account) => [account.name, account._id] as [string, string]));
+}
+
 async function main() {
   // Putting this here so the unit tests don't require these values
-  nconf.required(['file', 'email']);
+  nconf.required(['file']);
 
   const rows = await readCsv(nconf.get('file'));
   const txns: Txns.Txn[] =
@@ -269,15 +312,43 @@ async function main() {
       map(({amount}) => amount).reduce((acc, i) => acc + i, 0) / 100,
   );
 
-  const remote = await Couch.mkRemoteDB(process.env.COUCH_USER!, process.env.COUCH_PASS!);
+  if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
+  const remote = await Couch.mkRemoteDB(process.env.COUCH_USER, process.env.COUCH_PASS);
   try {
     console.log(remote === null);
-    /*
-    const chunks = _.chunk(txns, 500);
+    const accountIds = await discoverAccounts(remote, txns);
+    const categoryIds = await discoverCategories(remote, txns);
+    const txns_: Txns.Txn[] = txns.map((txn) => {
+      if (Txns.isBankTxn(txn)) {
+        const categories = R.fromPairs(Object.entries(txn.categories).map(
+          ([category, balance]) => [categoryIds[category], balance] as [string, Txns.Pennies]),
+        );
+        return {
+          ...txn,
+          account: accountIds[txn.account],
+          categories,
+        };
+      } else if (Txns.isAccountTxfr(txn)) {
+        return {
+          ...txn,
+          from: accountIds[txn.from],
+          to: accountIds[txn.to],
+        };
+      } else if (Txns.isEnvelopeTxfr(txn)) {
+        return {
+          ...txn,
+          from: categoryIds[txn.from],
+          to: categoryIds[txn.to],
+        };
+      }
+      const t: never = txn;
+      return t;
+    });
+
+    const chunks = _.chunk(txns_, 500);
     for (const chunk of chunks) {
       await Couch.bulkImport(remote, chunk);
     }
-    */
   } catch (ex) {
     console.log('error');
     console.error(ex);

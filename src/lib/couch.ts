@@ -124,6 +124,11 @@ export function upsertCategory(db: PouchDB.Database, category: Txns.Category) {
   return db.upsert(category._id, (doc: any) => ({_rev: doc['rev'], ...category}));
 }
 
+export function upsertAccount(db: PouchDB.Database, account: Txns.Account) {
+  /* tslint:disable-next-line:no-string-literal */
+  return db.upsert(account._id, (doc: any) => ({_rev: doc['rev'], ...account}));
+}
+
 export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
   /* tslint:disable-next-line:no-string-literal */
   return db.upsert(txn._id, (doc: any) => ({_rev: doc['_rev'], ...txn}));

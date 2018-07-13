@@ -89,4 +89,23 @@ import * as R from 'ramda';
   ));
 };
 
+(window as any).discoverAccounts = () => {
+  const txns = Object.values((store.state as Types.RootState & {txns: Types.TxnsState}).txns.txns);
+  const accounts = R.uniq(
+    Txns.journalToLedger(txns).
+    map((item: Txns.TxnItem) => item.account),
+  );
+
+  return Promise.all(accounts.map((account) => {
+    Couch.upsertAccount(
+      (store.state as Types.RootState & {couch: Types.CouchState}).couch.pouch,
+      {
+        name: account,
+        _id: Txns.idForAccountName(account),
+        type: 'account',
+      },
+    );
+  }));
+};
+
 export default store;

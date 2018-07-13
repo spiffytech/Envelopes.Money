@@ -3,6 +3,7 @@
     v-if="txn && txn.type === 'banktxn'"
     :txn="txn"
     :categories="categories"
+    :accounts="accounts"
     :onSubmit="onSubmit.bind(this)"
   ></EditBankTxn>
 </template>
@@ -23,6 +24,11 @@ export default class EditTxn extends Vue {
 
   get txnId() {
     return this.$route.params.txnId;
+  }
+
+  get accounts() {
+    const accounts: Txns.Category[] = Object.values(this.$store.state.txns.accounts);
+    return accounts.sort((a, b) => a.name < b.name ? -1 : 1);
   }
 
   get categories() {

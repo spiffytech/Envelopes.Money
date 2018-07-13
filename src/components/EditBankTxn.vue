@@ -39,6 +39,16 @@
     </b-form-group>
 
     <b-form-group
+      label="Account"
+      label-for="account"
+    >
+      <b-form-select
+        :options="accounts.map((c) => c.name)"
+        v-model="model.account"
+      ></b-form-select>
+    </b-form-group>
+
+    <b-form-group
       label="Debit/Credit"
       label-for="debitcredit"
     >
@@ -106,6 +116,9 @@ export default class EditBankTxn extends Vue {
   public txn!: Txns.BankTxn;
 
   public isDebit = this.txn.amount < 0;
+
+  @Prop({type: Array})
+  public accounts!: Txns.Account[];
 
   @Prop({type: Array})
   public categories!: Txns.Category[];

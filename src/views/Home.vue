@@ -27,6 +27,8 @@ import Accounts from '@/components/Accounts.vue'; // @ is an alias to /src
 import Categories from '@/components/Categories.vue';
 import Transactions from '@/components/Transactions.vue';
 
+import * as Txns from '@/lib/txns';
+
 @Component({
   components: {
     Accounts,
@@ -36,8 +38,9 @@ import Transactions from '@/components/Transactions.vue';
 })
 export default class Home extends Vue {
   get txns() {
+    const storeTxns: Txns.Txn[] = Object.values(this.$store.state.txns.txns);
     const txns: Txns.Txn[] =
-      Object.values(this.$store.state.txns.txns).
+      storeTxns.
       sort((a, b) => a.date < b.date ? 1 : -1);
 
     return txns;

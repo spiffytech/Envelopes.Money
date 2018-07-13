@@ -13,6 +13,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
   state: {
     txns: {},
+    accounts: {},
     categories: {},
   },
 
@@ -42,6 +43,14 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         if (couchAction === 'REMOVE') return Vue.delete(state.categories, doc._id);
       });
     },
+
+    handleAccountUpdates(state, values: Array<Couch.LiveFindValue<Txns.Account>>) {
+      values.map(({action: couchAction, doc}) => {
+        if (couchAction === 'ADD') return Vue.set(state.accounts, doc._id, doc);
+        if (couchAction === 'UPDATE') return Vue.set(state.accounts, doc._id, doc);
+        if (couchAction === 'REMOVE') return Vue.delete(state.accounts, doc._id);
+      });
+    },
   },
 
   actions: {
@@ -68,6 +77,16 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           },
         },
         (values) => commit('handleCategoryUpdates', values),
+      );
+
+      await Couch.liveFind<Txns.Account>(
+        rootState.couch!.pouch,
+        {
+          selector: {
+            type: 'account',
+          },
+        },
+        (values) => commit('handleAccountUpdates', values),
       );
     },
   },

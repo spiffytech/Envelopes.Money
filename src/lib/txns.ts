@@ -48,7 +48,9 @@ export interface Balance {
 }
 
 export interface Account {
+  _id: string;
   name: string;
+  type: 'account';
 }
 
 export interface Category {
@@ -201,4 +203,8 @@ export function categoryBalances(txns: Txn[]): Balance[] {
 
 export function idForCategoryName(name: string) {
   return `category-${name}`;
+}
+
+export function idForAccountName(name: string) {
+  return `account-${name}`;
 }

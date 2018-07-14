@@ -106,16 +106,6 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
   actions: {
     async init({commit, rootState}) {
-      await Couch.liveFind<Txns.Category>(
-        rootState.couch!.pouch,
-        {
-          selector: {
-            type: 'category',
-          },
-        },
-        (values) => commit('handleCategoryUpdates', values),
-      );
-
       await Couch.liveFind<Txns.Account>(
         rootState.couch!.pouch,
         {
@@ -138,6 +128,16 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           },
         },
         (values) => commit('handleTxnUpdates', values),
+      );
+
+      await Couch.liveFind<Txns.Category>(
+        rootState.couch!.pouch,
+        {
+          selector: {
+            type: 'category',
+          },
+        },
+        (values) => commit('handleCategoryUpdates', values),
       );
     },
   },

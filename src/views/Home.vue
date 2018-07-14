@@ -14,7 +14,7 @@
       </b-col>
 
       <b-col cols="8">
-        <Transactions :txns="txns"></Transactions>
+        <Transactions :txns="txnsFriendly"></Transactions>
       </b-col>
     </b-row>
   </b-container>
@@ -37,13 +37,8 @@ import * as Txns from '@/lib/txns';
   },
 })
 export default class Home extends Vue {
-  get txns() {
-    const storeTxns: Txns.Txn[] = Object.values(this.$store.state.txns.txns);
-    const txns: Txns.Txn[] =
-      storeTxns.
-      sort((a, b) => a.date < b.date ? 1 : -1);
-
-    return txns;
+  get txnsFriendly() {
+    return this.$store.getters['txns/txnsFriendly'];
   }
 }
 </script>

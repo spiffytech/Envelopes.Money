@@ -10,9 +10,7 @@ PouchDB.plugin(PouchDBUpsert);
 /* tslint:disable-next-line:no-var-requires */
 PouchDB.plugin(require('pouchdb-live-find'));
 /* tslint:disable-next-line:no-var-requires */
-PouchDB.plugin(require('pouchdb-adapter-memory').default);
-
-(window as any).P = PouchDB;
+PouchDB.plugin(require('pouchdb-adapter-memory'));
 
 import * as Txns from './txns';
 

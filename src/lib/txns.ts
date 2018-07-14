@@ -42,6 +42,23 @@ export interface AccountTransfer extends LedgerEvent {
 
 export type Txn = BankTxn | AccountTransfer | EnvelopeTransfer;
 
+export interface BankTxnFriendly extends BankTxn {
+  accountName: string;
+  categoryNames: {[key: string]: Pennies};
+}
+
+export interface AccountTransferFriendly extends AccountTransfer {
+  fromName: string;
+  toName: string;
+}
+
+export interface EnvelopeTransferFriendly extends EnvelopeTransfer {
+  fromName: string;
+  toName: string;
+}
+
+export type TxnFriendly = BankTxnFriendly | AccountTransferFriendly | EnvelopeTransferFriendly;
+
 export interface Balance {
   name: string;
   balance: Pennies;

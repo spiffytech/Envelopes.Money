@@ -8,18 +8,18 @@
       <template v-if="data.item.type === 'banktxn'">
         <h6>{{data.item.payee}}</h6>
         <small>
-          <span>{{data.item.account}}</span>
+          <span>{{data.item.accountName}}</span>
           •
-          <span>{{Object.keys(data.item.categories).join(', ')}}</span>
+          <span>{{Object.keys(data.item.categoryNames).join(', ')}}</span>
         </small>
       </template>
 
       <template v-if="data.item.type === 'accountTransfer'">
-        <h6>{{data.item.from}} ⇨ {{data.item.to}}</h6>
+        <h6>{{data.item.fromName}} ⇨ {{data.item.toName}}</h6>
       </template>
 
       <template v-if="data.item.type === 'envelopeTransfer'">
-        <h6>{{data.item.from}} ⇨ {{data.item.to}}</h6>
+        <h6>{{data.item.fromName}} ⇨ {{data.item.toName}}</h6>
       </template>
     </template>
 
@@ -31,14 +31,24 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
+import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
 import router from '@/router';
 import * as StoreTypes from '@/store/types';
 
-@Component({props: {txns: Array}})
+@Component({})
 export default class Transactions extends Vue {
+  @Prop({type: Array})
+  public txns!: Txns.Txn[];
+
+  @Prop({type: Object})
+  public accounts!: {[key: string]: Txns.Account};
+
+  @Prop({type: Object})
+  public categories!: {[key: string]: Txns.Category};
+
   public fields = ['date', 'type', 'payee', 'memo', 'amount'];
 
   public formatDate = utils.formatDate;

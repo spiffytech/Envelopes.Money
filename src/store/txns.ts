@@ -1,3 +1,5 @@
+import * as _ from 'lodash';
+import * as R from 'ramda';
 import Vue from 'vue';
 import {Module} from 'vuex';
 
@@ -18,12 +20,61 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
   },
 
   getters: {
+    /**
+     * We have to check if they exist because txns are loaded before accounts
+     */
     accountBalances(state) {
-      return Txns.accountBalances(Object.values(state.txns));
+      console.log(state.accounts);
+      return Txns.accountBalances(Object.values(state.txns)).
+        map(({name, balance}) => {
+          if (state.accounts[name]) return {balance, name: state.accounts[name].name};
+          return {balance, name};
+        });
     },
 
     categoryBalances(state) {
-      return Txns.categoryBalances(Object.values(state.txns));
+      return Txns.categoryBalances(Object.values(state.txns)).
+        map(({name, balance}) => {
+          if (state.categories[name]) return {balance, name: state.categories[name].name};
+          return {balance, name};
+        });
+    },
+
+    txnsFriendly(state): Txns.TxnFriendly[] {
+      return (
+        Object.values(state.txns).
+        sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1).
+        map((txn) => {
+          if (Txns.isBankTxn(txn)) {
+            const categories = R.fromPairs(
+              Object.entries(txn.categories).
+              map(([category, balance]) =>
+                [_.get(state.categories[category], 'name', category), balance] as [string, Txns.Pennies],
+              ),
+            );
+            return {
+              ...txn,
+              accountName: _.get(state.accounts[txn.account], 'name', txn.account),
+              categoryNames: categories,
+            };
+          } else if (Txns.isAccountTxfr(txn)) {
+            return {
+              ...txn,
+              fromName: _.get(state.accounts[txn.from], 'name', txn.from),
+              toName: _.get(state.accounts[txn.to], 'name', txn.to),
+            };
+          } else if (Txns.isEnvelopeTxfr(txn)) {
+            return {
+              ...txn,
+              fromName: _.get(state.categories[txn.from], 'name', txn.from),
+              toName: _.get(state.categories[txn.to], 'name', txn.to),
+            };
+          }
+
+          const t: never = txn;
+          return t;
+        })
+      );
     },
   },
 
@@ -55,20 +106,6 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
   actions: {
     async init({commit, rootState}) {
-      await Couch.liveFind<Txns.Txn>(
-        rootState.couch!.pouch,
-        {
-          selector: {
-            $or: [
-              {type: 'banktxn'},
-              {type: 'accountTransfer'},
-              {type: 'envelopeTransfer'},
-            ],
-          },
-        },
-        (values) => commit('handleTxnUpdates', values),
-      );
-
       await Couch.liveFind<Txns.Category>(
         rootState.couch!.pouch,
         {
@@ -87,6 +124,20 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           },
         },
         (values) => commit('handleAccountUpdates', values),
+      );
+
+      await Couch.liveFind<Txns.Txn>(
+        rootState.couch!.pouch,
+        {
+          selector: {
+            $or: [
+              {type: 'banktxn'},
+              {type: 'accountTransfer'},
+              {type: 'envelopeTransfer'},
+            ],
+          },
+        },
+        (values) => commit('handleTxnUpdates', values),
       );
     },
   },

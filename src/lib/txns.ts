@@ -1,4 +1,4 @@
-import * as dateFns from 'date-fns';
+import format from 'date-fns/format';
 import * as R from 'ramda';
 
 import {DETxn} from './types';
@@ -168,7 +168,7 @@ export const touchesAccount = R.curry((account: string, txn: Txn): boolean => {
 });
 
 export function formatDate(date: string) {
-  return dateFns.format(date, 'YYYY-MM-DD');
+  return format(date, 'YYYY-MM-DD');
 }
 
 export function penniesToDollars(pennies: Pennies): Dollars {

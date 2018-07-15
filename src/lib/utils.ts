@@ -1,4 +1,4 @@
-import * as dateFns from 'date-fns';
+import format from 'date-fns/format';
 
 import * as Txns from './txns';
 
@@ -10,5 +10,5 @@ export function formatCurrency(dollars: Txns.Dollars): string {
 }
 
 export function formatDate(date: string | Date): string {
-  return dateFns.format(date, 'YYYY-MM-DD');
+  return format(date, 'YYYY-MM-DD');
 }

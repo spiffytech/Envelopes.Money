@@ -23,7 +23,6 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
      * We have to check if they exist because txns are loaded before accounts
      */
     accountBalances(state) {
-      console.log(state.accounts);
       return Txns.accountBalances(Object.values(state.txns)).
         map(({name, balance}) => {
           if (state.accounts[name]) return {balance, name: state.accounts[name].name};

@@ -35,7 +35,7 @@
     "vuex": "^3.0.1"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.21",
+    "@types/bluebird": "^3.5.22",
     "@types/csv-parse": "^1.1.11",
     "@types/date-fns": "^2.6.0",
     "@types/jest": "^22.0.1",
@@ -49,10 +49,10 @@
     "@types/pouchdb-upsert": "^2.2.3",
     "@types/ramda": "^0.25.34",
     "@types/shortid": "0.0.29",
-    "@vue/cli-plugin-pwa": "^3.0.0-beta.15",
-    "@vue/cli-plugin-typescript": "^3.0.0-beta.15",
-    "@vue/cli-plugin-unit-jest": "^3.0.0-beta.15",
-    "@vue/cli-service": "^3.0.0-beta.15",
+    "@vue/cli-plugin-pwa": "^3.0.0-rc.4",
+    "@vue/cli-plugin-typescript": "^3.0.0-rc.4",
+    "@vue/cli-plugin-unit-jest": "^3.0.0-rc.4",
+    "@vue/cli-service": "^3.0.0-rc.4",
     "@vue/test-utils": "^1.0.0-beta.16",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",

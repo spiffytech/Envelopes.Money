@@ -62,13 +62,14 @@ CouchWatchers.forEach(({getter, handler, immediate}) =>
 
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
-import * as R from 'ramda';
+import flatten from 'lodash/fp/flatten';
+import uniq from 'lodash/fp/uniq';
 /* tslint:disable:no-console */
 (window as any).discoverCategories = () => {
   const txns = Object.values((store.state as Types.RootState & {txns: Types.TxnsState}).txns.txns);
   const categories =
-    R.uniq(
-      R.flatten<Txns.TxnItem>(
+    uniq(
+      flatten<Txns.TxnItem>(
         txns.filter(Txns.hasCategories).
         map(Txns.categoriesForTxn),
       ).
@@ -91,7 +92,7 @@ import * as R from 'ramda';
 
 (window as any).discoverAccounts = () => {
   const txns = Object.values((store.state as Types.RootState & {txns: Types.TxnsState}).txns.txns);
-  const accounts = R.uniq(
+  const accounts = uniq(
     Txns.journalToLedger(txns).
     map((item: Txns.TxnItem) => item.account),
   );

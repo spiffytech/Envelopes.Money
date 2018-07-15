@@ -304,7 +304,7 @@ async function main() {
   );
   */
 
-  const txnItems = _.flatten(txns.filter(Txns.touchesBank).map(Txns.accountsForTxn));
+  const txnItems = R.flatten<TxnItem>(txns.filter(Txns.touchesBank).map(Txns.accountsForTxn));
   console.log(
     txnItems.filter(({account}) => account === 'SECU Checking').
       map(({amount}) => amount).reduce((acc, i) => acc + i, 0) / 100,

@@ -1,5 +1,9 @@
 import format from 'date-fns/format';
-import * as R from 'ramda';
+import add from 'lodash/fp/add';
+import curry from 'lodash/fp/curry';
+import flatten from 'lodash/fp/flatten';
+import groupBy from 'lodash/fp/groupBy';
+import uniq from 'lodash/fp/uniq';
 
 import {DETxn} from './types';
 export {DETxn} from './types';
@@ -79,8 +83,8 @@ export interface Category {
 }
 
 export function learnAccountsFromTxns(txns: DETxn[]): string[] {
-  return R.flatten<string>(
-    R.uniq(R.flatten<string>(txns.map((txn) => Object.keys(txn.items)))).
+  return flatten(
+    uniq(flatten(txns.map((txn) => Object.keys(txn.items)))).
     map((account) => {
       const splits = account.split(':');
       const ret = [];
@@ -97,7 +101,7 @@ export function learnAccountsFromTxns(txns: DETxn[]): string[] {
  * TxnItems for each side of an account transfer
  */
 export function journalToLedger(txns: Txn[]): TxnItem[] {
-  return R.flatten<TxnItem>(txns.filter(touchesBank).map(accountsForTxn));
+  return flatten(txns.filter(touchesBank).map(accountsForTxn));
 }
 
 export function accountsForTxn(txn: BankTxn | AccountTransfer): TxnItem[] {
@@ -161,7 +165,7 @@ export function hasCategories(txn: Txn): txn is BankTxn | EnvelopeTransfer {
   }
 }
 
-export const touchesAccount = R.curry((account: string, txn: Txn): boolean => {
+export const touchesAccount = curry((account: string, txn: Txn): boolean => {
   if (isEnvelopeTxfr(txn)) return false;
   if (isBankTxn(txn)) return txn.account === account;
   return txn.from === account || txn.to === account;
@@ -187,7 +191,7 @@ function balancesFromTxnItems(items: Array<[string, TxnItem[]]>): Balance[] {
   return (
     items.map(([account, txnItems]): Balance =>
       ({
-        balance: txnItems.map((item) => item.amount as number).reduce(R.add) as Pennies,
+        balance: txnItems.map((item) => item.amount as number).reduce(add) as Pennies,
         name: account,
       }),
     )
@@ -195,7 +199,7 @@ function balancesFromTxnItems(items: Array<[string, TxnItem[]]>): Balance[] {
 }
 
 export function accountBalances(txns: Txn[]): Balance[] {
-  const groups = R.groupBy(
+  const groups = groupBy(
     (txnItem) => txnItem.account,
     journalToLedger(Array.from(txns)),
   );
@@ -204,12 +208,12 @@ export function accountBalances(txns: Txn[]): Balance[] {
 }
 
 export function categoryBalances(txns: Txn[]): Balance[] {
-  const ledger = R.flatten<TxnItem>(
+  const ledger = flatten(
     Array.from(txns).
       filter(hasCategories).
       map(categoriesForTxn),
   );
-  const groups = R.groupBy(
+  const groups = groupBy(
     (txnItem) => txnItem.account,
     ledger,
   );

@@ -96,7 +96,7 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
-import * as R from 'ramda';
+import fromPairs from 'lodash/fp/fromPairs';
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';
@@ -149,7 +149,7 @@ export default class EditBankTxn extends Vue {
       account: this.model.account,
       payee: this.model.payee,
       type: 'banktxn',
-      categories: R.fromPairs(
+      categories: fromPairs(
         this.model.categories.map(([category, amount]: [string, string]) =>
           [category, convertFromDebit(this.isDebit, Txns.stringToPennies(amount))],
         ),

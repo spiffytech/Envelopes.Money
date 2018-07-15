@@ -27,7 +27,8 @@
 </template>
 
 <script lang="ts">
-import * as R from 'ramda';
+import add from 'lodash/fp/add';
+import fromPairs from 'lodash/fp/fromPairs';
 import { Component, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';
@@ -39,7 +40,7 @@ export default class Categories extends Vue {
   get categories(): Array<{category: Txns.Category, balance: Txns.Pennies}> {
     // This stuff should get computed in the store: {balance, category}[]
     const balances =
-      R.fromPairs(
+      fromPairs(
         (this.$store.getters['txns/categoryBalances'] as Txns.Balance[]).
         map((balance: Txns.Balance) => [balance.name, balance.balance] as [string, Txns.Pennies]),
       );
@@ -52,7 +53,7 @@ export default class Categories extends Vue {
 
   get totalBalance() {
     const balances: Txns.Balance[] = this.$store.getters['txns/categoryBalances'];
-    return balances.map(({balance}) => balance as number).reduce(R.add, 0);
+    return balances.map(({balance}) => balance as number).reduce(add, 0);
   }
 
   private formatAmount(amount: Txns.Pennies): string {

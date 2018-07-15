@@ -83,9 +83,19 @@ const module: Module<Types.CouchState, Types.RootState> = {
         return null;
       }
       console.log('Performing one-time sync');
-      commit('setFlash', {msg: 'Loading data'}, {root: true});
+      commit('setFlash', {msg: 'Syncing data'}, {root: true});
       const sync = Couch.syncDBs(state.pouch, state.couch, false);
-      sync.on('complete', () => commit('clearFlash', null, {root: true}));
+      return new Promise((resolve, reject) => {
+        sync.on('complete', () => {
+          commit('clearFlash', null, {root: true});
+          resolve();
+        });
+
+        sync.on('error', (err) => {
+          commit('setFlash', {msg: (err as any).message, type: 'error'}, {root: true});
+          reject(err);
+        });
+      });
     },
 
     async replicate({commit, rootState, state}) {

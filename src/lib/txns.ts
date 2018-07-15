@@ -1,5 +1,4 @@
 import * as dateFns from 'date-fns';
-import * as _ from 'lodash';
 import * as R from 'ramda';
 
 import {DETxn} from './types';
@@ -80,8 +79,8 @@ export interface Category {
 }
 
 export function learnAccountsFromTxns(txns: DETxn[]): string[] {
-  return _.flatten(
-    _.uniq(_.flatten(txns.map((txn) => Object.keys(txn.items)))).
+  return R.flatten<string>(
+    R.uniq(R.flatten<string>(txns.map((txn) => Object.keys(txn.items)))).
     map((account) => {
       const splits = account.split(':');
       const ret = [];
@@ -98,7 +97,7 @@ export function learnAccountsFromTxns(txns: DETxn[]): string[] {
  * TxnItems for each side of an account transfer
  */
 export function journalToLedger(txns: Txn[]): TxnItem[] {
-  return _.flatten(txns.filter(touchesBank).map(accountsForTxn));
+  return R.flatten<TxnItem>(txns.filter(touchesBank).map(accountsForTxn));
 }
 
 export function accountsForTxn(txn: BankTxn | AccountTransfer): TxnItem[] {

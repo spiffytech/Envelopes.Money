@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import * as R from 'ramda';
 import Vue from 'vue';
 import {Module} from 'vuex';
@@ -49,25 +48,25 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
             const categories = R.fromPairs(
               Object.entries(txn.categories).
               map(([category, balance]) =>
-                [_.get(state.categories[category], 'name', category), balance] as [string, Txns.Pennies],
+                [R.pathOr(category, ['name'], state.categories[category]), balance] as [string, Txns.Pennies],
               ),
             );
             return {
               ...txn,
-              accountName: _.get(state.accounts[txn.account], 'name', txn.account),
+              accountName: R.pathOr(txn.account, ['name'], state.accounts[txn.account]),
               categoryNames: categories,
             };
           } else if (Txns.isAccountTxfr(txn)) {
             return {
               ...txn,
-              fromName: _.get(state.accounts[txn.from], 'name', txn.from),
-              toName: _.get(state.accounts[txn.to], 'name', txn.to),
+              fromName: R.pathOr(txn.from, ['name'], state.accounts[txn.from]),
+              toName: R.pathOr(txn.to, ['name'], state.accounts[txn.to]),
             };
           } else if (Txns.isEnvelopeTxfr(txn)) {
             return {
               ...txn,
-              fromName: _.get(state.categories[txn.from], 'name', txn.from),
-              toName: _.get(state.categories[txn.to], 'name', txn.to),
+              fromName: R.pathOr(txn.from, ['name'], state.categories[txn.from]),
+              toName: R.pathOr(txn.to, ['name'], state.categories[txn.to]),
             };
           }
 

@@ -1,6 +1,8 @@
+import {Future} from 'funfix';
 import Vue from 'vue';
 import Vuex from 'vuex';
 
+import router from '@/router';
 import CouchStore from './couch';
 import {watchers as CouchWatchers} from './couch';
 import TxnsStore from './txns';
@@ -51,9 +53,13 @@ const store = new Vuex.Store<Types.RootState>({
 window.addEventListener('online', () => store.commit('setOnline', true));
 window.addEventListener('online', () => store.commit('setOnline', false));
 
-store.dispatch('couch/init').
-  then(() => store.dispatch('txns/init')).
-  catch(console.error);
+Future.fromPromise(store.dispatch('couch/init')).
+  attempt().
+  map((either) => either.fold(
+    (left) => router.push({name: 'login'}),
+    (right) => Future.fromPromise(store.dispatch('txns/init')),
+  )).
+  recover((e) => { throw e; });
 
 CouchWatchers.forEach(({getter, handler, immediate}) =>
   store.watch(getter, handler(store), {immediate}));

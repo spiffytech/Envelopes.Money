@@ -1,3 +1,5 @@
+import {Future} from 'funfix';
+import tap from 'lodash/fp/tap';
 import PouchDB from 'pouchdb';
 import {Module, Store} from 'vuex';
 
@@ -54,22 +56,20 @@ const module: Module<Types.CouchState, Types.RootState> = {
       return dispatch('lookUpLocalSession');
     },
 
-    async lookUpLocalSession({commit, dispatch, state}) {
-      try {
-        const doc = await state.pouch.get<{username: string}>('_local/session');
-        console.log('Found local session');
-        commit('setUsername', doc.username, {root: true});
-
-        const remote = await Couch.mkRemoteDB(doc.username);
-        commit('setCouch', remote);
-
-        await dispatch('oneTimeSync');
-        return dispatch('replicate');
-      } catch (ex) {
-        console.log('Error looking up local session', ex);
-        if (ex.status === 404) return;
-        throw ex;
-      }
+    lookUpLocalSession({commit, dispatch, state}) {
+      return Future.fromPromise(state.pouch.get<{username: string}>('_local/session')).
+      map(tap((doc) => commit('setUsername', doc.username, {root: true}))).
+      map(tap(() => console.log('Found local session'))).
+      map((doc) => Couch.mkRemoteDB(doc.username)).
+      map((remote) => commit('setCouch', remote)).
+      map(() => Future.fromPromise(dispatch('oneTimeSync'))).
+      map(() => dispatch('replicate')).
+      recover((e) => {
+        if ((e as any).status === 404) console.error('Session is missing');
+        console.error('Error initializing session');
+        throw e;
+      }).
+      toPromise();
     },
 
     /**

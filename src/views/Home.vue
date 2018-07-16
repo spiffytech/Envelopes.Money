@@ -10,10 +10,14 @@
           <b-tab title="Accounts">
             <Accounts></Accounts>
           </b-tab>
+
+          <b-tab title="Transactions" title-item-class="d-lg-none">
+            <Transactions :txns="txnsFriendly"></Transactions>
+          </b-tab>
         </b-tabs>
       </b-col>
 
-      <b-col xs="12" lg="8">
+      <b-col xs="12" lg="8" class="d-none d-lg-block">
         <Transactions :txns="txnsFriendly"></Transactions>
       </b-col>
     </b-row>

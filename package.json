@@ -18,6 +18,7 @@
     "lodash": "^4.17.10",
     "mz": "^2.7.0",
     "nconf": "^0.10.0",
+    "octicons": "^8.0.0",
     "pouchdb": "^6.4.3",
     "pouchdb-adapter-memory": "^6.4.3",
     "pouchdb-authentication": "^1.1.3",

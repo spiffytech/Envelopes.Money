@@ -4,6 +4,12 @@
       {{formatDate(data.value)}}
     </template>
 
+    <template slot="type" slot-scope="data">
+      <span v-if="data.item.type === 'banktxn'" v-html="banktxnIcon"></span>
+      <span v-if="data.item.type === 'accountTransfer'" v-html="accountTransferIcon"></span>
+      <span v-if="data.item.type === 'envelopeTransfer'" v-html="envelopeTransferIcon"></span>
+    </template>
+
     <template slot="payee" slot-scope="data">
       <template v-if="data.item.type === 'banktxn'">
         <h6>{{data.item.payee}}</h6>
@@ -31,6 +37,7 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
+import * as octicons from 'octicons';
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';
@@ -59,6 +66,18 @@ export default class Transactions extends Vue {
 
   private formatAmount(amount: Txns.Pennies): string {
     return utils.formatCurrency(Txns.penniesToDollars(amount));
+  }
+
+  private get banktxnIcon() {
+    return octicons['credit-card'].toSVG();
+  }
+
+  private get accountTransferIcon() {
+    return octicons.code.toSVG();
+  }
+
+  private get envelopeTransferIcon() {
+    return octicons['git-compare'].toSVG();
   }
 }
 </script>

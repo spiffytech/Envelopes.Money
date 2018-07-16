@@ -1,7 +1,7 @@
 <template>
   <b-container fluid>
     <b-row>
-      <b-col cols="4">
+      <b-col xs="12" lg="4">
         <b-tabs>
           <b-tab title="Categories" active>
             <Categories></Categories>
@@ -13,7 +13,7 @@
         </b-tabs>
       </b-col>
 
-      <b-col cols="8">
+      <b-col xs="12" lg="8">
         <Transactions :txns="txnsFriendly"></Transactions>
       </b-col>
     </b-row>

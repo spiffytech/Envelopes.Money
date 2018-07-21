@@ -37,7 +37,7 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
-import * as octicons from 'octicons';
+const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';

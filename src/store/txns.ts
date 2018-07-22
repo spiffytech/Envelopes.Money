@@ -12,6 +12,9 @@ import * as Types from './types';
 
 /* tslint:disable:no-console */
 
+let changesAccounts: PouchDB.Core.Changes<any> | null = null;
+let changesCategories: PouchDB.Core.Changes<any> | null = null;
+
 const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchState}> = {
   namespaced: true,
 
@@ -160,14 +163,17 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       await Couch.getAccountBalances(db).then(partial(commit, 'accountBalances'));
       await Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances'));
 
-      const changesAccounts = db.changes({
+      if (changesAccounts) changesAccounts.cancel();
+      if (changesCategories) changesCategories.cancel();
+
+      changesAccounts = db.changes({
         since: 'now',
         live: true,
         include_docs: true,
         filter: '_view',
         view: 'balances/accounts',
       });
-      const changesCategories = db.changes({
+      changesCategories = db.changes({
         since: 'now',
         live: true,
         include_docs: true,

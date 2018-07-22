@@ -135,8 +135,20 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         (values) => commit('handleAccountUpdates', values),
       );
 
-      await Couch.liveFind<Txns.Txn>(
+      await Couch.liveFind<Txns.Category>(
         rootState.couch!.pouch,
+        {
+          selector: {
+            type: 'category',
+          },
+        },
+        (values) => commit('handleCategoryUpdates', values),
+      );
+    },
+
+    async subscribeTxns({commit}, {db}: {db: PouchDB.Database}) {
+      await Couch.liveFind<Txns.Txn>(
+        db,
         {
           selector: {
             $or: [
@@ -147,16 +159,6 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           },
         },
         (values) => commit('handleTxnUpdates', values),
-      );
-
-      await Couch.liveFind<Txns.Category>(
-        rootState.couch!.pouch,
-        {
-          selector: {
-            type: 'category',
-          },
-        },
-        (values) => commit('handleCategoryUpdates', values),
       );
     },
 
@@ -210,6 +212,13 @@ export function watch(store: Store<Types.RootState & {couch: Types.CouchState}>)
     (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
     (pouch: PouchDB.Database) =>
       store.dispatch('txns/subscribeBalances', pouch),
-    {immediate: true},
+    {immediate: false},
+  );
+
+  store.watch(
+    (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
+    (pouch: PouchDB.Database) =>
+      store.dispatch('txns/subscribeTxns', {db: pouch}),
+    {immediate: false},
   );
 }

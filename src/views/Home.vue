@@ -42,7 +42,7 @@ import * as Txns from '@/lib/txns';
 })
 export default class Home extends Vue {
   get txnsFriendly() {
-    return this.$store.getters['txns/txns'];
+    return this.$store.getters['txns/txns'].slice(0, this.$store.state.txns.visibleTxns);
   }
 }
 </script>

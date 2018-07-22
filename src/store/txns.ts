@@ -1,4 +1,3 @@
-import * as kefir from 'kefir';
 import {partial, throttle} from 'lodash';
 import fromPairs from 'lodash/fp/fromPairs';
 import getOr from 'lodash/fp/getOr';
@@ -29,18 +28,18 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
      * We have to check if they exist because txns are loaded before accounts
      */
     accountBalances(state) {
-      return Txns.accountBalances(Object.values(state.txns)).
-        map(({name, balance}) => {
+      return Object.entries(state.accountBalances).
+        map(([name, balance]) => {
           if (state.accounts[name]) return {balance, name: state.accounts[name].name};
-          return {balance, name};
+          return {name, balance};
         });
     },
 
     categoryBalances(state) {
-      return Txns.categoryBalances(Object.values(state.txns)).
-        map(({name, balance}) => {
+      return Object.entries(state.categoryBalances).
+        map(([name, balance]) => {
           if (state.categories[name]) return {balance, name: state.categories[name].name};
-          return {balance, name};
+          return {name, balance};
         });
     },
 
@@ -157,15 +156,18 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       );
     },
 
-    async subscribeBalances({commit}, pouch: PouchDB.Database) {
-      const changesAccounts = pouch.changes({
+    async subscribeBalances({commit}, db: PouchDB.Database) {
+      await Couch.getAccountBalances(db).then(partial(commit, 'accountBalances'));
+      await Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances'));
+
+      const changesAccounts = db.changes({
         since: 'now',
         live: true,
         include_docs: true,
         filter: '_view',
         view: 'balances/accounts',
       });
-      const changesCategories = pouch.changes({
+      const changesCategories = db.changes({
         since: 'now',
         live: true,
         include_docs: true,
@@ -176,7 +178,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       changesAccounts.on(
         'change',
         throttle(
-          () => Couch.getAccountBalances(pouch).then(partial(commit, 'accountBalances')),
+          () => Couch.getAccountBalances(db).then(partial(commit, 'accountBalances')),
           500,
         ),
       );
@@ -185,18 +187,11 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       changesCategories.on(
         'change',
         throttle(
-          () => Couch.getAccountBalances(pouch).then(partial(commit, 'categoryBalances')),
+          () => Couch.getAccountBalances(db).then(partial(commit, 'categoryBalances')),
           500,
         ),
       );
       changesCategories.on('error', console.error);
-    },
-
-    getAccountBalances({commit}, db: PouchDB.Database) {
-      return Couch.getAccountBalances(db).then(partial(commit, 'accountBalances'));
-    },
-    getCategoryBalances({commit}, db: PouchDB.Database) {
-      return Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances'));
     },
   },
 };

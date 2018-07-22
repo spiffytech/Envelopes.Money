@@ -24,6 +24,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     categories: {},
     accountBalances: {},
     categoryBalances: {},
+    visibleTxns: 5,
   },
 
   getters: {
@@ -46,7 +47,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         });
     },
 
-    txnsFriendly(state): Txns.TxnFriendly[] {
+    txns(state): Txns.TxnFriendly[] {
       return (
         Object.values(state.txns).
         sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1).
@@ -204,12 +205,11 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
 export default module;
 
-export const watchers = [
-  {
-    getter: (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
-    handler: (store: Store<Types.RootState>) =>
-      (pouch: PouchDB.Database) =>
-        store.dispatch('txns/subscribeBalances', pouch),
-    immediate: false,
-  },
-];
+export function watch(store: Store<Types.RootState & {couch: Types.CouchState}>) {
+  store.watch(
+    (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
+    (pouch: PouchDB.Database) =>
+      store.dispatch('txns/subscribeBalances', pouch),
+    {immediate: true},
+  );
+}

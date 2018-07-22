@@ -18,4 +18,5 @@ export interface TxnsState {
   categories: {[key: string]: Txns.Category};
   accountBalances: {[key: string]: Txns.Balance};
   categoryBalances: {[key: string]: Txns.Balance};
+  visibleTxns: number;
 }

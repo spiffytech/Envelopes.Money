@@ -5,7 +5,7 @@ import Vuex from 'vuex';
 import router from '@/router';
 import CouchStore from './couch';
 import {watchers as CouchWatchers} from './couch';
-import {watchers as TxnWatchers} from './txns';
+import {watch as TxnWatch} from './txns';
 import TxnsStore from './txns';
 import * as Types from './types';
 
@@ -64,8 +64,7 @@ Future.fromPromise(store.dispatch('couch/init')).
 
 CouchWatchers.forEach(({getter, handler, immediate}) =>
   store.watch(getter, handler(store), {immediate}));
-TxnWatchers.forEach(({getter, handler, immediate}) =>
-  store.watch(getter as any, handler(store), {immediate}));
+TxnWatch(store as any);
 
 (window as any).store = store;
 

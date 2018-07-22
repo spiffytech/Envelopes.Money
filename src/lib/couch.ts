@@ -6,7 +6,7 @@ import PouchDBAuthentication from 'pouchdb-authentication';
 import PouchDBFind from 'pouchdb-find';
 import * as PouchDBUpsert from 'pouchdb-upsert';
 /* tslint:disable-next-line:no-var-requires */
-PouchDB.plugin(require('pouchdb-debug'));
+// PouchDB.plugin(require('pouchdb-debug'));
 PouchDB.plugin(PouchDBAuthentication);
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBUpsert);
@@ -16,6 +16,7 @@ PouchDB.plugin(require('pouchdb-live-find'));
 PouchDB.plugin(require('pouchdb-adapter-memory'));
 
 // PouchDB.debug.enable('*');
+PouchDB.debug.disable();
 
 import * as Future from 'fluture';
 /* tslint:disable-next-line:no-var-requires */
@@ -194,6 +195,9 @@ export function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
 }
 
 /* tslint:disable:only-arrow-functions */
+// Have to disable ES6 features for CouchDB
+/* tslint:disable:no-var-keyword */
+/* tslint:disable:prefer-const */
 export const designDocs: {[key: string]: DesignDoc} = {
   balances: {
     _id: '_design/balances',
@@ -222,7 +226,17 @@ export const designDocs: {[key: string]: DesignDoc} = {
 
       categories: {
         map: function(doc: any) {
-          emit(doc);
+          if (doc.type === 'banktxn') {
+            for (var category in doc.categories) {
+              if (doc.categories.hasOwnProperty(category)) {
+                emit(category, doc.categories[category]);
+              }
+            }
+          } else if (doc.type === 'envelopeTransfer') {
+            emit(doc.from, doc.amount);
+            emit(doc.to, -doc.amount);
+            return;
+          }
         }.toString(),
         reduce: '_sum',
       },

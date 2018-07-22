@@ -143,6 +143,9 @@ export function isEnvelopeTxfr(txn: Txn): txn is EnvelopeTransfer {
   return txn.type === 'envelopeTransfer';
 }
 
+/**
+ * Used in CouchDB views, so be careful about what goes in herer
+ */
 export function touchesBank(txn: Txn): txn is BankTxn | AccountTransfer {
   switch (txn.type) {
     case 'banktxn': return true;

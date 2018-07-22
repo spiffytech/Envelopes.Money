@@ -37,6 +37,7 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
+/* tslint:disable:no-var-requires */
 const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 

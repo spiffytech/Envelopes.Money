@@ -1,9 +1,12 @@
 /* tslint:disable:no-console */
 import * as kefir from 'kefir';
+import {pipe} from 'lodash/fp';
 import PouchDB from 'pouchdb';
 import PouchDBAuthentication from 'pouchdb-authentication';
 import PouchDBFind from 'pouchdb-find';
 import * as PouchDBUpsert from 'pouchdb-upsert';
+/* tslint:disable-next-line:no-var-requires */
+PouchDB.plugin(require('pouchdb-debug'));
 PouchDB.plugin(PouchDBAuthentication);
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBUpsert);
@@ -12,7 +15,28 @@ PouchDB.plugin(require('pouchdb-live-find'));
 /* tslint:disable-next-line:no-var-requires */
 PouchDB.plugin(require('pouchdb-adapter-memory'));
 
+// PouchDB.debug.enable('*');
+
+import * as Future from 'fluture';
+/* tslint:disable-next-line:no-var-requires */
+const {env: flutureEnv} = require('fluture-sanctuary-types');
+import {create, env} from 'sanctuary';
+const S = create({checkTypes: true, env: env.concat(flutureEnv)});
+
 import * as Txns from './txns';
+
+interface DesignDoc {
+  _id: string;
+  version: number;
+  _rev?: string;
+  views: {
+    lib?: any;
+    [key: string]: {
+      map: string;
+      reduce?: string;
+    };
+  };
+}
 
 // https://gist.github.com/valentinkostadinov/5875467
 function toHex(str: string) {
@@ -131,3 +155,77 @@ export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
   /* tslint:disable-next-line:no-string-literal */
   return db.upsert(txn._id, (doc: any) => ({_rev: doc['_rev'], ...txn}));
 }
+
+export function getDesignDoc(couch: PouchDB.Database, docName: string) {
+  return (
+    Future.tryP(() => (couch as PouchDB.Database<DesignDoc>).get(docName)).
+    fold(S.Left, S.Right)
+  );
+}
+
+/**
+ * Prevents TypeScript from doing any other imports when using 'emit' inside design docs
+ */
+declare var emit: any;
+
+export function createDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
+  return Future.tryP(() => couch.put(doc as any)).fold(S.Left, S.Right);
+}
+
+export function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
+  const get = () => getDesignDoc(couch, doc._id);
+  return (
+    get().
+    chain(
+      S.either(
+        () => createDesignDoc(couch, doc).chain(() => get()),
+      )(
+        (dbDoc) => {
+          if (dbDoc.version !== doc.version) {
+            return createDesignDoc(couch, {...doc, _rev: dbDoc._rev}).
+              chain(get);
+          } else {
+            return Future.of(S.Right(dbDoc));
+          }
+        },
+      ),
+    )
+  );
+}
+
+/* tslint:disable:only-arrow-functions */
+export const designDocs: {[key: string]: DesignDoc} = {
+  balances: {
+    _id: '_design/balances',
+    version: new Date().getTime(),
+    views: {
+      /*
+      lib: {
+        journalToLedger: Txns.journalToLedger.toString() as any,
+        touchesBank: Txns.touchesBank.toString() as any,
+      } as any,
+      */
+
+      accounts: {
+        map: function(doc: any) {
+          if (doc.type === 'banktxn') {
+            emit(doc.account, doc.amount);
+            return;
+          } else if (doc.type === 'accountTransfer') {
+            emit(doc.from, doc.amount);
+            emit(doc.to, -doc.amount);
+            return;
+          }
+        }.toString(),
+        reduce: '_sum',
+      },
+
+      categories: {
+        map: function(doc: any) {
+          emit(doc);
+        }.toString(),
+        reduce: '_sum',
+      },
+    },
+  },
+};

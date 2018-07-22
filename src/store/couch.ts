@@ -49,10 +49,12 @@ const module: Module<Types.CouchState, Types.RootState> = {
     async init({commit, dispatch}) {
       console.log('Initializing store');
       const needsMemoryPouch = await hasIndexDB();
+      const pouch = Couch.mkLocalDB(needsMemoryPouch);
       if (needsMemoryPouch) {
         console.log('Using in-memory PouchDB');
-        commit('setPouch', Couch.mkLocalDB(true));
       }
+      commit('setPouch', pouch);
+
       return dispatch('lookUpLocalSession');
     },
 

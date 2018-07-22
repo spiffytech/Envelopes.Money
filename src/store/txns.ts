@@ -24,7 +24,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     categories: {},
     accountBalances: {},
     categoryBalances: {},
-    visibleTxns: 5,
+    visibleTxns: 100,
   },
 
   getters: {
@@ -86,6 +86,10 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
   },
 
   mutations: {
+    addVisibleTxns(state, n = 30) {
+      state.visibleTxns = state.visibleTxns + n;
+    },
+
     handleTxnUpdates(state, values: Array<Couch.LiveFindValue<Txns.Txn>>) {
       values.map(({action: couchAction, doc}) => {
         if (couchAction === 'ADD') return Vue.set(state.txns, doc._id, doc);

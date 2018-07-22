@@ -1,5 +1,5 @@
 <template>
-  <b-table :fields="fields" :items="txns" @row-clicked="rowClicked">
+  <b-table :fields="fields" :items="txns.slice(0, this.$store.state.txns.visibleTxns)" @row-clicked="rowClicked">
     <template slot="date" slot-scope="data">
       {{formatDate(data.value)}}
     </template>
@@ -46,6 +46,8 @@ import * as utils from '@/lib/utils';
 import router from '@/router';
 import * as StoreTypes from '@/store/types';
 
+const infiniteScroll = require('@/lib/infinite-scroll');
+
 @Component({})
 export default class Transactions extends Vue {
   @Prop({type: Array})
@@ -79,6 +81,27 @@ export default class Transactions extends Vue {
 
   private get envelopeTransferIcon() {
     return octicons['git-compare'].toSVG();
+  }
+
+  private handleScroll() {
+    window.onscroll = () => {
+      const bottomOfWindow =
+        document.documentElement.scrollTop + window.innerHeight ===
+        document.documentElement.offsetHeight;
+
+      console.log(bottomOfWindow);
+    }
+  }
+
+  mounted() {
+    (window as any).infinite = infiniteScroll;
+    infiniteScroll({
+      callback: (done: any) => {
+        this.$store.commit('txns/addVisibleTxns', 30);
+        done();
+      },
+      distance: 200,
+    });
   }
 }
 </script>

@@ -164,6 +164,18 @@ export function getDesignDoc(couch: PouchDB.Database, docName: string) {
   );
 }
 
+export async function getAccountBalances(db: PouchDB.Database): Promise<Txns.Balance[]> {
+  return (await db.query('balances/accounts', {group: true, reduce: true})).
+    rows.
+    map(({key, value}) => ({name: key, balance: value}));
+}
+
+export async function getCategoryBalances(db: PouchDB.Database): Promise<Txns.Balance[]> {
+  return (await db.query('balances/categories', {group: true})).
+    rows.
+    map(({key, value}) => ({name: key, balance: value}));
+}
+
 /**
  * Prevents TypeScript from doing any other imports when using 'emit' inside design docs
  */

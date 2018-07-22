@@ -22,7 +22,6 @@ export interface LedgerEvent {
   amount: Pennies;
   memo: string;
 }
-
 export interface EnvelopeTransfer extends LedgerEvent {
   from: string;
   to: string;

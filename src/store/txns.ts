@@ -1,13 +1,16 @@
+import * as kefir from 'kefir';
+import {partial, throttle} from 'lodash';
 import fromPairs from 'lodash/fp/fromPairs';
 import getOr from 'lodash/fp/getOr';
 import Vue from 'vue';
-import {Module} from 'vuex';
+import {Module, Store} from 'vuex';
 
 import * as Couch from '../lib/couch';
 import * as Txns from '../lib/txns';
 import * as Types from './types';
 
 (window as any).Txns = Txns;
+
 /* tslint:disable:no-console */
 
 const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchState}> = {
@@ -17,6 +20,8 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     txns: {},
     accounts: {},
     categories: {},
+    accountBalances: {},
+    categoryBalances: {},
   },
 
   getters: {
@@ -101,6 +106,18 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         if (couchAction === 'REMOVE') return Vue.delete(state.accounts, doc._id);
       });
     },
+
+    accountBalances(state, balances: Txns.Balance[]) {
+      balances.forEach((balance) =>
+        Vue.set(state.accountBalances, balance.name, balance.balance),
+      );
+    },
+
+    categoryBalances(state, balances: Txns.Balance[]) {
+      balances.forEach((balance) =>
+        Vue.set(state.categoryBalances, balance.name, balance.balance),
+      );
+    },
   },
 
   actions: {
@@ -139,7 +156,59 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         (values) => commit('handleCategoryUpdates', values),
       );
     },
+
+    async subscribeBalances({commit}, pouch: PouchDB.Database) {
+      const changesAccounts = pouch.changes({
+        since: 'now',
+        live: true,
+        include_docs: true,
+        filter: '_view',
+        view: 'balances/accounts',
+      });
+      const changesCategories = pouch.changes({
+        since: 'now',
+        live: true,
+        include_docs: true,
+        filter: '_view',
+        view: 'balances/categories',
+      });
+
+      changesAccounts.on(
+        'change',
+        throttle(
+          () => Couch.getAccountBalances(pouch).then(partial(commit, 'accountBalances')),
+          500,
+        ),
+      );
+      changesAccounts.on('error', console.error);
+
+      changesCategories.on(
+        'change',
+        throttle(
+          () => Couch.getAccountBalances(pouch).then(partial(commit, 'categoryBalances')),
+          500,
+        ),
+      );
+      changesCategories.on('error', console.error);
+    },
+
+    getAccountBalances({commit}, db: PouchDB.Database) {
+      return Couch.getAccountBalances(db).then(partial(commit, 'accountBalances'));
+    },
+    getCategoryBalances({commit}, db: PouchDB.Database) {
+      return Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances'));
+    },
   },
 };
 
 export default module;
+
+export const watchers = [
+  {
+    getter: (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
+    handler: (store: Store<Types.RootState>) =>
+      (pouch: PouchDB.Database) =>
+        store.dispatch('txns/subscribeBalances', pouch),
+    immediate: false,
+  },
+];

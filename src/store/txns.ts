@@ -222,7 +222,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       changesCategories.on(
         'change',
         debounce(
-          () => Couch.getAccountBalances(db).then(partial(commit, 'categoryBalances')),
+          () => Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances')),
           1000,
           {trailing: true},
         ),

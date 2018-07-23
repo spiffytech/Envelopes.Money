@@ -51,7 +51,6 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     txns(state): Txns.TxnFriendly[] {
       return (
         Object.values(state.txns).
-        sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1).
         map((txn) => {
           if (Txns.isBankTxn(txn)) {
             const categories = fromPairs(

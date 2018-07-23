@@ -25,7 +25,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     categories: {},
     accountBalances: {},
     categoryBalances: {},
-    visibleTxns: 3,
+    visibleTxns: 20,
   },
 
   getters: {
@@ -87,7 +87,8 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
   mutations: {
     addVisibleTxns(state, n = 30) {
-      state.visibleTxns = state.visibleTxns + n;
+      const numTxns = Object.keys(state.txns).length;
+      state.visibleTxns = Math.min(numTxns + n, state.visibleTxns + n);
     },
 
     setTxns(state, values: Txns.Txn[]) {

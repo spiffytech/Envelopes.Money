@@ -1,5 +1,5 @@
 <template>
-  <b-table :fields="fields" :items="txns.slice(0, this.$store.state.txns.visibleTxns)" @row-clicked="rowClicked">
+  <b-table :fields="fields" :items="txns" @row-clicked="rowClicked">
     <template slot="date" slot-scope="data">
       {{formatDate(data.value)}}
     </template>

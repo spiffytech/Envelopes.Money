@@ -14,6 +14,7 @@ import * as Types from './types';
 
 let changesAccounts: PouchDB.Core.Changes<any> | null = null;
 let changesCategories: PouchDB.Core.Changes<any> | null = null;
+let txnsSubscription: any | null = null;
 
 const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchState}> = {
   namespaced: true,
@@ -24,7 +25,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     categories: {},
     accountBalances: {},
     categoryBalances: {},
-    visibleTxns: 100,
+    visibleTxns: 3,
   },
 
   getters: {
@@ -90,12 +91,9 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       state.visibleTxns = state.visibleTxns + n;
     },
 
-    handleTxnUpdates(state, values: Array<Couch.LiveFindValue<Txns.Txn>>) {
-      values.map(({action: couchAction, doc}) => {
-        if (couchAction === 'ADD') return Vue.set(state.txns, doc._id, doc);
-        if (couchAction === 'UPDATE') return Vue.set(state.txns, doc._id, doc);
-        if (couchAction === 'REMOVE') return Vue.delete(state.txns, doc._id);
-      });
+    setTxns(state, values: Txns.Txn[]) {
+      state.txns = {};
+      values.map((doc) => Vue.set(state.txns, doc._id, doc));
     },
 
     handleCategoryUpdates(state, values: Array<Couch.LiveFindValue<Txns.Category>>) {
@@ -150,20 +148,26 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       );
     },
 
-    async subscribeTxns({commit}, {db}: {db: PouchDB.Database}) {
-      await Couch.liveFind<Txns.Txn>(
-        db,
-        {
-          selector: {
-            $or: [
-              {type: 'banktxn'},
-              {type: 'accountTransfer'},
-              {type: 'envelopeTransfer'},
-            ],
-          },
-        },
-        (values) => commit('handleTxnUpdates', values),
+    async subscribeTxns({commit, state}, {db}: {db: PouchDB.Database}) {
+      await Couch.getTxns(db, state.visibleTxns).map(partial(commit, 'setTxns')).promise();
+
+      if (txnsSubscription) return;
+
+      txnsSubscription = db.changes({
+        since: 'now',
+        live: true,
+        include_docs: true,
+        filter: '_view',
+        view: 'balances/accounts',
+      });
+      txnsSubscription.on(
+        'change',
+        throttle(
+          () => Couch.getTxns(db, state.visibleTxns).map(partial(commit, 'setTxns')).promise(),
+          500,
+        ),
       );
+      txnsSubscription.on('error', console.error);
     },
 
     async subscribeBalances({commit}, db: PouchDB.Database) {
@@ -211,7 +215,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
 export default module;
 
-export function watch(store: Store<Types.RootState & {couch: Types.CouchState}>) {
+export function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState}>) {
   store.watch(
     (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
     (pouch: PouchDB.Database) =>
@@ -220,8 +224,10 @@ export function watch(store: Store<Types.RootState & {couch: Types.CouchState}>)
   );
 
   store.watch(
-    (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
-    (pouch: PouchDB.Database) =>
+    (
+      state: Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState},
+    ) => [state.couch.pouch, state.txns.visibleTxns] as [PouchDB.Database, number],
+    ([pouch, _visibleTxns]: [PouchDB.Database, number]) =>
       store.dispatch('txns/subscribeTxns', {db: pouch}),
     {immediate: false},
   );

@@ -1,6 +1,6 @@
 /* tslint:disable:no-console */
 import * as kefir from 'kefir';
-import {pipe} from 'lodash/fp';
+import {get, map as _map} from 'lodash/fp';
 import PouchDB from 'pouchdb';
 import PouchDBAuthentication from 'pouchdb-authentication';
 import PouchDBFind from 'pouchdb-find';
@@ -30,7 +30,8 @@ interface DesignDoc {
   _id: string;
   version: number;
   _rev?: string;
-  views: {
+  filters?: {[key: string]: string};
+  views?: {
     lib?: any;
     [key: string]: {
       map: string;
@@ -132,7 +133,7 @@ export function liveFind<T>(
   return new Promise((resolve, reject) => {
     // Consume accumulated and set up permanent listeners
     subscription.on('ready', (...args: any[]) => {
-      resolve();
+      resolve(subscription);
     });
 
     subscription.on('error', (err: any) => {
@@ -176,6 +177,18 @@ export async function getCategoryBalances(db: PouchDB.Database): Promise<Txns.Ba
     map(({key, value}) => ({name: key, balance: value}));
 }
 
+export function getTxns(db: PouchDB.Database, limit: number) {
+  return Future.tryP(() => db.allDocs<Txns.Txn>({
+    startkey: 'txn/\uffff',
+    endkey: 'txn/',
+    include_docs: true,
+    limit,
+    descending: true,
+  })).
+  map(get('rows')).
+  map(_map(get('doc')));
+}
+
 /**
  * Prevents TypeScript from doing any other imports when using 'emit' inside design docs
  */
@@ -186,17 +199,17 @@ export function createDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
 }
 
 export function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
-  const get = () => getDesignDoc(couch, doc._id);
+  const getDoc = () => getDesignDoc(couch, doc._id);
   return (
-    get().
+    getDoc().
     chain(
       S.either(
-        () => createDesignDoc(couch, doc).chain(() => get()),
+        () => createDesignDoc(couch, doc).chain(() => getDoc()),
       )(
         (dbDoc) => {
           if (dbDoc.version !== doc.version) {
             return createDesignDoc(couch, {...doc, _rev: dbDoc._rev}).
-              chain(get);
+              chain(getDoc);
           } else {
             return Future.of(S.Right(dbDoc));
           }

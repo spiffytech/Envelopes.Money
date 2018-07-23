@@ -55,8 +55,8 @@ const module: Module<Types.CouchState, Types.RootState> = {
       }
       commit('setPouch', pouch);
 
-      console.log(await Couch.upsertDesignDoc(pouch, Couch.designDocs.txns).promise());
-      console.log(await Couch.upsertDesignDoc(pouch, Couch.designDocs.balances).promise());
+      await Couch.upsertDesignDoc(pouch, Couch.designDocs.txns).promise();
+      await Couch.upsertDesignDoc(pouch, Couch.designDocs.balances).promise();
 
       return dispatch('lookUpLocalSession');
     },

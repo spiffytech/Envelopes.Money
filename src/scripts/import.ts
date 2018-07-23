@@ -1,3 +1,4 @@
+/* tslint:disable:no-var-requires */
 import bluebird from 'bluebird';
 import csv from 'csv-parse';
 import * as _ from 'lodash';
@@ -6,6 +7,7 @@ import nconf from 'nconf';
 import * as R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register';
+
 // import {Category, discoverCategories} from '../lib/categories';
 import * as Couch from '../lib/couch';
 import {TxnItem} from '../lib/txns';
@@ -17,7 +19,6 @@ global.Promise = bluebird;
   longStackTraces: true,
 });
 
-/* tslint:disable:no-var-requires */
 /* tslint:disable:no-console */
 /* tslint:disable:object-literal-sort-keys */
 
@@ -189,9 +190,10 @@ export function mkCategoryItems(
 }
 
 export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
+  const date = new Date(row.Date).toJSON();
   return {
-    _id: shortid.generate(),
-    date: new Date(row.Date).toString(),
+    _id: ['txn', date, 'banktxn', row.Name, shortid.generate()].join('/'),
+    date,
     amount: amountOfStr(row.Amount),
     account: row.Account,
     payee: row.Name,
@@ -202,9 +204,10 @@ export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
 }
 
 export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
+  const date = new Date(row.Date).toJSON();
   return {
-    _id: shortid.generate(),
-    date: new Date(row.Date).toString(),
+    _id: ['txn', date, 'accountTransfer', shortid.generate()].join('/'),
+    date,
     amount: amountOfStr(row.Amount),
     memo: row.Notes,
     from: row.Account,
@@ -249,7 +252,7 @@ async function discoverCategories(db: PouchDB.Database, txns: Txns.Txn[]) {
       target: 0 as Txns.Pennies,
       interval: 'weekly' as 'weekly',
       type: 'category' as 'category',
-      _id: shortid.generate(),
+      _id: ['category', shortid.generate()].join('/'),
     }),
   );
 
@@ -266,7 +269,7 @@ async function discoverAccounts(db: PouchDB.Database, txns: Txns.Txn[]) {
   const accounts: Txns.Account[] = accountNames.map((account) =>
     ({
       name: account,
-      _id: shortid.generate(),
+      _id: ['account', shortid.generate()].join('/'),
       type: 'account' as 'account',
     }),
   );

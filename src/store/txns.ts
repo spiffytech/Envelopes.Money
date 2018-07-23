@@ -235,11 +235,13 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 export default module;
 
 function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState}>) {
+  console.log('Initializing txn watchers');
+
   store.watch(
     (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
     (pouch: PouchDB.Database) =>
       store.dispatch('txns/subscribeBalances', pouch),
-    {immediate: false},
+    {immediate: true},
   );
 
   store.watch(
@@ -248,6 +250,6 @@ function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Ty
     ) => [state.couch.pouch, state.txns.visibleTxns] as [PouchDB.Database, number],
     ([pouch, _visibleTxns]: [PouchDB.Database, number]) =>
       store.dispatch('txns/subscribeTxns', {db: pouch}),
-    {immediate: false},
+    {immediate: true},
   );
 }

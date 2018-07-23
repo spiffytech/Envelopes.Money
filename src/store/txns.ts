@@ -1,4 +1,4 @@
-import {partial, throttle} from 'lodash';
+import {debounce, partial} from 'lodash';
 import fromPairs from 'lodash/fp/fromPairs';
 import getOr from 'lodash/fp/getOr';
 import Vue from 'vue';
@@ -113,12 +113,14 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     },
 
     accountBalances(state, balances: Txns.Balance[]) {
+      state.accountBalances = {};
       balances.forEach((balance) =>
         Vue.set(state.accountBalances, balance.name, balance.balance),
       );
     },
 
     categoryBalances(state, balances: Txns.Balance[]) {
+      state.categoryBalances = {};
       balances.forEach((balance) =>
         Vue.set(state.categoryBalances, balance.name, balance.balance),
       );
@@ -157,14 +159,19 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         since: 'now',
         live: true,
         include_docs: true,
-        filter: '_view',
-        view: 'balances/accounts',
+        selector: {$or: [
+          {type: 'banktxn'},
+          {type: 'accountTransfer'},
+          {type: 'envelopeTransfer'},
+          {_deleted: true},
+        ]},
       });
       txnsSubscription.on(
         'change',
-        throttle(
+        debounce(
           () => Couch.getTxns(db, state.visibleTxns).map(partial(commit, 'setTxns')).promise(),
-          500,
+          1000,
+          {trailing: true},
         ),
       );
       txnsSubscription.on('error', console.error);
@@ -181,31 +188,39 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         since: 'now',
         live: true,
         include_docs: true,
-        filter: '_view',
-        view: 'balances/accounts',
+        selector: {$or: [
+          {type: 'banktxn'},
+          {type: 'accountTransfer'},
+          {_deleted: true},
+        ]},
       });
       changesCategories = db.changes({
         since: 'now',
         live: true,
         include_docs: true,
-        filter: '_view',
-        view: 'balances/categories',
+        selector: {$or: [
+          {type: 'banktxn'},
+          {type: 'envelopeTransfer'},
+          {_deleted: true},
+        ]},
       });
 
       changesAccounts.on(
         'change',
-        throttle(
+        debounce(
           () => Couch.getAccountBalances(db).then(partial(commit, 'accountBalances')),
-          500,
+          1000,
+          {trailing: true},
         ),
       );
       changesAccounts.on('error', console.error);
 
       changesCategories.on(
         'change',
-        throttle(
+        debounce(
           () => Couch.getAccountBalances(db).then(partial(commit, 'categoryBalances')),
-          500,
+          1000,
+          {trailing: true},
         ),
       );
       changesCategories.on('error', console.error);

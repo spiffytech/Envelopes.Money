@@ -148,6 +148,8 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         },
         (values) => commit('handleCategoryUpdates', values),
       );
+
+      watch(this as any);
     },
 
     async subscribeTxns({commit, state}, {db}: {db: PouchDB.Database}) {
@@ -168,6 +170,8 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       });
       txnsSubscription.on(
         'change',
+        // We use debounce because multiple refleshes get going at once and
+        // finish out of order
         debounce(
           () => Couch.getTxns(db, state.visibleTxns).map(partial(commit, 'setTxns')).promise(),
           1000,
@@ -230,7 +234,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
 export default module;
 
-export function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState}>) {
+function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState}>) {
   store.watch(
     (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
     (pouch: PouchDB.Database) =>

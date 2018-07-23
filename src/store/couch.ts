@@ -55,7 +55,6 @@ const module: Module<Types.CouchState, Types.RootState> = {
       }
       commit('setPouch', pouch);
 
-      await Couch.upsertDesignDoc(pouch, Couch.designDocs.txns).promise();
       await Couch.upsertDesignDoc(pouch, Couch.designDocs.balances).promise();
 
       return dispatch('lookUpLocalSession');
@@ -70,7 +69,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
       map(() => Future.fromPromise(dispatch('oneTimeSync'))).
       map(() => dispatch('replicate')).
       recover((e) => {
-        if ((e as any).status === 404) console.error('Session is missing');
+        if ((e as any).status === 404) return console.error('Session is missing');
         console.error('Error initializing session');
         throw e;
       }).

@@ -166,13 +166,13 @@ export function getDesignDoc(couch: PouchDB.Database, docName: string) {
 }
 
 export async function getAccountBalances(db: PouchDB.Database): Promise<Txns.Balance[]> {
-  return (await db.query('balances/accounts', {group: true, reduce: true})).
+  return (await db.query('accounts/balances', {group: true, reduce: true})).
     rows.
     map(({key, value}) => ({name: key, balance: value}));
 }
 
 export async function getCategoryBalances(db: PouchDB.Database): Promise<Txns.Balance[]> {
-  return (await db.query('balances/categories', {group: true})).
+  return (await db.query('categories/balances', {group: true})).
     rows.
     map(({key, value}) => ({name: key, balance: value}));
 }
@@ -224,8 +224,8 @@ export function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
 /* tslint:disable:no-var-keyword */
 /* tslint:disable:prefer-const */
 export const designDocs: {[key: string]: DesignDoc} = {
-  balances: {
-    _id: '_design/balances',
+  accounts: {
+    _id: '_design/accounts',
     version: new Date().getTime(),
     views: {
       /*
@@ -235,7 +235,7 @@ export const designDocs: {[key: string]: DesignDoc} = {
       } as any,
       */
 
-      accounts: {
+      balances: {
         map: function(doc: any) {
           if (doc.type === 'banktxn') {
             emit(doc.account, doc.amount);
@@ -248,8 +248,14 @@ export const designDocs: {[key: string]: DesignDoc} = {
         }.toString(),
         reduce: '_sum',
       },
+    },
+  },
 
-      categories: {
+  categories: {
+    _id: '_design/categories',
+    version: new Date().getTime(),
+    views: {
+      balances: {
         map: function(doc: any) {
           if (doc.type === 'banktxn') {
             for (var category in doc.categories) {

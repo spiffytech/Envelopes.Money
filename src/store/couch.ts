@@ -86,7 +86,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
         if (!state.couch) throw new Error('Can\'t replicate, CouchDB remote is undefined');
 
         const clearFlash = debounce(
-          () => commit('clearFlash', null, {root: true}),
+          () => commit('setSyncing', false, {root: true}),
           2000,
           {leading: false, trailing: true},
         );
@@ -96,7 +96,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
           'change',
           throttle(
             () => {
-              commit('setFlash', {msg: 'Syncing data'}, {root: true});
+              commit('setSyncing', true, {root: true});
               clearFlash();
             },
             500,

@@ -12,6 +12,10 @@
       <b-nav-item v-if="loggedIn">
         <b-button @click="logout">Log Out</b-button>
       </b-nav-item>
+
+      <b-nav-item v-if="syncing">
+        <span v-html="syncIcon"></span>
+      </b-nav-item>
     </b-nav>
 
     <b-alert v-if="showFlash" show :variant="flashType">{{flashMessage}}</b-alert>
@@ -21,6 +25,7 @@
 </template>
 
 <script lang="ts">
+const octicons = require('octicons');
 import { Component, Vue } from 'vue-property-decorator';
 
 import router from '@/router';
@@ -46,6 +51,14 @@ export default class App extends Vue {
 
   get flashMessage() {
     return this.$store.state.flash.msg;
+  }
+
+  get syncing() {
+    return this.$store.state.syncing;
+  }
+
+  get syncIcon() {
+    return octicons['sync'].toSVG();
   }
 }
 </script>

@@ -15,6 +15,7 @@ const store = new Vuex.Store<Types.RootState>({
     isOnline: navigator.onLine,
     username: null,
     flash: null,
+    syncing: false,
   },
 
   getters: {
@@ -38,6 +39,10 @@ const store = new Vuex.Store<Types.RootState>({
 
     clearFlash(state) {
       state.flash = null;
+    },
+
+    setSyncing(state, syncing) {
+      state.syncing = syncing;
     },
   },
   actions: {

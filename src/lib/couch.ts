@@ -11,8 +11,6 @@ PouchDB.plugin(PouchDBAuthentication);
 PouchDB.plugin(PouchDBFind);
 PouchDB.plugin(PouchDBUpsert);
 /* tslint:disable-next-line:no-var-requires */
-PouchDB.plugin(require('pouchdb-live-find'));
-/* tslint:disable-next-line:no-var-requires */
 PouchDB.plugin(require('pouchdb-adapter-memory'));
 
 // PouchDB.debug.enable('*');
@@ -114,33 +112,6 @@ export function syncDBs(
 
 export async function bulkImport(db: PouchDB.Database, txns: Txns.Txn[]) {
   return db.bulkDocs(txns);
-}
-
-type LiveFindHandler<T> = (items: T[]) => any;
-export interface LiveFindValue<T> { action: string; doc: T; }
-
-export function liveFind<T>(
-  db: PouchDB.Database,
-  query: PouchDB.Find.FindRequest<{}>,
-  handleEvents: (items: Array<LiveFindValue<T>>) => any,
-) {
-  const subscription = (db as any).liveFind(query);
-
-  kefir.fromEvents<LiveFindValue<T>, {}>(subscription, 'update').
-    bufferWithTimeOrCount(500, 1000).
-    onValue((events) => events.length > 0 && handleEvents(events));
-
-  return new Promise((resolve, reject) => {
-    // Consume accumulated and set up permanent listeners
-    subscription.on('ready', (...args: any[]) => {
-      resolve(subscription);
-    });
-
-    subscription.on('error', (err: any) => {
-      console.error('Hit an error subscribing to txns', err);
-      reject(err);
-    });
-  });
 }
 
 export function upsertCategory(db: PouchDB.Database, category: Txns.Category) {

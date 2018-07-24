@@ -27,7 +27,6 @@
     "pouchdb-collate": "^7.0.0",
     "pouchdb-debug": "^7.0.0",
     "pouchdb-find": "^6.4.3",
-    "pouchdb-live-find": "^0.4.0",
     "pouchdb-upsert": "^2.2.0",
     "ramda": "^0.25.0",
     "register-service-worker": "^1.0.0",

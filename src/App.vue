@@ -1,22 +1,31 @@
 <template>
   <div id="app">
-    <b-nav>
-      <b-nav-item>
-        <router-link :to="{name: 'home'}">Home</router-link> |
-      </b-nav-item>
+    <b-navbar toggleable="sm">
+      <b-navbar-toggle target="navbar-collapse"></b-navbar-toggle>
 
-      <b-nav-item v-if="!loggedIn">
-        <router-link :to="{name: 'login'}">Log In</router-link>
-      </b-nav-item>
+      <b-navbar-brand>
+        <router-link :to="{name: 'home'}">Hacker Budget</router-link>
+      </b-navbar-brand>
 
-      <b-nav-item v-if="loggedIn">
-        <b-button @click="logout">Log Out</b-button>
-      </b-nav-item>
+      <b-collapse is-nav id="navbar-collapse">
+        <b-navbar-nav>
+        </b-navbar-nav>
 
-      <b-nav-item v-if="syncing">
-        <span v-html="syncIcon"></span>
-      </b-nav-item>
-    </b-nav>
+        <b-navbar-nav class="ml-auto">
+          <b-nav-item v-if="syncing">
+            <span v-html="syncIcon"></span>
+          </b-nav-item>
+
+          <b-nav-item v-if="!loggedIn">
+            <router-link :to="{name: 'login'}">Log In</router-link>
+          </b-nav-item>
+
+          <b-nav-item v-if="loggedIn">
+            <b-button variant="link" size="sm" @click="logout">Log Out</b-button>
+          </b-nav-item>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
 
     <b-alert v-if="showFlash" show :variant="flashType">{{flashMessage}}</b-alert>
 

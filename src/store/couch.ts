@@ -1,5 +1,7 @@
 import {Future} from 'funfix';
+import debounce from 'lodash/debounce';
 import tap from 'lodash/fp/tap';
+import throttle from 'lodash/throttle';
 import PouchDB from 'pouchdb';
 import {Module, Store} from 'vuex';
 
@@ -9,6 +11,8 @@ import * as Types from './types';
 /* tslint:disable:no-console */
 
 (window as any).Couch = Couch;
+
+let dbSync: PouchDB.Replication.Sync<any> | null = null;
 
 /**
  * Firefox private browsing doesn't have indexeddb support
@@ -67,7 +71,6 @@ const module: Module<Types.CouchState, Types.RootState> = {
       map(tap(() => console.log('Found local session'))).
       map((doc) => Couch.mkRemoteDB(doc.username)).
       map((remote) => commit('setCouch', remote)).
-      map(() => dispatch('oneTimeSync')).
       map(() => dispatch('replicate')).
       recover((e) => {
         if ((e as any).status === 404) return console.error('Session is missing');
@@ -77,37 +80,30 @@ const module: Module<Types.CouchState, Types.RootState> = {
       toPromise();
     },
 
-    /**
-     * Used when logging in so the user doesn't stare at a blank page waiting
-     * for replication
-     */
-    async oneTimeSync({commit, rootState, state}) {
-      if (!state.couch) throw new Error('Cannot sync couch, it doesn\'t exist');
-      if (!rootState.isOnline) {
-        console.error('Can\'t sync because we\'re offline');
-        return null;
-      }
-      console.log('Performing one-time sync');
-      commit('setFlash', {msg: 'Syncing data'}, {root: true});
-      const sync = Couch.syncDBs(state.pouch, state.couch, false);
-      return new Promise((resolve, reject) => {
-        sync.on('complete', () => {
-          commit('clearFlash', null, {root: true});
-          resolve();
-        });
-
-        sync.on('error', (err) => {
-          commit('setFlash', {msg: (err as any).message, type: 'error'}, {root: true});
-          reject(err);
-        });
-      });
-    },
-
     async replicate({commit, rootState, state}) {
       if (rootState.username && rootState.isOnline) {
         console.log('Beginning replication');
         if (!state.couch) throw new Error('Can\'t replicate, CouchDB remote is undefined');
-        commit('setReplicator', Couch.syncDBs(state.pouch, state.couch));
+
+        const clearFlash = debounce(
+          () => commit('clearFlash', null, {root: true}),
+          2000,
+          {leading: false, trailing: true},
+        );
+
+        dbSync = Couch.syncDBs(state.pouch, state.couch);
+        dbSync.on(
+          'change',
+          throttle(
+            () => {
+              commit('setFlash', {msg: 'Syncing data'}, {root: true});
+              clearFlash();
+            },
+            500,
+            {leading: true, trailing: false},
+          ),
+        );
+        commit('setReplicator', dbSync);
       } else {
         console.log('Cannot replicate, no username or is offline');
         if (state.replicator) state.replicator.cancel();
@@ -130,13 +126,13 @@ const module: Module<Types.CouchState, Types.RootState> = {
       }
 
       commit('setCouch', remote);
-      await dispatch('oneTimeSync');
       return dispatch('replicate');
       // TODO: Subscribe to Txns feed
     },
 
     async logOut({commit, state}) {
       console.log('Logging out');
+      if (dbSync) dbSync.cancel();
       if (state.couch) {
         await Couch.logOut(state.couch);
       }

@@ -21,3 +21,15 @@ export interface TxnsState {
   categoryBalances: {[key: string]: Txns.Balance};
   visibleTxns: number;
 }
+
+export interface CommitSetSyncing {
+  type: 'setSyncing';
+  value: boolean;
+}
+
+export interface CommitSetFlash {
+  type: 'setFlash';
+  value: RootState['flash'];
+}
+
+export type Action = CommitSetFlash | CommitSetFlash;

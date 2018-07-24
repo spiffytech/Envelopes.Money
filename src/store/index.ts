@@ -33,7 +33,7 @@ const store = new Vuex.Store<Types.RootState>({
       state.username = username;
     },
 
-    setFlash(state, flash) {
+    setFlash(state, flash: Types.CommitSetFlash['value']) {
       state.flash = flash;
     },
 
@@ -41,7 +41,7 @@ const store = new Vuex.Store<Types.RootState>({
       state.flash = null;
     },
 
-    setSyncing(state, syncing) {
+    setSyncing(state, syncing: Types.CommitSetSyncing['value']) {
       state.syncing = syncing;
     },
   },

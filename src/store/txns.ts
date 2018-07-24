@@ -13,8 +13,10 @@ import * as Types from './types';
 
 /* tslint:disable:no-console */
 
-let changesAccounts: PouchDB.Core.Changes<any> | null = null;
-let changesCategories: PouchDB.Core.Changes<any> | null = null;
+let changesAccounts: any | null = null;
+let changesCategories: any | null = null;
+let changesAccountsBalances: PouchDB.Core.Changes<any> | null = null;
+let changesCategoriesBalances: PouchDB.Core.Changes<any> | null = null;
 let txnsSubscription: any | null = null;
 
 const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchState}> = {
@@ -129,9 +131,14 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
   },
 
   actions: {
-    async init({commit, rootState}) {
-      await Couch.liveFind<Txns.Account>(
-        rootState.couch!.pouch,
+    async init() {
+      watch(this as any);
+    },
+
+    async watchAccounts({commit}, db: PouchDB.Database) {
+      if (changesAccounts) changesAccounts.cancel();
+      changesAccounts = await Couch.liveFind<Txns.Account>(
+        db,
         {
           selector: {
             type: 'account',
@@ -139,9 +146,12 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         },
         (values) => commit('handleAccountUpdates', values),
       );
+    },
 
-      await Couch.liveFind<Txns.Category>(
-        rootState.couch!.pouch,
+    async watchCategories({commit}, db: PouchDB.Database) {
+      if (changesCategories) changesCategories.cancel();
+      changesCategories = await Couch.liveFind<Txns.Category>(
+        db,
         {
           selector: {
             type: 'category',
@@ -149,8 +159,6 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         },
         (values) => commit('handleCategoryUpdates', values),
       );
-
-      watch(this as any);
     },
 
     async subscribeTxns({commit, state}, {db}: {db: PouchDB.Database}) {
@@ -186,10 +194,10 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       await Couch.getAccountBalances(db).then(partial(commit, 'accountBalances'));
       await Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances'));
 
-      if (changesAccounts) changesAccounts.cancel();
-      if (changesCategories) changesCategories.cancel();
+      if (changesAccountsBalances) changesAccountsBalances.cancel();
+      if (changesCategoriesBalances) changesCategoriesBalances.cancel();
 
-      changesAccounts = db.changes({
+      changesAccountsBalances = db.changes({
         since: 'now',
         live: true,
         include_docs: true,
@@ -199,7 +207,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           {_deleted: true},
         ]},
       });
-      changesCategories = db.changes({
+      changesCategoriesBalances = db.changes({
         since: 'now',
         live: true,
         include_docs: true,
@@ -210,7 +218,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         ]},
       });
 
-      changesAccounts.on(
+      changesAccountsBalances.on(
         'change',
         debounce(
           () => Couch.getAccountBalances(db).then(partial(commit, 'accountBalances')),
@@ -218,9 +226,9 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           {trailing: true},
         ),
       );
-      changesAccounts.on('error', console.error);
+      changesAccountsBalances.on('error', console.error);
 
-      changesCategories.on(
+      changesCategoriesBalances.on(
         'change',
         debounce(
           () => Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances')),
@@ -228,7 +236,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           {trailing: true},
         ),
       );
-      changesCategories.on('error', console.error);
+      changesCategoriesBalances.on('error', console.error);
     },
   },
 };
@@ -242,6 +250,20 @@ function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Ty
     (state: Types.RootState & {couch: Types.CouchState}) => activeDB(state),
     (pouch: PouchDB.Database) =>
       store.dispatch('txns/subscribeBalances', pouch),
+    {immediate: true},
+  );
+
+  store.watch(
+    (state: Types.RootState & {couch: Types.CouchState}) => activeDB(state),
+    (pouch: PouchDB.Database) =>
+      store.dispatch('txns/watchAccounts', pouch),
+    {immediate: true},
+  );
+
+  store.watch(
+    (state: Types.RootState & {couch: Types.CouchState}) => activeDB(state),
+    (pouch: PouchDB.Database) =>
+      store.dispatch('txns/watchCategories', pouch),
     {immediate: true},
   );
 

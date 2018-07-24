@@ -42,7 +42,7 @@
 <script lang="ts">
 /* tslint:disable:no-console */
 /* tslint:disable:no-var-requires */
-import {pipe, tap} from 'lodash/fp';
+import {pipe, tap, throttle} from 'lodash/fp';
 const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
@@ -74,14 +74,17 @@ export default class Transactions extends Vue {
 
   mounted() {
     const tss = this.$refs.txnsScrollSentinel;
+    const addVisible = throttle(500, () => {
+      console.log('Loading more txns');
+      this.$store.commit('txns/addVisibleTxns', 20)
+    });
 
     this.txnsScrollWatcher = setInterval(
       pipe(
         () => this.checkVisible(tss),
-        tap((visible) => visible && console.log('Loading more txns')),
-        (visible) => visible && this.$store.commit('txns/addVisibleTxns', 20)
+        (visible) => visible && addVisible(),
       ),
-      50
+      250
     );
   }
 

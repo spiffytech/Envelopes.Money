@@ -15,6 +15,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import EditBankTxn from '@/components/EditBankTxn.vue';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
+import * as utils from '@/lib/utils';
 
 @Component({components: {EditBankTxn}})
 export default class EditTxn extends Vue {
@@ -37,7 +38,7 @@ export default class EditTxn extends Vue {
   }
 
   private onSubmit(txn: Txns.Txn) {
-    return Couch.upsertTxn(this.$store.state.couch.pouch, txn);
+    return Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
   }
 }
 </script>

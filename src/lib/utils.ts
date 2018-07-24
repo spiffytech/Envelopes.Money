@@ -1,5 +1,8 @@
+/* tslint:disable:no-console */
+
 import format from 'date-fns/format';
 
+import * as StoreTypes from '../store/types';
 import * as Txns from './txns';
 
 export function formatCurrency(dollars: Txns.Dollars): string {
@@ -11,4 +14,13 @@ export function formatCurrency(dollars: Txns.Dollars): string {
 
 export function formatDate(date: string | Date): string {
   return format(date, 'YYYY-MM-DD');
+}
+
+export function activeDB(state: StoreTypes.RootState & {couch: StoreTypes.CouchState}) {
+  if (state.isOnline && state.couch.couch) {
+    console.log('Using remote DB');
+    return state.couch.couch;
+  }
+  console.log('Using local DB');
+  return state.couch.pouch;
 }

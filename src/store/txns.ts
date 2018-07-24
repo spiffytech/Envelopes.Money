@@ -6,6 +6,7 @@ import {Module, Store} from 'vuex';
 
 import * as Couch from '../lib/couch';
 import * as Txns from '../lib/txns';
+import {activeDB} from '../lib/utils';
 import * as Types from './types';
 
 (window as any).Txns = Txns;
@@ -238,7 +239,7 @@ function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Ty
   console.log('Initializing txn watchers');
 
   store.watch(
-    (state: Types.RootState & {couch: Types.CouchState}) => state.couch.pouch,
+    (state: Types.RootState & {couch: Types.CouchState}) => activeDB(state),
     (pouch: PouchDB.Database) =>
       store.dispatch('txns/subscribeBalances', pouch),
     {immediate: true},
@@ -247,7 +248,7 @@ function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Ty
   store.watch(
     (
       state: Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState},
-    ) => [state.couch.pouch, state.txns.visibleTxns] as [PouchDB.Database, number],
+    ) => [activeDB(state), state.txns.visibleTxns] as [PouchDB.Database, number],
     ([pouch, _visibleTxns]: [PouchDB.Database, number]) =>
       store.dispatch('txns/subscribeTxns', {db: pouch}),
     {immediate: true},

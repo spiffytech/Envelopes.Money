@@ -67,7 +67,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
       map(tap(() => console.log('Found local session'))).
       map((doc) => Couch.mkRemoteDB(doc.username)).
       map((remote) => commit('setCouch', remote)).
-      map(() => Future.fromPromise(dispatch('oneTimeSync'))).
+      map(() => dispatch('oneTimeSync')).
       map(() => dispatch('replicate')).
       recover((e) => {
         if ((e as any).status === 404) return console.error('Session is missing');
@@ -121,6 +121,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
       console.log('Login successful');
 
       commit('setPouch', Couch.mkLocalDB());  // Covers recreating the DB after a logout destroys it
+      commit('setCouch', remote);
       commit('setUsername', username, {root: true});
       try {
         await state.pouch.upsert('_local/session', (doc: any) => ({...doc, username}));

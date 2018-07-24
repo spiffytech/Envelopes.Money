@@ -72,6 +72,24 @@ export default class Transactions extends Vue {
     router.push({name: 'editTxn', params: {txnId: txn._id}});
   }
 
+  mounted() {
+    const tss = this.$refs.txnsScrollSentinel;
+
+    this.txnsScrollWatcher = setInterval(
+      pipe(
+        () => this.checkVisible(tss),
+        tap((visible) => visible && console.log('Loading more txns')),
+        (visible) => visible && this.$store.commit('txns/addVisibleTxns', 20)
+      ),
+      50
+    );
+  }
+
+  beforeDestroy() {
+    console.log('Destroying txns component');
+    if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
+  }
+
   private formatAmount(amount: Txns.Pennies): string {
     return utils.formatCurrency(Txns.penniesToDollars(amount));
   }
@@ -89,8 +107,8 @@ export default class Transactions extends Vue {
   }
 
   private checkVisible(elm: any) {
-    var rect = elm.getBoundingClientRect();
-    var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+    const rect = elm.getBoundingClientRect();
+    const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
     const ret = rect.top >= 0 &&
       rect.left >= 0 &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth) &&
@@ -98,33 +116,6 @@ export default class Transactions extends Vue {
       elm.offsetParent !== null;
     // console.log(rect, window.innerHeight || document.documentElement.clientHeight, elm.offsetParent, ret);
     return ret;
-  }
-
-  mounted() {
-    (window as any).tss = this.$refs.txnsScrollSentinel;
-    const tss = this.$refs.txnsScrollSentinel;
-    console.log(tss);
-    console.log('mounted');
-    console.log('visible', this.$el.offsetParent);
-    /*
-    setInterval(
-      () => console.log('tssop', this.$el.offsetParent && (tss as any).offsetParent),
-      5000
-    );
-    */
-    this.txnsScrollWatcher = setInterval(
-      pipe(
-        () => this.checkVisible(tss),
-        tap((visible) => visible && console.log('Loading more txns')),
-        (visible) => visible && this.$store.commit('txns/addVisibleTxns', 20)
-      ),
-      400
-    );
-  }
-
-  beforeDestroy() {
-    console.log('Destroying txns component');
-    if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
   }
 }
 </script>

@@ -109,7 +109,7 @@ export function logOut(remote: PouchDB.Database) {
 export function syncDBs(
   local: PouchDB.Database, remote: PouchDB.Database, live = true,
 ): PouchDB.Replication.Sync<{}> {
-  return PouchDB.sync(local, remote, {live});
+  return PouchDB.sync(local, remote, {live, retry: true, batch_size: 500});
 }
 
 export async function bulkImport(db: PouchDB.Database, txns: Txns.Txn[]) {

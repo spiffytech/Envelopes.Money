@@ -177,6 +177,28 @@ export async function getCategoryBalances(db: PouchDB.Database): Promise<Txns.Ba
     map(({key, value}) => ({name: key, balance: value}));
 }
 
+export async function watchSelector<T>(
+  db: PouchDB.Database<T>,
+  selector: PouchDB.Find.Selector,
+  onChange: (records: T[]) => any,
+) {
+  const getNewRecords = async () => {
+    const records = await db.find({selector, limit: Number.MAX_SAFE_INTEGER});
+    onChange(records.docs);
+  };
+
+  const subscription = db.changes({
+    since: 'now',
+    live: true,
+    selector,
+  });
+
+  subscription.on('change', getNewRecords);
+  subscription.on('error', (e) => { throw e; });
+  await getNewRecords();
+  return subscription;
+}
+
 export function getTxns(db: PouchDB.Database, limit: number) {
   return Future.tryP(() => db.allDocs<Txns.Txn>({
     startkey: 'txn/\uffff',

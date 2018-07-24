@@ -99,19 +99,17 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       values.map((doc) => Vue.set(state.txns, doc._id, doc));
     },
 
-    handleCategoryUpdates(state, values: Array<Couch.LiveFindValue<Txns.Category>>) {
-      values.map(({action: couchAction, doc}) => {
-        if (couchAction === 'ADD') return Vue.set(state.categories, doc._id, doc);
-        if (couchAction === 'UPDATE') return Vue.set(state.categories, doc._id, doc);
-        if (couchAction === 'REMOVE') return Vue.delete(state.categories, doc._id);
+    setAccounts(state, values: Txns.Account[]) {
+      state.accounts = {};
+      values.map((doc) => {
+        Vue.set(state.accounts, doc._id, doc);
       });
     },
 
-    handleAccountUpdates(state, values: Array<Couch.LiveFindValue<Txns.Account>>) {
-      values.map(({action: couchAction, doc}) => {
-        if (couchAction === 'ADD') return Vue.set(state.accounts, doc._id, doc);
-        if (couchAction === 'UPDATE') return Vue.set(state.accounts, doc._id, doc);
-        if (couchAction === 'REMOVE') return Vue.delete(state.accounts, doc._id);
+    setCategories(state, values: Txns.Category[]) {
+      state.categories = {};
+      values.map((doc) => {
+        Vue.set(state.categories, doc._id, doc);
       });
     },
 
@@ -137,27 +135,29 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
 
     async watchAccounts({commit}, db: PouchDB.Database) {
       if (changesAccounts) changesAccounts.cancel();
-      changesAccounts = await Couch.liveFind<Txns.Account>(
+      changesAccounts = await Couch.watchSelector(
         db,
         {
-          selector: {
-            type: 'account',
+          _id: {
+            $gte: 'account/',
+            $lte: 'account/\uffff',
           },
         },
-        (values) => commit('handleAccountUpdates', values),
+        partial(commit, 'setAccounts'),
       );
     },
 
     async watchCategories({commit}, db: PouchDB.Database) {
       if (changesCategories) changesCategories.cancel();
-      changesCategories = await Couch.liveFind<Txns.Category>(
+      changesCategories = await Couch.watchSelector(
         db,
         {
-          selector: {
-            type: 'category',
+          _id: {
+            $gte: 'category/',
+            $lte: 'category/\uffff',
           },
         },
-        (values) => commit('handleCategoryUpdates', values),
+        partial(commit, 'setCategories'),
       );
     },
 

@@ -1,44 +1,63 @@
 <template>
-  <EditBankTxn
-    v-if="txn && txn.type === 'banktxn'"
-    :txn="txn"
-    :categories="categories"
-    :accounts="accounts"
-    :onSubmit="onSubmit.bind(this)"
-  ></EditBankTxn>
+  <div>
+    <b-form-select v-model="txn.type" :options="txnTypeSelect" :disabled="!isNewTxn" />
+
+    <EditBankTxn
+      v-if="txn.type === 'banktxn'"
+      :txn="txn"
+      :categories="categories"
+      :accounts="accounts"
+      :onSubmit="onSubmit.bind(this)"
+    ></EditBankTxn>
+  </div>
 </template>
 
 <script lang="ts">
 /* tslint:disable:no-console */
-import { Component, Vue } from 'vue-property-decorator';
+import Vue from 'vue';
 
 import EditBankTxn from '@/components/EditBankTxn.vue';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
 
-@Component({components: {EditBankTxn}})
-export default class EditTxn extends Vue {
-  get txn() {
-    return this.$store.state.txns.txns[this.txnId];
-  }
+export default Vue.extend({
+  components: {EditBankTxn},
 
-  get txnId() {
-    return this.$route.params.txnId;
-  }
+  data() {
+    return {
+      txns: this.$store.state.txns.txns,
+      txn: this.$store.state.txns.txns[this.$route.params.txnId] || {type: null},
+    };
+  },
 
-  get accounts() {
-    const accounts: Txns.Category[] = Object.values(this.$store.state.txns.accounts);
-    return accounts.sort((a, b) => a.name < b.name ? -1 : 1);
-  }
+  computed: {
+    isNewTxn(): boolean {
+      return !Boolean(this.$route.params.txnId)
+    },
 
-  get categories() {
-    const categories: Txns.Category[] = Object.values(this.$store.state.txns.categories);
-    return categories.sort((a, b) => a.name < b.name ? -1 : 1);
-  }
+    txnTypeSelect() {
+      return [
+        {value: null, text: "Select a transaction type"},
+        {value: 'banktxn', text: 'Bank Transaction'},
+      ];
+    },
 
-  private onSubmit(txn: Txns.Txn) {
-    return Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
-  }
-}
+    accounts() {
+      const accounts: Txns.Category[] = Object.values(this.$store.state.txns.accounts);
+      return accounts.sort((a, b) => a.name < b.name ? -1 : 1);
+    },
+
+    categories() {
+      const categories: Txns.Category[] = Object.values(this.$store.state.txns.categories);
+      return categories.sort((a, b) => a.name < b.name ? -1 : 1);
+    },
+  },
+
+  methods: {
+    onSubmit(txn: Txns.Txn) {
+      return Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
+    }
+  },
+});
 </script>

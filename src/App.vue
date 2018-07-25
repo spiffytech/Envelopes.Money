@@ -8,7 +8,10 @@
       </b-navbar-brand>
 
       <b-collapse is-nav id="navbar-collapse">
-        <b-navbar-nav>
+        <b-navbar-nav v-if="loggedIn">
+          <b-nav-item>
+            <b-button size="sm" :to="{name: 'editTxn', params: {txnId: null}}">Add Transaction</b-button>
+          </b-nav-item>
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">

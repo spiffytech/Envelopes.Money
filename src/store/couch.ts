@@ -115,9 +115,13 @@ const module: Module<Types.CouchState, Types.RootState> = {
       const remote = await Couch.mkRemoteDB(username);
       await Couch.logIn(remote, username, password);
       console.log('Login successful');
-
-      commit('setPouch', Couch.mkLocalDB());  // Covers recreating the DB after a logout destroys it
       commit('setCouch', remote);
+
+      // Always destroy just in case we're logged out without hitting the
+      // 'logout' button. Wouldn't want anyone seeing another user's data on a
+      // public computer.
+      await state.pouch.destroy();
+      commit('setPouch', Couch.mkLocalDB());  // Covers recreating the DB after a logout destroys it
       commit('setUsername', username, {root: true});
       try {
         await state.pouch.upsert('_local/session', (doc: any) => ({...doc, username}));
@@ -126,8 +130,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
       }
 
       commit('setCouch', remote);
-      return dispatch('replicate');
-      // TODO: Subscribe to Txns feed
+      dispatch('replicate');
     },
 
     async logOut({commit, state}) {

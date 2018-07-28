@@ -120,7 +120,11 @@ const module: Module<Types.CouchState, Types.RootState> = {
       // Always destroy just in case we're logged out without hitting the
       // 'logout' button. Wouldn't want anyone seeing another user's data on a
       // public computer.
-      await state.pouch.destroy();
+      try {
+        await state.pouch.destroy();
+      } catch (ex) {
+        console.error('Database is already destroyed');
+      }
       commit('setPouch', Couch.mkLocalDB());  // Covers recreating the DB after a logout destroys it
       commit('setUsername', username, {root: true});
       try {

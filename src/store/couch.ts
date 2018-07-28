@@ -2,7 +2,7 @@ import {Future} from 'funfix';
 import debounce from 'lodash/debounce';
 import tap from 'lodash/fp/tap';
 import throttle from 'lodash/throttle';
-import PouchDB from 'pouchdb';
+// import {pipeP} from 'ramda';
 import {Module, Store} from 'vuex';
 
 import * as Couch from '@/lib/couch';
@@ -112,7 +112,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
 
     async logIn({commit, dispatch, state}, {username, password}: {username: string, password: string}) {
       console.log('Logging in');
-      const remote = await Couch.mkRemoteDB(username);
+      const remote = Couch.mkRemoteDB(username);
       await Couch.logIn(remote, username, password);
       console.log('Login successful');
       commit('setCouch', remote);
@@ -134,6 +134,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
       }
 
       commit('setCouch', remote);
+      /* tslint:disable-next-line:no-floating-promises */
       dispatch('replicate');
     },
 

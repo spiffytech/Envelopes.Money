@@ -1,5 +1,4 @@
 /* tslint:disable:no-console */
-import * as kefir from 'kefir';
 import {get, map as _map} from 'lodash/fp';
 import PouchDB from 'pouchdb';
 import PouchDBAuthentication from 'pouchdb-authentication';
@@ -66,7 +65,7 @@ function isNode() {
 
 export function getSession() {
   const remoteUrl = new URL(`/`, process.env.VUE_APP_COUCH_HOST);
-  const remote = new PouchDB(remoteUrl.toString(), {skip_setup: true});
+  const remote = new PouchDB<{}>(remoteUrl.toString(), {skip_setup: true});
   (window as any).remote = remote;
   return remote.getSession();
 }
@@ -79,12 +78,12 @@ export function mkRemoteDB(username: string, password?: string) {
     remoteUrl.username = username;
     remoteUrl.password = password;
   }
-  return new PouchDB(remoteUrl.toString(), {skip_setup: true});
+  return new PouchDB<{}>(remoteUrl.toString(), {skip_setup: true});
 }
 
 export function mkLocalDB(memory = false) {
-  if (memory) return new PouchDB('local', {adapter: 'memory'});
-  return new PouchDB('local');
+  if (memory) return new PouchDB<{}>('local', {adapter: 'memory'});
+  return new PouchDB<{}>('local');
 }
 
 export async function logIn(remote: PouchDB.Database, username: string, password: string) {

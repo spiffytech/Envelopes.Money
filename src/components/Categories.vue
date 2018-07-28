@@ -42,6 +42,7 @@ export default class Categories extends Vue {
     const balances =
       fromPairs(
         (this.$store.getters['txns/categoryBalances'] as Txns.Balance[]).
+        /* tslint:disable-next-line:no-unnecessary-cast */
         map((balance: Txns.Balance) => [balance.name, balance.balance] as [string, Txns.Pennies]),
       );
 
@@ -56,11 +57,11 @@ export default class Categories extends Vue {
     return balances.map(({balance}) => balance as number).reduce(add, 0);
   }
 
-  private formatAmount(amount: Txns.Pennies): string {
+  public formatAmount(amount: Txns.Pennies): string {
     return utils.formatCurrency(Txns.penniesToDollars(amount));
   }
 
-  private progressAmount(balance: Txns.Pennies, target: Txns.Pennies) {
+  public progressAmount(balance: Txns.Pennies, target: Txns.Pennies) {
     return Math.abs(Math.max(-100, Math.min(100, balance / target)));
   }
 }

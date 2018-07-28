@@ -33,12 +33,12 @@ export default Vue.extend({
 
   computed: {
     isNewTxn(): boolean {
-      return !Boolean(this.$route.params.txnId)
+      return !Boolean(this.$route.params.txnId);
     },
 
     txnTypeSelect() {
       return [
-        {value: null, text: "Select a transaction type"},
+        {value: null, text: 'Select a transaction type'},
         {value: 'banktxn', text: 'Bank Transaction'},
       ];
     },
@@ -57,7 +57,7 @@ export default Vue.extend({
   methods: {
     onSubmit(txn: Txns.Txn) {
       return Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
-    }
+    },
   },
 });
 </script>

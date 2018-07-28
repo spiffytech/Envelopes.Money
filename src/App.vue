@@ -37,6 +37,7 @@
 </template>
 
 <script lang="ts">
+/* tslint:disable-next-line:no-var-requires */
 const octicons = require('octicons');
 import { Component, Vue } from 'vue-property-decorator';
 
@@ -68,7 +69,7 @@ export default class App extends Vue {
   }
 
   get syncIcon() {
-    return octicons['sync'].toSVG();
+    return octicons.sync.toSVG();
   }
 }
 </script>

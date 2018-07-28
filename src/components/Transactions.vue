@@ -42,14 +42,12 @@
 <script lang="ts">
 /* tslint:disable:no-console */
 /* tslint:disable:no-var-requires */
-import {pipe, tap, throttle} from 'lodash/fp';
+import {pipe, throttle} from 'lodash/fp';
 const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
-import router from '@/router';
-import * as StoreTypes from '@/store/types';
 
 @Component({})
 export default class Transactions extends Vue {
@@ -66,17 +64,17 @@ export default class Transactions extends Vue {
 
   public formatDate = utils.formatDate;
 
-  private txnsScrollWatcher: NodeJS.Timer | null = null;
+  public txnsScrollWatcher: NodeJS.Timer | null = null;
 
   public rowClicked(txn: Txns.Txn) {
-    router.push({name: 'editTxn', params: {txnId: txn._id}});
+    this.$router.push({name: 'editTxn', params: {txnId: txn._id}});
   }
 
-  mounted() {
+  public mounted() {
     const tss = this.$refs.txnsScrollSentinel;
     const addVisible = throttle(500, () => {
       console.log('Loading more txns');
-      this.$store.commit('txns/addVisibleTxns', 20)
+      this.$store.commit('txns/addVisibleTxns', 20);
     });
 
     this.txnsScrollWatcher = setInterval(
@@ -84,34 +82,33 @@ export default class Transactions extends Vue {
         () => this.checkVisible(tss),
         (visible) => visible && addVisible(),
       ),
-      250
+      250,
     );
   }
 
-  beforeDestroy() {
+  public beforeDestroy() {
     console.log('Destroying txns component');
     if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
   }
 
-  private formatAmount(amount: Txns.Pennies): string {
+  public formatAmount(amount: Txns.Pennies): string {
     return utils.formatCurrency(Txns.penniesToDollars(amount));
   }
 
-  private get banktxnIcon() {
+  public get banktxnIcon() {
     return octicons['credit-card'].toSVG();
   }
 
-  private get accountTransferIcon() {
+  public get accountTransferIcon() {
     return octicons.code.toSVG();
   }
 
-  private get envelopeTransferIcon() {
+  public get envelopeTransferIcon() {
     return octicons['git-compare'].toSVG();
   }
 
-  private checkVisible(elm: any) {
+  public checkVisible(elm: any) {
     const rect = elm.getBoundingClientRect();
-    const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
     const ret = rect.top >= 0 &&
       rect.left >= 0 &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth) &&

@@ -1,6 +1,6 @@
 {
   "defaultSeverity": "warning",
-  "extends": ["tslint:recommended"],
+  "extends": ["tslint:recommended", "typestrict"],
   "linterOptions": {
     "exclude": [
       "config/**/*.js",
@@ -13,6 +13,9 @@
     "curly": [true, "ignore-same-line"],
     "quotemark": [true, "single"],
     "object-literal-sort-keys": [false],
-    "variable-name": ["allow-leading-underscore", "allow-trailing-underscore"]
+    "variable-name": ["allow-leading-underscore", "allow-trailing-underscore"],
+    "no-invalid-this": false,
+    "no-useless-cast": false,
+    "no-inferred-empty-object-type": false
   }
 }

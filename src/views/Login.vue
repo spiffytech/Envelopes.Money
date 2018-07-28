@@ -21,8 +21,6 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 
-import router from '@/router';
-
 /* tslint:disable:no-console */
 
 @Component({})

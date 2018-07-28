@@ -23,7 +23,6 @@ import { Component, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
-import * as StoreTypes from '@/store/types';
 
 @Component({})
 export default class Accounts extends Vue {
@@ -40,7 +39,7 @@ export default class Accounts extends Vue {
     return balances.map(({balance}) => balance as number).reduce(add, 0);
   }
 
-  private formatAmount(amount: Txns.Pennies): string {
+  public formatAmount(amount: Txns.Pennies): string {
     return utils.formatCurrency(Txns.penniesToDollars(amount));
   }
 }

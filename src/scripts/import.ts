@@ -217,7 +217,7 @@ export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
   };
 }
 
-export function rowToEnvelopeTransfer(row: GoodBudgetRow): Txns.EnvelopeTransfer {
+export function rowToEnvelopeTransfer(_row: GoodBudgetRow): Txns.EnvelopeTransfer {
   throw new Error('Conversion to envelope transfers is not implemented yet');
 }
 
@@ -310,13 +310,13 @@ async function main() {
   const txnItems = R.flatten<TxnItem>(txns.filter(Txns.touchesBank).map(Txns.accountsForTxn));
   console.log(
     txnItems.filter(({account}) => account === 'SECU Checking').
-      map(({amount}) => amount).reduce((acc, i) => acc + i, 0) / 100,
+      map(({amount}) => amount).reduce((acc, i) => acc + (i as number), 0) / 100,
     txnItems.filter(({account}) => account === 'AmEx').
-      map(({amount}) => amount).reduce((acc, i) => acc + i, 0) / 100,
+      map(({amount}) => amount).reduce((acc, i) => acc + (i as number), 0) / 100,
   );
 
   if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
-  const remote = await Couch.mkRemoteDB(process.env.COUCH_USER, process.env.COUCH_PASS);
+  const remote = Couch.mkRemoteDB(process.env.COUCH_USER, process.env.COUCH_PASS);
   try {
     console.log(remote === null);
     const accountIds = await discoverAccounts(remote, txns);
@@ -359,5 +359,6 @@ async function main() {
   }
 }
 if (nconf.get('run')) {
+  /* tslint:disable-next-line:no-floating-promises */
   main();
 }

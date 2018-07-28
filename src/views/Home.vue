@@ -31,8 +31,6 @@ import Accounts from '@/components/Accounts.vue'; // @ is an alias to /src
 import Categories from '@/components/Categories.vue';
 import Transactions from '@/components/Transactions.vue';
 
-import * as Txns from '@/lib/txns';
-
 @Component({
   components: {
     Accounts,

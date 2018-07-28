@@ -2,7 +2,6 @@ import {Future} from 'funfix';
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-import router from '@/router';
 import CouchStore from './couch';
 import {watchers as CouchWatchers} from './couch';
 import TxnsStore from './txns';
@@ -106,7 +105,7 @@ import uniq from 'lodash/fp/uniq';
     map((item: Txns.TxnItem) => item.account),
   );
 
-  return Promise.all(accounts.map((account) => {
+  return Promise.all(accounts.map((account) =>
     Couch.upsertAccount(
       (store.state as Types.RootState & {couch: Types.CouchState}).couch.pouch,
       {
@@ -114,8 +113,8 @@ import uniq from 'lodash/fp/uniq';
         _id: Txns.idForAccountName(account),
         type: 'account',
       },
-    );
-  }));
+    ),
+  ));
 };
 
 export default mkStore;

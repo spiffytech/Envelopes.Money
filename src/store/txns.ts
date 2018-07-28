@@ -59,7 +59,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
             const categories = fromPairs(
               Object.entries(txn.categories).
               map(([category, balance]) =>
-                [getOr(category, 'name', state.categories[category]), balance] as [string, Txns.Pennies],
+                [getOr(category, 'name', state.categories[category]), balance],
               ),
             );
             return {
@@ -89,26 +89,26 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
   },
 
   mutations: {
-    addVisibleTxns(state, n = 30) {
+    addVisibleTxns(state, n: number = 30) {
       const numTxns = Object.keys(state.txns).length;
       state.visibleTxns = Math.min(numTxns + n, state.visibleTxns + n);
     },
 
     setTxns(state, values: Txns.Txn[]) {
       state.txns = {};
-      values.map((doc) => Vue.set(state.txns, doc._id, doc));
+      values.forEach((doc) => Vue.set(state.txns, doc._id, doc));
     },
 
     setAccounts(state, values: Txns.Account[]) {
       state.accounts = {};
-      values.map((doc) => {
+      values.forEach((doc) => {
         Vue.set(state.accounts, doc._id, doc);
       });
     },
 
     setCategories(state, values: Txns.Category[]) {
       state.categories = {};
-      values.map((doc) => {
+      values.forEach((doc) => {
         Vue.set(state.categories, doc._id, doc);
       });
     },
@@ -270,6 +270,7 @@ function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Ty
   store.watch(
     (
       state: Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState},
+      /* tslint:disable-next-line:no-useless-cast */
     ) => [activeDB(state), state.txns.visibleTxns] as [PouchDB.Database, number],
     ([pouch, _visibleTxns]: [PouchDB.Database, number]) =>
       store.dispatch('txns/subscribeTxns', {db: pouch}),

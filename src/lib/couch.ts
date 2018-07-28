@@ -197,7 +197,7 @@ export function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
     getDoc().
     chain(
       S.either(
-        () => createDesignDoc(couch, doc).chain(() => getDoc()),
+        () => createDesignDoc(couch, doc).chain(getDoc),
       )(
         (dbDoc) => {
           if (dbDoc.version !== doc.version) {

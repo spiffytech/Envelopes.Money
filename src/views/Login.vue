@@ -33,12 +33,12 @@ export default class Login extends Vue {
   public async onSubmit(event: any) {
     event.preventDefault();
     await this.$store.dispatch('couch/logIn', {username: this.username, password: this.password});
-    router.push({name: 'home'});
+    this.$router.push({name: 'home'});
   }
 
   public mounted() {
     if (this.$store.getters.loggedIn) {
-      router.push({name: 'home'});
+      this.$router.push({name: 'home'});
     }
   }
 }

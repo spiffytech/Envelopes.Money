@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import Router from 'vue-router';
+import {Store} from 'vuex';
 
-import store from './store';
+import * as StoreTypes from '@/store/types';
 import EditTxn from './views/EditTxn.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
@@ -31,14 +32,16 @@ const router = new Router({
   ],
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.matched.some((record) => record.meta.public)) {
-    return next();
-  }
+export default function mkRouter(store: Store<StoreTypes.RootState>) {
+  router.beforeEach((to, from, next) => {
+    if (to.matched.some((record) => record.meta.public)) {
+      return next();
+    }
 
-  if (store.getters.loggedIn) return next();
+    if (store.getters.loggedIn) return next();
 
-  return next({name: 'login'});
-});
+    return next({name: 'login'});
+  });
 
-export default router;
+  return router;
+}

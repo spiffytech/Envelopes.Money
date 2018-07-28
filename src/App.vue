@@ -40,8 +40,6 @@
 const octicons = require('octicons');
 import { Component, Vue } from 'vue-property-decorator';
 
-import router from '@/router';
-
 @Component({})
 export default class App extends Vue {
   get loggedIn() {
@@ -50,7 +48,7 @@ export default class App extends Vue {
 
   public async logout() {
     await this.$store.dispatch('couch/logOut');
-    router.push({name: 'home'});
+    this.$router.push({name: 'login'});
   }
 
   get showFlash() {

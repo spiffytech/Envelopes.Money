@@ -58,13 +58,11 @@ const store = new Vuex.Store<Types.RootState>({
 window.addEventListener('online', () => store.commit('setOnline', true));
 window.addEventListener('online', () => store.commit('setOnline', false));
 
-Future.fromPromise(store.dispatch('couch/init')).
-  attempt().
-  map((either) => either.fold(
-    (left) => router.push({name: 'login'}),
-    (right) => Future.fromPromise(store.dispatch('txns/init')),
-  )).
-  recover((e) => { throw e; });
+function mkStore() {
+  return Future.fromPromise(store.dispatch('couch/init')).
+    chain(() => Future.fromPromise(store.dispatch('txns/init'))).
+    map(() => store);
+}
 
 CouchWatchers.forEach(({getter, handler, immediate}) =>
   store.watch(getter, handler(store), {immediate}));
@@ -120,4 +118,4 @@ import uniq from 'lodash/fp/uniq';
   }));
 };
 
-export default store;
+export default mkStore;

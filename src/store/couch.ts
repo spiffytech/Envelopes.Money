@@ -1,8 +1,8 @@
-import {Future} from 'funfix';
 import debounce from 'lodash/debounce';
+import pipe from 'lodash/fp/pipe';
 import tap from 'lodash/fp/tap';
 import throttle from 'lodash/throttle';
-import {pipeP, tap as tapR} from 'ramda';
+import {catchP, then} from 'pipeable-promises';
 import {Module, Store} from 'vuex';
 
 import * as Couch from '@/lib/couch';
@@ -67,18 +67,22 @@ const module: Module<Types.CouchState, Types.RootState> = {
     },
 
     lookUpLocalSession({commit, dispatch, state}) {
-      return Future.fromPromise(state.pouch.get<{username: string}>('_local/session')).
-      map(tap((doc) => commit('setUsername', doc.username, {root: true}))).
-      map(tap(() => console.log('Found local session'))).
-      map((doc) => Couch.mkRemoteDB(doc.username)).
-      map((remote) => commit('setCouch', remote)).
-      map(() => dispatch('replicate')).
-      recover((e) => {
-        if ((e as any).status === 404) return console.error('Session is missing');
-        console.error('Error initializing session');
-        throw e;
-      }).
-      toPromise();
+      return pipe(
+        () => state.pouch.get<{username: string}>('_local/session'),
+        then(pipe(
+          tap((doc: { username: string; } & PouchDB.Core.IdMeta & PouchDB.Core.GetMeta) => {
+            commit('setUsername', doc.username, {root: true});
+            console.log('Found local session');
+          }),
+          (doc) => commit('setCouch', Couch.mkRemoteDB(doc.username)),
+          () => dispatch('replicate'),
+        )),
+        catchP((e) => {
+          if ((e as any).status === 404) return console.error('Session is missing');
+          console.error('Error initializing session');
+          throw e;
+        }),
+      )();
     },
 
     async replicate({commit, rootState, state}) {

@@ -1,5 +1,3 @@
-import {Future} from 'funfix';
-import ary from 'lodash/fp/ary';
 import constant from 'lodash/fp/constant';
 import pipe from 'lodash/fp/pipe';
 import {then} from 'pipeable-promises';

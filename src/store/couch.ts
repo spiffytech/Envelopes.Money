@@ -2,7 +2,7 @@ import {Future} from 'funfix';
 import debounce from 'lodash/debounce';
 import tap from 'lodash/fp/tap';
 import throttle from 'lodash/throttle';
-// import {pipeP} from 'ramda';
+import {pipeP, tap as tapR} from 'ramda';
 import {Module, Store} from 'vuex';
 
 import * as Couch from '@/lib/couch';
@@ -62,6 +62,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
       await Couch.upsertDesignDoc(pouch, Couch.designDocs.accounts).promise();
       await Couch.upsertDesignDoc(pouch, Couch.designDocs.categories).promise();
 
+      /* tslint:disable-next-line:no-floating-promises */
       return dispatch('lookUpLocalSession');
     },
 

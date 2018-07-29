@@ -1,5 +1,7 @@
 import BootstrapVue from 'bootstrap-vue';
 import {pipe} from 'lodash/fp';
+import { stores } from 'nconf';
+import { then } from 'pipeable-promises/dist';
 import Vue from 'vue';
 
 import 'bootstrap/dist/css/bootstrap.css';
@@ -17,16 +19,15 @@ Vue.config.productionTip = false;
 
 if (!process.env.VUE_APP_COUCH_HOST) throw new Error('CouchDB host not defined');
 
-mkStore().
-map((store) =>
-  pipe(
-    mkRouter,
-    (router) =>
-      new Vue({
-        router,
-        store,
-        render: (h) => h(App),
-      }).
-      $mount('#app'),
-  )(store),
-).value();
+pipe(
+  () => mkStore(),
+  then((store) => Promise.all([store, mkRouter(store)])),
+  then(([store, router]) =>
+    new Vue({
+      router,
+      store,
+      render: (h) => h(App),
+    }).
+    $mount('#app'),
+  ),
+)().then(console.log).catch(console.error);

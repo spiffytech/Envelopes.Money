@@ -1,4 +1,8 @@
 import {Future} from 'funfix';
+import ary from 'lodash/fp/ary';
+import constant from 'lodash/fp/constant';
+import pipe from 'lodash/fp/pipe';
+import {then} from 'pipeable-promises';
 import Vue from 'vue';
 import Vuex from 'vuex';
 
@@ -58,9 +62,10 @@ window.addEventListener('online', () => store.commit('setOnline', true));
 window.addEventListener('online', () => store.commit('setOnline', false));
 
 function mkStore() {
-  return Future.fromPromise(store.dispatch('couch/init')).
-    chain(() => Future.fromPromise(store.dispatch('txns/init'))).
-    map(() => store);
+  return pipe(
+    then(() => store.dispatch('txns/init')),
+    then(constant(store)),
+  )(store.dispatch('couch/init'));
 }
 
 CouchWatchers.forEach(({getter, handler, immediate}) =>

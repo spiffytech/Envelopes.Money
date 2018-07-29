@@ -43,7 +43,7 @@
       label-for="account"
     >
       <b-form-select
-        :options="accounts.map((c) => c.name)"
+        :options="accounts.map((c) => ({value: c._id, text: c.name}))"
         v-model="model.account"
       ></b-form-select>
     </b-form-group>
@@ -126,10 +126,12 @@ export default class EditBankTxn extends Vue {
   @Prop({type: Function})
   public onSubmit!: (txn: Txns.BankTxn) => any;
 
-  private model = JSON.parse(JSON.stringify(this.txn));
+  private model = {
+    ...JSON.parse(JSON.stringify(this.txn)),
+    type: this.txn.type || 'banktxn',
+    date: utils.formatDate(new Date(this.txn.date)),
+  };
   public mounted() {
-    this.model.date = utils.formatDate(new Date(this.model.date));
-
     this.model.amount = Txns.penniesToDollars(convertForDebit(this.isDebit, this.txn.amount)).toFixed(2);
 
     this.model.categories =

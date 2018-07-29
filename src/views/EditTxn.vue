@@ -44,7 +44,7 @@ export default Vue.extend({
     },
 
     accounts() {
-      const accounts: Txns.Category[] = Object.values(this.$store.state.txns.accounts);
+      const accounts: Txns.Account[] = Object.values(this.$store.state.txns.accounts);
       return accounts.sort((a, b) => a.name < b.name ? -1 : 1);
     },
 

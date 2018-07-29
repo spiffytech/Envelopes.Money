@@ -6,9 +6,9 @@
       </template>
 
       <template slot="type" slot-scope="data">
-        <span v-if="data.item.type === 'banktxn'" v-html="banktxnIcon"></span>
-        <span v-if="data.item.type === 'accountTransfer'" v-html="accountTransferIcon"></span>
-        <span v-if="data.item.type === 'envelopeTransfer'" v-html="envelopeTransferIcon"></span>
+        <span v-if="data.item.type === 'banktxn'" v-html="banktxnIcon" title="Bank Transaction"></span>
+        <span v-if="data.item.type === 'accountTransfer'" v-html="accountTransferIcon" title="Account Transfer"></span>
+        <span v-if="data.item.type === 'envelopeTransfer'" v-html="envelopeTransferIcon" title="Envelope Transfer"></span>
       </template>
 
       <template slot="payee" slot-scope="data">

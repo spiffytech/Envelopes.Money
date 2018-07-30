@@ -30,4 +30,4 @@ pipe(
     }).
     $mount('#app'),
   ),
-)().then(console.log).catch(console.error);
+)().catch(console.error);

@@ -78,12 +78,16 @@ export function mkRemoteDB(username: string, password?: string) {
     remoteUrl.username = username;
     remoteUrl.password = password;
   }
-  return new PouchDB<{}>(remoteUrl.toString(), {skip_setup: true});
+  const couch = new PouchDB<{}>(remoteUrl.toString(), {skip_setup: true});
+  (couch as any).setMaxListeners(20);
+  return couch;
 }
 
 export function mkLocalDB(memory = false) {
   if (memory) return new PouchDB<{}>('local', {adapter: 'memory'});
-  return new PouchDB<{}>('local');
+  const pouch = new PouchDB<{}>('local');
+  (pouch as any).setMaxListeners(20);
+  return pouch;
 }
 
 export async function logIn(remote: PouchDB.Database, username: string, password: string) {

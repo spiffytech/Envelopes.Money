@@ -272,8 +272,8 @@ function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Ty
       state: Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState},
       /* tslint:disable-next-line:no-useless-cast */
     ) => [activeDB(state), state.txns.visibleTxns] as [PouchDB.Database, number],
-    ([pouch, _visibleTxns]: [PouchDB.Database, number]) =>
-      store.dispatch('txns/subscribeTxns', {db: pouch}),
+    ([db, _visibleTxns]: [PouchDB.Database, number]) =>
+      store.dispatch('txns/subscribeTxns', {db}),
     {immediate: true},
   );
 }

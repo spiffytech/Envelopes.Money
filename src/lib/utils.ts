@@ -17,10 +17,11 @@ export function formatDate(date: string | Date): string {
 }
 
 export function activeDB(state: StoreTypes.RootState & {couch: StoreTypes.CouchState}) {
-  if (state.isOnline && state.couch.couch) {
+  if (state.couch.inSync || !state.couch.canTalkToRemote || !state.isOnline || !state.couch.couch) {
+    console.log('Using local DB');
+    return state.couch.pouch;
+  } else {
     console.log('Using remote DB');
     return state.couch.couch;
   }
-  console.log('Using local DB');
-  return state.couch.pouch;
 }

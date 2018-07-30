@@ -30,6 +30,8 @@ const module: Module<Types.CouchState, Types.RootState> = {
 
   state: {
     pouch: Couch.mkLocalDB(),
+    inSync: false,
+    canTalkToRemote: false,
   },
 
   mutations: {
@@ -42,6 +44,14 @@ const module: Module<Types.CouchState, Types.RootState> = {
 
     setCouch(state, newCouch?: PouchDB.Database) {
       state.couch = newCouch;
+    },
+
+    setInSync(state, inSync) {
+      state.inSync = inSync;
+    },
+
+    setReplicationActive(state, active) {
+      state.canTalkToRemote = active;
     },
 
     setReplicator(state, newReplicator?: PouchDB.Replication.Sync<{}>) {
@@ -97,6 +107,7 @@ const module: Module<Types.CouchState, Types.RootState> = {
         );
 
         dbSync = Couch.syncDBs(state.pouch, state.couch);
+
         dbSync.on(
           'change',
           throttle(
@@ -108,6 +119,17 @@ const module: Module<Types.CouchState, Types.RootState> = {
             {leading: true, trailing: false},
           ),
         );
+
+        dbSync.on(
+          'paused',
+          () => commit('setInSync', true),
+        );
+
+        dbSync.on(
+          'active',
+          () => commit('setReplicationActive', true),
+        );
+
         commit('setReplicator', dbSync);
       } else {
         console.log('Cannot replicate, no username or is offline');

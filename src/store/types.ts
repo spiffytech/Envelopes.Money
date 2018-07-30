@@ -11,6 +11,8 @@ export interface CouchState {
   pouch: PouchDB.Database;
   couch?: PouchDB.Database;
   replicator?: PouchDB.Replication.Sync<{}>;
+  inSync: boolean;
+  canTalkToRemote: boolean;
 }
 
 export interface TxnsState {

@@ -164,7 +164,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     async subscribeTxns({commit, state}, {db}: {db: PouchDB.Database}) {
       await Couch.getTxns(db, state.visibleTxns).map(partial(commit, 'setTxns')).promise();
 
-      if (txnsSubscription) return;
+      if (txnsSubscription) txnsSubscription.cancel();
 
       txnsSubscription = db.changes({
         since: 'now',

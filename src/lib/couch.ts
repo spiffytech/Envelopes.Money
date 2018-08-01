@@ -157,7 +157,8 @@ export async function watchSelector<T>(
   onChange: (records: T[]) => any,
 ) {
   const getNewRecords = async () => {
-    const records = await db.find({selector, limit: Number.MAX_SAFE_INTEGER});
+    // The limit must stay below an unsigned long or we'll get IndexedDB errors
+    const records = await db.find({selector, limit: (2 ** 32) - 1});
     onChange(records.docs);
   };
 

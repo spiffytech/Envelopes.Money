@@ -4,6 +4,7 @@ import curry from 'lodash/fp/curry';
 import flatten from 'lodash/fp/flatten';
 import groupBy from 'lodash/fp/groupBy';
 import uniq from 'lodash/fp/uniq';
+import * as shortid from 'shortid';
 
 import {DETxn} from './types';
 export {DETxn} from './types';
@@ -229,4 +230,23 @@ export function idForCategoryName(name: string) {
 
 export function idForAccountName(name: string) {
   return `account-${name}`;
+}
+
+export function idForBankTxn(date: Date, payee: string): string {
+  return ['txn', date.toISOString(), 'banktxn', payee, shortid.generate()].join('/');
+}
+
+const ZeroBankTxn: BankTxn = {
+  _id: '',
+  date: '',
+  amount: 0 as Pennies,
+  memo: '',
+  account: '',
+  payee: '',
+  categories: {},
+  type: 'banktxn',
+};
+
+export const Zero = {
+  BankTxn: ZeroBankTxn,
 }

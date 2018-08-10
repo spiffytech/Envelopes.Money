@@ -27,7 +27,7 @@ export default Vue.extend({
   data() {
     return {
       txns: this.$store.state.txns.txns,
-      txn: this.$store.state.txns.txns[this.$route.params.txnId] || {type: null},
+      txn: this.$store.state.txns.txns[this.$route.params.txnId] || Txns.Zero.BankTxn,
     };
   },
 

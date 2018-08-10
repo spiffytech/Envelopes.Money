@@ -63,10 +63,8 @@ const module: Module<Types.CouchState, Types.RootState> = {
     async init({commit, dispatch}) {
       console.log('Initializing store');
       const needsMemoryPouch = await hasIndexDB();
+      if (needsMemoryPouch) console.log('Using in-memory PouchDB');
       const pouch = Couch.mkLocalDB(needsMemoryPouch);
-      if (needsMemoryPouch) {
-        console.log('Using in-memory PouchDB');
-      }
       commit('setPouch', pouch);
 
       await Couch.upsertDesignDoc(pouch, Couch.designDocs.accounts).promise();

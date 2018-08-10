@@ -73,10 +73,10 @@
     >
       <div
         v-for="([category, amount], i) in model.categories"
-        :key="category"
+        :key="category.name"
       >
         <b-form-select
-          :options="categories.map((c) => c.name)"
+          :options="categories.map((c) => ({value: c._id, text: c.name}))"
           v-model="model.categories[i][0]"
         ></b-form-select>
 
@@ -88,6 +88,10 @@
           ></b-form-input>
         </b-input-group>
       </div>
+
+      <b-btn size="sm" variant="outline-secondary" @click="addCategory">
+        <span v-html="octicons['plus'].toSVG()"></span>
+      </b-btn>
     </b-form-group>
 
     <b-button type="submit" variant="primary">Save</b-button>
@@ -97,6 +101,7 @@
 <script lang="ts">
 /* tslint:disable:no-console */
 import fromPairs from 'lodash/fp/fromPairs';
+const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';
@@ -126,16 +131,25 @@ export default class EditBankTxn extends Vue {
   @Prop({type: Function})
   public onSubmit!: (txn: Txns.BankTxn) => any;
 
+  public octicons = octicons;
+
+  public addCategory() {
+    this.model.categories.push([this.categories[0], 0]);
+  }
+
   private model = {
     ...JSON.parse(JSON.stringify(this.txn)),
     type: this.txn.type || 'banktxn',
     date: utils.formatDate(new Date(this.txn.date)),
+    memo: this.txn.memo || '',
+    payee: this.txn.payee || '',
+    account: this.txn.account || this.accounts[0],
   };
   public mounted() {
     this.model.amount = Txns.penniesToDollars(convertForDebit(this.isDebit, this.txn.amount)).toFixed(2);
 
     this.model.categories =
-      Object.entries(this.txn.categories).
+      Object.entries(this.txn.categories || {}).
       map(([category, amount]) =>
         [category, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)],
       );
@@ -143,8 +157,13 @@ export default class EditBankTxn extends Vue {
 
   public handleSubmit(event: any) {
     event.preventDefault();
+    this.$store.commit('clearFlash');
+    if (!this.model.account) {
+      return this.$store.commit('setFlash', {msg: 'You must select an acconut', type: 'error'});
+    }
+
     const newTxn: Txns.BankTxn = {
-      _id: this.txn._id,
+      _id: this.txn._id || Txns.idForBankTxn(new Date(this.model.date), this.model.payee),
       date: new Date(this.model.date).toISOString(),  // Convert to date to get timestamp
       amount: convertFromDebit(this.isDebit, Txns.stringToPennies(this.model.amount)),
       memo: this.model.memo,

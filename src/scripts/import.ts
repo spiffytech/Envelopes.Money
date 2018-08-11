@@ -196,9 +196,11 @@ export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
     date,
     amount: amountOfStr(row.Amount),
     account: row.Account,
+    accountId: '',
     payee: row.Name,
     memo: row.Notes,
     categories: parseCategories(row),
+    categoryIds: parseCategories(row),
     type: 'banktxn',
   };
 }
@@ -212,6 +214,8 @@ export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
     memo: row.Notes,
     from: row.Account,
     to: row.Name,
+    fromId: '',
+    toId: '',
     txfrId: row.txfrId,
     type: 'accountTransfer',
   };
@@ -323,25 +327,25 @@ async function main() {
     const categoryIds = await discoverCategories(remote, txns);
     const txns_: Txns.Txn[] = txns.map((txn) => {
       if (Txns.isBankTxn(txn)) {
-        const categories = R.fromPairs(Object.entries(txn.categories).map(
+        const categoryIdsForTxn = R.fromPairs(Object.entries(txn.categories).map(
           ([category, balance]) => [categoryIds[category], balance] as [string, Txns.Pennies]),
         );
         return {
           ...txn,
-          account: accountIds[txn.account],
-          categories,
+          accountId: accountIds[txn.account],
+          categoryIds: categoryIdsForTxn,
         };
       } else if (Txns.isAccountTxfr(txn)) {
         return {
           ...txn,
-          from: accountIds[txn.from],
-          to: accountIds[txn.to],
+          fromId: accountIds[txn.from],
+          toId: accountIds[txn.to],
         };
       } else if (Txns.isEnvelopeTxfr(txn)) {
         return {
           ...txn,
-          from: categoryIds[txn.from],
-          to: categoryIds[txn.to],
+          fromId: categoryIds[txn.from],
+          toId: categoryIds[txn.to],
         };
       }
       const t: never = txn;

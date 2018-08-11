@@ -26,19 +26,25 @@ export interface LedgerEvent {
 export interface EnvelopeTransfer extends LedgerEvent {
   from: string;
   to: string;
+  fromId: string;
+  toId: string;
   type: 'envelopeTransfer';
 }
 
 export interface BankTxn extends LedgerEvent {
   account: string;
+  accountId: string;
   payee: string;
   categories: {[key: string]: Pennies};
+  categoryIds: {[key: string]: Pennies};
   type: 'banktxn';
 }
 
 export interface AccountTransfer extends LedgerEvent {
   from: string;
   to: string;
+  fromId: string;
+  toId: string;
   txfrId: string;
   type: 'accountTransfer';
 }
@@ -242,8 +248,10 @@ const ZeroBankTxn: BankTxn = {
   amount: 0 as Pennies,
   memo: '',
   account: '',
+  accountId: '',
   payee: '',
   categories: {},
+  categoryIds: {},
   type: 'banktxn',
 };
 

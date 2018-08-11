@@ -1,4 +1,4 @@
-import {debounce, partial} from 'lodash';
+import {debounce} from 'lodash';
 import fromPairs from 'lodash/fp/fromPairs';
 import getOr from 'lodash/fp/getOr';
 import Vue from 'vue';
@@ -91,7 +91,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
   mutations: {
     addVisibleTxns(state, n: number = 30) {
       const numTxns = Object.keys(state.txns).length;
-      state.visibleTxns = Math.min(numTxns + n, state.visibleTxns + n);
+      state.visibleTxns = Math.min(numTxns + n, state.visibleTxns as number + n);
     },
 
     setTxns(state, values: Txns.Txn[]) {
@@ -143,7 +143,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
             $lte: 'account/\uffff',
           },
         },
-        partial(commit, 'setAccounts'),
+        (accounts) => commit('setAccounts', accounts),
       );
     },
 
@@ -157,12 +157,12 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
             $lte: 'category/\uffff',
           },
         },
-        partial(commit, 'setCategories'),
+        (categories) => commit('setCategories', categories),
       );
     },
 
     async subscribeTxns({commit, state}, {db}: {db: PouchDB.Database}) {
-      await Couch.getTxns(db, state.visibleTxns).map(partial(commit, 'setTxns')).promise();
+      await Couch.getTxns(db, state.visibleTxns).map((txns) => commit('setTxns', txns)).promise();
 
       if (txnsSubscription) txnsSubscription.cancel();
 
@@ -182,7 +182,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         // We use debounce because multiple refleshes get going at once and
         // finish out of order
         debounce(
-          () => Couch.getTxns(db, state.visibleTxns).map(partial(commit, 'setTxns')).promise(),
+          () => Couch.getTxns(db, state.visibleTxns).map((txns) => commit('setTxns', txns)).promise(),
           1000,
           {trailing: true},
         ),
@@ -191,8 +191,8 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     },
 
     async subscribeBalances({commit}, db: PouchDB.Database) {
-      await Couch.getAccountBalances(db).then(partial(commit, 'accountBalances'));
-      await Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances'));
+      await Couch.getAccountBalances(db).then((balances) => commit('accountBalances', balances));
+      await Couch.getCategoryBalances(db).then((balances) => commit('categoryBalances', balances));
 
       if (changesAccountsBalances) changesAccountsBalances.cancel();
       if (changesCategoriesBalances) changesCategoriesBalances.cancel();
@@ -221,7 +221,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       changesAccountsBalances.on(
         'change',
         debounce(
-          () => Couch.getAccountBalances(db).then(partial(commit, 'accountBalances')),
+          () => Couch.getAccountBalances(db).then((balances) => commit('accountBalances', balances)),
           1000,
           {trailing: true},
         ),
@@ -231,7 +231,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
       changesCategoriesBalances.on(
         'change',
         debounce(
-          () => Couch.getCategoryBalances(db).then(partial(commit, 'categoryBalances')),
+          () => Couch.getCategoryBalances(db).then((balance) => commit('categoryBalances', balance)),
           1000,
           {trailing: true},
         ),

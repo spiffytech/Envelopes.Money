@@ -101,6 +101,7 @@
 <script lang="ts">
 /* tslint:disable:no-console */
 import fromPairs from 'lodash/fp/fromPairs';
+/* tslint:disable-next-line:no-var-requires */
 const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
@@ -133,10 +134,6 @@ export default class EditBankTxn extends Vue {
 
   public octicons = octicons;
 
-  public addCategory() {
-    this.model.categories.push([this.categories[0], 0]);
-  }
-
   private model = {
     ...JSON.parse(JSON.stringify(this.txn)),
     type: this.txn.type || 'banktxn',
@@ -145,6 +142,11 @@ export default class EditBankTxn extends Vue {
     payee: this.txn.payee || '',
     account: this.txn.account || this.accounts[0],
   };
+
+  public addCategory() {
+    this.model.categories.push([this.categories[0], 0]);
+  }
+
   public mounted() {
     this.model.amount = Txns.penniesToDollars(convertForDebit(this.isDebit, this.txn.amount)).toFixed(2);
 

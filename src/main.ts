@@ -1,6 +1,5 @@
 import BootstrapVue from 'bootstrap-vue';
 import {pipe} from 'lodash/fp';
-import { stores } from 'nconf';
 import { then } from 'pipeable-promises/dist';
 import Vue from 'vue';
 

@@ -249,4 +249,4 @@ const ZeroBankTxn: BankTxn = {
 
 export const Zero = {
   BankTxn: ZeroBankTxn,
-}
+};

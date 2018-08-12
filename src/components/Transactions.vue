@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-table :fields="fields" :items="txns" @row-clicked="rowClicked">
+    <b-table :fields="tableFields" :items="txns" @row-clicked="rowClicked">
       <template slot="date" slot-scope="data">
         {{formatDate(data.value)}}
       </template>
@@ -15,18 +15,18 @@
         <template v-if="data.item.type === 'banktxn'">
           <h6>{{data.item.payee}}</h6>
           <small>
-            <span>{{data.item.accountName}}</span>
+            <span>{{data.item.account}}</span>
             •
-            <span>{{Object.keys(data.item.categoryNames).join(', ')}}</span>
+            <span>{{Object.keys(data.item.categories).join(', ')}}</span>
           </small>
         </template>
 
         <template v-if="data.item.type === 'accountTransfer'">
-          <h6>{{data.item.fromName}} ⇨ {{data.item.toName}}</h6>
+          <h6>{{data.item.from}} ⇨ {{data.item.to}}</h6>
         </template>
 
         <template v-if="data.item.type === 'envelopeTransfer'">
-          <h6>{{data.item.fromName}} ⇨ {{data.item.toName}}</h6>
+          <h6>{{data.item.from}} ⇨ {{data.item.to}}</h6>
         </template>
       </template>
 
@@ -42,39 +42,34 @@
 <script lang="ts">
 /* tslint:disable:no-console */
 /* tslint:disable:no-var-requires */
+import {debounce} from 'lodash';
 import {pipe, throttle} from 'lodash/fp';
 const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
+import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
 
-@Component({})
-export default class Transactions extends Vue {
-  @Prop({type: Array})
-  public txns!: Txns.Txn[];
+export default Vue.extend({
+  data() {
+    return {
+      txns: [] as Txns.Txn[],
+      visibleTxns: 20,
+      txnsSubscription: null as any | null,
+      tableFields: ['date', 'type', 'payee', 'memo', 'amount'],
+      formatDate: utils.formatDate,
+      txnsScrollWatcher: null as NodeJS.Timer | null,
+    };
+  },
 
-  @Prop({type: Object})
-  public accounts!: {[key: string]: Txns.Account};
+  props: ['accounts', 'categories'],
 
-  @Prop({type: Object})
-  public categories!: {[key: string]: Txns.Category};
-
-  public fields = ['date', 'type', 'payee', 'memo', 'amount'];
-
-  public formatDate = utils.formatDate;
-
-  public txnsScrollWatcher: NodeJS.Timer | null = null;
-
-  public rowClicked(txn: Txns.Txn) {
-    this.$router.push({name: 'editTxn', params: {txnId: txn._id}});
-  }
-
-  public mounted() {
+  mounted() {
     const tss = this.$refs.txnsScrollSentinel;
     const addVisible = throttle(500, () => {
       console.log('Loading more txns');
-      this.$store.commit('txns/addVisibleTxns', 20);
+      this.addVisibleTxns();
     });
 
     this.txnsScrollWatcher = setInterval(
@@ -84,38 +79,93 @@ export default class Transactions extends Vue {
       ),
       250,
     );
-  }
 
-  public beforeDestroy() {
-    console.log('Destroying txns component');
-    if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
-  }
+    this.$watch(
+      ((vm: any) => [vm.visibleTxns, utils.activeDB(this.$store.state)]) as any,
+      this.fetchTxns.bind(this),
+      {immediate: true},
+    );
+  },
 
-  public formatAmount(amount: Txns.Pennies): string {
-    return utils.formatCurrency(Txns.penniesToDollars(amount));
-  }
+  computed: {
+    banktxnIcon() {
+      return octicons['credit-card'].toSVG();
+    },
 
-  public get banktxnIcon() {
-    return octicons['credit-card'].toSVG();
-  }
+    accountTransferIcon() {
+      return octicons.code.toSVG();
+    },
 
-  public get accountTransferIcon() {
-    return octicons.code.toSVG();
-  }
+    envelopeTransferIcon() {
+      return octicons['git-compare'].toSVG();
+    },
+  },
 
-  public get envelopeTransferIcon() {
-    return octicons['git-compare'].toSVG();
-  }
+  methods: {
+    rowClicked(txn: Txns.Txn) {
+      this.$router.push({name: 'editTxn', params: {txnId: txn._id}});
+    },
 
-  public checkVisible(elm: any) {
-    const rect = elm.getBoundingClientRect();
-    const ret = rect.top >= 0 &&
-      rect.left >= 0 &&
-      rect.right <= (window.innerWidth || document.documentElement.clientWidth) &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-      elm.offsetParent !== null;
-    // console.log(rect, window.innerHeight || document.documentElement.clientHeight, elm.offsetParent, ret);
-    return ret;
-  }
-}
+    addVisibleTxns(n = 30) {
+      const numTxns = Object.keys(this.txns).length;
+      this.visibleTxns = Math.min(numTxns + n, this.visibleTxns as number + n);
+    },
+
+    async fetchTxns() {
+      const setTxns = (txns: Array<Txns.Txn | undefined>) => Vue.set(
+        this,
+        'txns',
+        txns.filter((txn) => txn !== undefined) as Txns.Txn[],
+      );
+
+      const db = utils.activeDB(this.$store.state);
+      await Couch.getTxns(db, this.visibleTxns).map(setTxns).promise();
+
+      if (this.txnsSubscription) this.txnsSubscription.cancel();
+
+      this.txnsSubscription = db.changes({
+        since: 'now',
+        live: true,
+        include_docs: true,
+        selector: {$or: [
+          {type: 'banktxn'},
+          {type: 'accountTransfer'},
+          {type: 'envelopeTransfer'},
+          {_deleted: true},
+        ]},
+      });
+      this.txnsSubscription.on(
+        'change',
+        // We use debounce because multiple refleshes get going at once and
+        // finish out of order
+        debounce(
+          () => Couch.getTxns(db, this.visibleTxns).map(setTxns).promise(),
+          1000,
+          {trailing: true},
+        ),
+      );
+      this.txnsSubscription.on('error', console.error);
+    },
+
+    beforeDestroy() {
+      console.log('Destroying txns component');
+      if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
+    },
+
+    formatAmount(amount: Txns.Pennies): string {
+      return utils.formatCurrency(Txns.penniesToDollars(amount));
+    },
+
+    checkVisible(elm: any) {
+      const rect = elm.getBoundingClientRect();
+      const ret = rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth) &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        elm.offsetParent !== null;
+      // console.log(rect, window.innerHeight || document.documentElement.clientHeight, elm.offsetParent, ret);
+      return ret;
+    },
+  },
+});
 </script>

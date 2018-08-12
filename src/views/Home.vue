@@ -12,13 +12,13 @@
           </b-tab>
 
           <b-tab title="Transactions" title-item-class="d-lg-none">
-            <Transactions :txns="txnsFriendly"></Transactions>
+            <Transactions />
           </b-tab>
         </b-tabs>
       </b-col>
 
       <b-col xs="12" lg="8" class="d-none d-lg-block">
-        <Transactions :txns="txnsFriendly"></Transactions>
+        <Transactions />
       </b-col>
     </b-row>
   </b-container>
@@ -39,8 +39,5 @@ import Transactions from '@/components/Transactions.vue';
   },
 })
 export default class Home extends Vue {
-  get txnsFriendly() {
-    return this.$store.getters['txns/txns'];
-  }
 }
 </script>

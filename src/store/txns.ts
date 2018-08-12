@@ -17,18 +17,15 @@ let changesAccounts: any | null = null;
 let changesCategories: any | null = null;
 let changesAccountsBalances: PouchDB.Core.Changes<any> | null = null;
 let changesCategoriesBalances: PouchDB.Core.Changes<any> | null = null;
-let txnsSubscription: any | null = null;
 
 const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchState}> = {
   namespaced: true,
 
   state: {
-    txns: {},
     accounts: {},
     categories: {},
     accountBalances: {},
     categoryBalances: {},
-    visibleTxns: 20,
   },
 
   getters: {
@@ -50,55 +47,9 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           return {name, balance};
         });
     },
-
-    txns(state): Txns.TxnFriendly[] {
-      return (
-        Object.values(state.txns).
-        map((txn) => {
-          if (Txns.isBankTxn(txn)) {
-            const categories = fromPairs(
-              Object.entries(txn.categories).
-              map(([category, balance]) =>
-                [getOr(category, 'name', state.categories[category]), balance],
-              ),
-            );
-            return {
-              ...txn,
-              accountName: getOr(txn.account, 'name', state.accounts[txn.account]),
-              categoryNames: categories,
-            };
-          } else if (Txns.isAccountTxfr(txn)) {
-            return {
-              ...txn,
-              fromName: getOr(txn.from, 'name', state.accounts[txn.from]),
-              toName: getOr(txn.to, 'name', state.accounts[txn.to]),
-            };
-          } else if (Txns.isEnvelopeTxfr(txn)) {
-            return {
-              ...txn,
-              fromName: getOr(txn.from, 'name', state.categories[txn.from]),
-              toName: getOr(txn.to, 'name', state.categories[txn.to]),
-            };
-          }
-
-          const t: never = txn;
-          return t;
-        })
-      );
-    },
   },
 
   mutations: {
-    addVisibleTxns(state, n: number = 30) {
-      const numTxns = Object.keys(state.txns).length;
-      state.visibleTxns = Math.min(numTxns + n, state.visibleTxns as number + n);
-    },
-
-    setTxns(state, values: Txns.Txn[]) {
-      state.txns = {};
-      values.forEach((doc) => Vue.set(state.txns, doc._id, doc));
-    },
-
     setAccounts(state, values: Txns.Account[]) {
       state.accounts = {};
       values.forEach((doc) => {
@@ -159,35 +110,6 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         },
         (categories) => commit('setCategories', categories),
       );
-    },
-
-    async subscribeTxns({commit, state}, {db}: {db: PouchDB.Database}) {
-      await Couch.getTxns(db, state.visibleTxns).map((txns) => commit('setTxns', txns)).promise();
-
-      if (txnsSubscription) txnsSubscription.cancel();
-
-      txnsSubscription = db.changes({
-        since: 'now',
-        live: true,
-        include_docs: true,
-        selector: {$or: [
-          {type: 'banktxn'},
-          {type: 'accountTransfer'},
-          {type: 'envelopeTransfer'},
-          {_deleted: true},
-        ]},
-      });
-      txnsSubscription.on(
-        'change',
-        // We use debounce because multiple refleshes get going at once and
-        // finish out of order
-        debounce(
-          () => Couch.getTxns(db, state.visibleTxns).map((txns) => commit('setTxns', txns)).promise(),
-          1000,
-          {trailing: true},
-        ),
-      );
-      txnsSubscription.on('error', console.error);
     },
 
     async subscribeBalances({commit}, db: PouchDB.Database) {
@@ -264,16 +186,6 @@ function watch(store: Store<Types.RootState & {couch: Types.CouchState, txns: Ty
     (state: Types.RootState & {couch: Types.CouchState}) => activeDB(state),
     (pouch: PouchDB.Database) =>
       store.dispatch('txns/watchCategories', pouch),
-    {immediate: true},
-  );
-
-  store.watch(
-    (
-      state: Types.RootState & {couch: Types.CouchState, txns: Types.TxnsState},
-      /* tslint:disable-next-line:no-useless-cast */
-    ) => [activeDB(state), state.txns.visibleTxns] as [PouchDB.Database, number],
-    ([db, _visibleTxns]: [PouchDB.Database, number]) =>
-      store.dispatch('txns/subscribeTxns', {db}),
     {immediate: true},
   );
 }

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <b-form-select v-model="txn.type" :options="txnTypeSelect" :disabled="!isNewTxn" />
+    <b-form-select v-model="txnType" :options="txnTypeSelect" :disabled="!isNewTxn" />
 
     <EditBankTxn
-      v-if="txn.type === 'banktxn'"
+      v-if="txn && txn.type === 'banktxn'"
       :txn="txn"
       :categories="categories"
       :accounts="accounts"
@@ -27,11 +27,16 @@ export default Vue.extend({
   data() {
     return {
       txns: this.$store.state.txns.txns,
-      txn: this.$store.state.txns.txns[this.$route.params.txnId] || Txns.Zero.BankTxn,
+      txn: null as null | Txns.BankTxn,
+      txnType: null,
     };
   },
 
   computed: {
+    existingTxnId(): string | undefined {
+      return this.$route.params.txnId;
+    },
+
     isNewTxn(): boolean {
       return !Boolean(this.$route.params.txnId);
     },
@@ -58,6 +63,15 @@ export default Vue.extend({
     onSubmit(txn: Txns.Txn) {
       return Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
     },
+
+    async loadExistingTxn(id: string) {
+      const db = utils.activeDB(this.$store.state);
+      this.txn = await db.get<Txns.BankTxn>(id);
+    },
   },
+
+  mounted() {
+    if (!this.isNewTxn) this.loadExistingTxn(this.existingTxnId!);
+  }
 });
 </script>

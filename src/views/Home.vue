@@ -1,30 +1,25 @@
 <template>
-  <b-container fluid>
-    <b-row>
-      <b-col xs="12" lg="4">
-        <b-tabs>
-          <b-tab title="Categories" active>
-            <Categories></Categories>
-          </b-tab>
+  <div class="ui grid">
+      <div class="five wide column">
+        <div class="ui top attached tabular menu" ref="menu">
+          <a class="active item" data-tab="Categories">Categories</a>
+          <a class="item" data-tab="Accounts">Accounts</a>
+          <a class="item" data-tab="Transactions">Transactions</a>
+        </div>
 
-          <b-tab title="Accounts">
-            <Accounts></Accounts>
-          </b-tab>
+        <div class="ui bottom attached active tab segment" data-tab="Categories"><Categories></Categories></div>
+        <div class="ui bottom attached tab segment" data-tab="Accounts"><Accounts></Accounts></div>
+        <div class="ui bottom attached tab segment" data-tab="Transactions"><Transactions /></div>
+      </div>
 
-          <b-tab title="Transactions" title-item-class="d-lg-none">
-            <Transactions />
-          </b-tab>
-        </b-tabs>
-      </b-col>
-
-      <b-col xs="12" lg="8" class="d-none d-lg-block">
+      <div class="eleven wide column">
         <Transactions />
-      </b-col>
-    </b-row>
-  </b-container>
+      </div>
+  </div>
 </template>
 
 <script lang="ts">
+import jQuery from 'jquery';
 import { Component, Vue } from 'vue-property-decorator';
 
 import Accounts from '@/components/Accounts.vue'; // @ is an alias to /src
@@ -39,5 +34,8 @@ import Transactions from '@/components/Transactions.vue';
   },
 })
 export default class Home extends Vue {
+  public mounted() {
+    (jQuery('.item', this.$refs.menu) as any).tab();
+  }
 }
 </script>

@@ -1,18 +1,18 @@
-import BootstrapVue from 'bootstrap-vue';
+/* tslint:disable-next-line:no-var-requires */
+(window as any).jQuery = require('jquery');
 import {pipe} from 'lodash/fp';
 import { then } from 'pipeable-promises/dist';
 import Vue from 'vue';
 
-import 'bootstrap/dist/css/bootstrap.css';
-/* tslint:disable-next-line:ordered-imports */  // Can't just import CSS in any random order
-import 'bootstrap-vue/dist/bootstrap-vue.css';
+import 'semantic-ui-css/semantic.min.css';
+/* tslint:disable-next-line:no-var-requires */
+(window as any).semantic = require('semantic-ui-css/semantic.min.js');
+import 'semantic-ui-css';
 
 import App from './App.vue';
 import './registerServiceWorker';
 import mkRouter from './router';
 import mkStore from './store';
-
-Vue.use(BootstrapVue);
 
 Vue.config.productionTip = false;
 

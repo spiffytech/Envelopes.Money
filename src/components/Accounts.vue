@@ -1,19 +1,19 @@
 <template>
-  <b-list-group>
-    <b-list-group-item>
-      <div class="d-flex w-100 justify-content-between">
-        <h5>Total</h5>
-        <span>{{formatAmount(totalBalance)}}</span>
+  <div class="ui celled list">
+    <div class="item">
+      <div class="list-item">
+        <p class="header">Total</p>
+        <p>{{formatAmount(totalBalance)}}</p>
       </div>
-    </b-list-group-item>
+    </div>
 
-    <b-list-group-item v-for="account in accounts" :key="account.name">
-      <div class="d-flex w-100 justify-content-between">
-        <h6>{{account.name}}</h6>
-        <small>{{formatAmount(account.balance)}}</small>
+    <div class="item" v-for="account in accounts" :key="account.name">
+      <div class="list-item">
+        <p class="header">{{account.name}}</p>
+        <p>{{formatAmount(account.balance)}}</p>
       </div>
-    </b-list-group-item>
-  </b-list-group>
+    </div>
+  </div>
 
 </template>
 
@@ -44,3 +44,10 @@ export default class Accounts extends Vue {
   }
 }
 </script>
+
+<style scoped>
+  .list-item {
+    display: flex;
+    justify-content: space-between;
+  }
+</style>

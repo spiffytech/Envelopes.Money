@@ -1,36 +1,30 @@
 <template>
   <div id="app">
-    <b-navbar toggleable="sm">
-      <b-navbar-toggle target="navbar-collapse"></b-navbar-toggle>
-
-      <b-navbar-brand>
+    <div class="ui menu">
+      <div class="header item">
         <router-link :to="{name: 'home'}">Hacker Budget</router-link>
-      </b-navbar-brand>
+      </div>
 
-      <b-collapse is-nav id="navbar-collapse">
-        <b-navbar-nav v-if="loggedIn">
-          <b-nav-item>
-            <b-button size="sm" :to="{name: 'editTxn', params: {txnId: null}}">Add Transaction</b-button>
-          </b-nav-item>
-        </b-navbar-nav>
+      <div class="item">
+        <router-link :to="{name: 'editTxn', params: {txnId: null}}">Add Transaction</router-link>
+      </div>
 
-        <b-navbar-nav class="ml-auto">
-          <b-nav-item v-if="syncing">
-            <span v-html="syncIcon"></span>
-          </b-nav-item>
+      <div class="right menu">
+        <div class="item">
+          <i v-if="syncing" class="sync icon" />
+        </div>
 
-          <b-nav-item v-if="!loggedIn">
-            <router-link :to="{name: 'login'}">Log In</router-link>
-          </b-nav-item>
+        <div class="item" v-if="!loggedIn">
+          <router-link :to="{name: 'login'}">Log In</router-link>
+        </div>
 
-          <b-nav-item v-if="loggedIn">
-            <b-button variant="link" size="sm" @click="logout">Log Out</b-button>
-          </b-nav-item>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
+        <div class="item" v-if="loggedIn">
+          <button class="ui secondary basic button" @click="logout">Log Out</button>
+        </div>
+      </div>
+    </div>
 
-    <b-alert v-if="showFlash" show :variant="flashType">{{flashMessage}}</b-alert>
+    <div class="ui message" v-if="showFlash">{{flashMessage}}</div>
 
     <router-view/>
   </div>

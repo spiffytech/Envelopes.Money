@@ -1,39 +1,53 @@
 <template>
   <div>
-    <b-table :fields="tableFields" :items="txns" @row-clicked="rowClicked">
-      <template slot="date" slot-scope="data">
-        {{formatDate(data.value)}}
-      </template>
+    <table class="ui celled table">
+      <thead>
+        <tr>
+          <th class="two wide">Date</th>
+          <th>Type</th>
+          <th>Payee</th>
+          <th class="four wide">Memo</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
 
-      <template slot="type" slot-scope="data">
-        <span v-if="data.item.type === 'banktxn'" v-html="banktxnIcon" title="Bank Transaction"></span>
-        <span v-if="data.item.type === 'accountTransfer'" v-html="accountTransferIcon" title="Account Transfer"></span>
-        <span v-if="data.item.type === 'envelopeTransfer'" v-html="envelopeTransferIcon" title="Envelope Transfer"></span>
-      </template>
+      <tr v-for="txn in txns" :key="txn._id">
+        <td>
+          {{formatDate(txn.date)}}
+        </td>
 
-      <template slot="payee" slot-scope="data">
-        <template v-if="data.item.type === 'banktxn'">
-          <h6>{{data.item.payee}}</h6>
-          <small>
-            <span>{{data.item.account}}</span>
-            •
-            <span>{{Object.keys(data.item.categories).join(', ')}}</span>
-          </small>
+        <td>
+          <i v-if="txn.type === 'banktxn'" class="credit card outline icon" title="Bank Transaction" />
+          <i v-if="txn.type === 'accountTransfer'" class="arrow right icon" title="Account Transfer" />
+          <i v-if="txn.type === 'envelopeTransfer'" class="envelope outline icon" title="Envelope Transfer" />
+        </td>
+
+        <td>
+          <template v-if="txn.type === 'banktxn'">
+            <p class="header">{{txn.payee}}</p>
+            <small>
+              <span>{{txn.account}}</span>
+              •
+              <span>{{Object.keys(txn.categories).join(', ')}}</span>
+            </small>
+          </template>
+
+          <template v-if="txn.type === 'accountTransfer'">
+            <small>{{txn.from}} ⇨ {{txn.to}}</small>
+          </template>
+
+          <template v-if="txn.type === 'envelopeTransfer'">
+            <small>{{txn.from}} ⇨ {{txn.to}}</small>
         </template>
+      </td>
 
-        <template v-if="data.item.type === 'accountTransfer'">
-          <h6>{{data.item.from}} ⇨ {{data.item.to}}</h6>
-        </template>
+      <td>{{txn.memo}}</td>
 
-        <template v-if="data.item.type === 'envelopeTransfer'">
-          <h6>{{data.item.from}} ⇨ {{data.item.to}}</h6>
-        </template>
-      </template>
-
-      <template slot="amount" slot-scope="data">
-        {{formatAmount(data.value)}}
-      </template>
-    </b-table>
+      <td>
+        {{formatAmount(txn.amount)}}
+      </td>
+      </tr>
+    </table>
 
     <span ref="txnsScrollSentinel"></span>
   </div>

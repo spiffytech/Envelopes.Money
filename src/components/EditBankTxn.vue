@@ -75,8 +75,13 @@ function convertFromDebit(isDebit: boolean, amount: Txns.Pennies): Txns.Pennies 
   return isDebit ? amount * -1 as Txns.Pennies : amount;
 }
 
-interface Model extends Txns.BankTxn {
+interface Model {
+  _id: string | null;
+  account: string;
+  payee: string;
+  type: 'banktxn';
   date: Date;
+  memo: string;
   amount: string;
   categories: Array<[string, string]>;
 }
@@ -84,9 +89,9 @@ interface Model extends Txns.BankTxn {
 @Component({components: {AccountSelector, CategorySelector}})
 export default class EditBankTxn extends Vue {
   @Prop({type: Object})
-  public txn!: Txns.BankTxn;
+  public txn?: Txns.BankTxn;
 
-  public isDebit = this.txn.amount < 0;
+  public isDebit = this.txn ? this.txn.amount < 0 : true;
 
   @Prop({type: Array})
   public accounts!: Txns.Account[];
@@ -97,28 +102,31 @@ export default class EditBankTxn extends Vue {
   @Prop({type: Function})
   public onSubmit!: (txn: Txns.BankTxn) => any;
 
-  private model: Partial<Model> = {
-    ...JSON.parse(JSON.stringify(this.txn)),
-    type: this.txn.type || 'banktxn',
-    date: utils.formatDate(new Date(this.txn.date)),
-    memo: this.txn.memo || '',
-    payee: this.txn.payee || '',
-    account: this.txn ? this.txn.account : this.accounts[0].name,
-    categories: [],
+  private model: Model =
+    this.txn ? {
+    _id: this.txn._id,
+    type: this.txn.type,
+    date: new Date(this.txn.date),
+    amount: Txns.penniesToDollars(convertForDebit(this.isDebit, this.txn.amount)).toFixed(2),
+    memo: this.txn.memo,
+    payee: this.txn.payee,
+    account: this.txn.account,
+    categories: Object.entries(this.txn.categories).map(([category, amount]) =>
+      [category, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)] as [string, string],
+    ),
+  } : {
+    _id: null,
+    type: 'banktxn',
+    date: new Date(),
+    amount: '0.00',
+    memo: '',
+    payee: '',
+    account: this.accounts[0].name,
+    categories: [] as Array<[string, string]>,
   };
 
   public addCategory() {
     this.model.categories!.push([this.categories[0].name, '0']);
-  }
-
-  public mounted() {
-    this.model.amount = Txns.penniesToDollars(convertForDebit(this.isDebit, this.txn.amount)).toFixed(2);
-
-    this.model.categories =
-      Object.entries(this.txn.categories || {}).
-      map(([category, amount]) =>
-        [category, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)] as [string, string],
-      );
   }
 
   public handleSubmit(event: any) {
@@ -128,12 +136,20 @@ export default class EditBankTxn extends Vue {
       return this.$store.commit('setFlash', {msg: 'You must select an acconut', type: 'error'});
     }
 
+    const account = this.accounts.find((a) => a.name === this.model.account);
+    if (!account) throw new Error('No matching account found');
+    const categoryIds = fromPairs(this.model.categories.map(([name, amount]) => {
+      const category = this.categories.find((c) => c.name === name);
+      if (!category) throw new Error(`No such category: ${name}`);
+      return [category._id, Txns.stringToPennies(amount)] as [string, Txns.Pennies];
+    }));
     const newTxn: Txns.BankTxn = {
-      _id: this.txn._id || Txns.idForBankTxn(new Date(this.model.date), this.model.payee),
+      _id: this.model._id || Txns.idForBankTxn(new Date(this.model.date), this.model.payee),
       date: new Date(this.model.date).toISOString(),  // Convert to date to get timestamp
       amount: convertFromDebit(this.isDebit, Txns.stringToPennies(this.model.amount)),
       memo: this.model.memo,
       account: this.model.account,
+      accountId: account._id,
       payee: this.model.payee,
       type: 'banktxn',
       categories: fromPairs(
@@ -141,6 +157,7 @@ export default class EditBankTxn extends Vue {
           [category, convertFromDebit(this.isDebit, Txns.stringToPennies(amount))],
         ),
       ),
+      categoryIds,
     };
 
     console.log(newTxn);

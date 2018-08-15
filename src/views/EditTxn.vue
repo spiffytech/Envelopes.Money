@@ -39,7 +39,7 @@ export default Vue.extend({
     return {
       txns: this.$store.state.txns.txns,
       txn: null as null | Txns.BankTxn,
-      txnType: null,
+      txnType: null as null | string,
     };
   },
 
@@ -78,6 +78,7 @@ export default Vue.extend({
     async loadExistingTxn(id: string) {
       const db = utils.activeDB(this.$store.state);
       this.txn = await db.get<Txns.BankTxn>(id);
+      this.txnType = this.txn.type;
     },
   },
 

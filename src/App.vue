@@ -1,30 +1,26 @@
 <template>
   <div id="app">
-    <div class="ui menu">
-      <div class="header item">
-        <router-link :to="{name: 'home'}">Hacker Budget</router-link>
-      </div>
-
-      <div class="item">
-        <router-link :to="{name: 'editTxn', params: {txnId: null}}">Add Transaction</router-link>
-      </div>
-
-      <div class="right menu">
-        <div class="item">
-          <i v-if="syncing" class="sync icon" />
+    <nav class="navbar level" role="navigation" aria-label="main navigation" style="margin-bottom: 0;">
+      <div class="level-left">
+        <div class="navbar-brand">
+          <router-link :to="{name: 'home'}" class="navbar-item is-size-5 has-text-weight-bold">Hacker Budget</router-link>
         </div>
 
-        <div class="item" v-if="!loggedIn">
-          <router-link :to="{name: 'login'}">Log In</router-link>
-        </div>
+        <router-link :to="{name: 'editTxn', params: {txnId: null}}" class="navbar-item" style="color: inherit">Add Transaction</router-link>
 
-        <div class="item" v-if="loggedIn">
-          <button class="ui secondary basic button" @click="logout">Log Out</button>
+        <div class="navbar-item icon">
+          <i v-if="syncing" class="fas fa-sync" />
         </div>
       </div>
-    </div>
 
-    <div class="ui message" v-if="showFlash">{{flashMessage}}</div>
+      <div class="navbar-item level-right">
+        <router-link :to="{name: 'login'}" v-if="!loggedIn" class="navbar-item">Log In</router-link>
+
+        <button class="button navbar-item" @click="logout" v-if="loggedIn">Log Out</button>
+      </div>
+    </nav>
+
+    <div class="notification" v-if="showFlash">{{flashMessage}}</div>
 
     <router-view/>
   </div>

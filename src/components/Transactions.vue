@@ -1,25 +1,27 @@
 <template>
   <div>
-    <table class="ui celled table">
+    <table class="table">
       <thead>
         <tr>
-          <th class="two wide">Date</th>
+          <th>Date</th>
           <th>Type</th>
           <th>Payee</th>
-          <th class="four wide">Memo</th>
+          <th>Memo</th>
           <th>Amount</th>
         </tr>
       </thead>
 
-      <tr v-for="txn in txns" :key="txn._id">
-        <td>
+      <tr v-for="txn in txns" :key="txn._id" @click="() => rowClicked(txn)">
+        <td nowrap>
           {{formatDate(txn.date)}}
         </td>
 
         <td>
-          <i v-if="txn.type === 'banktxn'" class="credit card outline icon" title="Bank Transaction" />
-          <i v-if="txn.type === 'accountTransfer'" class="arrow right icon" title="Account Transfer" />
-          <i v-if="txn.type === 'envelopeTransfer'" class="envelope outline icon" title="Envelope Transfer" />
+          <span class="icon">
+            <i v-if="txn.type === 'banktxn'" class="fas fa-credit-card" title="Bank Transaction" />
+            <i v-if="txn.type === 'accountTransfer'" class="fas fa-exchange-alt" title="Account Transfer" />
+            <i v-if="txn.type === 'envelopeTransfer'" class="fas fa-envelope" title="Envelope Transfer" />
+          </span>
         </td>
 
         <td>
@@ -38,14 +40,14 @@
 
           <template v-if="txn.type === 'envelopeTransfer'">
             <small>{{txn.from}} ⇨ {{txn.to}}</small>
-        </template>
-      </td>
+          </template>
+        </td>
 
-      <td>{{txn.memo}}</td>
+        <td>{{txn.memo}}</td>
 
-      <td>
-        {{formatAmount(txn.amount)}}
-      </td>
+        <td>
+          {{formatAmount(txn.amount)}}
+        </td>
       </tr>
     </table>
 

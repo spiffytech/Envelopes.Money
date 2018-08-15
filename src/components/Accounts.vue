@@ -2,14 +2,14 @@
   <div class="ui celled list">
     <div class="item">
       <div class="list-item">
-        <p class="header">Total</p>
-        <p>{{formatAmount(totalBalance)}}</p>
+        <p class="has-text-weight-semibold">Total</p>
+        <p class="is-size-4">{{formatAmount(totalBalance)}}</p>
       </div>
     </div>
 
     <div class="item" v-for="account in accounts" :key="account.name">
       <div class="list-item">
-        <p class="header">{{account.name}}</p>
+        <p class="is-size-6 has-text-weight-semibold">{{account.name}}</p>
         <p>{{formatAmount(account.balance)}}</p>
       </div>
     </div>

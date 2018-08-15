@@ -4,10 +4,7 @@ import {pipe} from 'lodash/fp';
 import { then } from 'pipeable-promises/dist';
 import Vue from 'vue';
 
-import 'semantic-ui-css/semantic.min.css';
-/* tslint:disable-next-line:no-var-requires */
-(window as any).semantic = require('semantic-ui-css/semantic.min.js');
-import 'semantic-ui-css';
+import 'bulma/css/bulma.css';
 
 import App from './App.vue';
 import './registerServiceWorker';

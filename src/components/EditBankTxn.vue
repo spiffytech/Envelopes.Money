@@ -1,112 +1,71 @@
 <template>
-  <b-form @submit="handleSubmit">
-    <b-form-group
-      label="Date"
-      label-for="date"
-    >
-      <b-form-input
-        id="date"
-        type="date"
-        required
-        v-model="model.date"
-      ></b-form-input>
-    </b-form-group>
-
-    <b-form-group
-      label="Payee"
-      label-for="payee"
-    >
-      <b-form-input
-        id="payee"
-        required
-        v-model="model.payee"
-      ></b-form-input>
-    </b-form-group>
-
-    <b-form-group
-      label="Amount"
-      label-for="amount"
-    >
-      <b-input-group :prepend="isDebit ? '-' : '+'">
-        <b-form-input
-          id="amount"
-          type="number"
-          step="0.01"
-          required
-          v-model="model.amount"
-        ></b-form-input>
-      </b-input-group>
-    </b-form-group>
-
-    <b-form-group
-      label="Account"
-      label-for="account"
-    >
-      <b-form-select
-        :options="accounts.map((c) => ({value: c._id, text: c.name}))"
-        v-model="model.account"
-      ></b-form-select>
-    </b-form-group>
-
-    <b-form-group
-      label="Debit/Credit"
-      label-for="debitcredit"
-    >
-      <b-form-select
-        :options="[{value: true, text: 'Expense'}, {value: false, text: 'Credit'}]"
-        v-model="isDebit"
-      ></b-form-select>
-    </b-form-group>
-
-    <b-form-group
-      label="Memo"
-      label-for="memo"
-    >
-      <b-form-input
-        id="memo"
-        v-model="model.memo"
-      ></b-form-input>
-    </b-form-group>
-
-    <b-form-group
-      label="Categories"
-    >
-      <div
-        v-for="([category, amount], i) in model.categories"
-        :key="category.name"
-      >
-        <b-form-select
-          :options="categories.map((c) => ({value: c._id, text: c.name}))"
-          v-model="model.categories[i][0]"
-        ></b-form-select>
-
-          <b-input-group :prepend="isDebit ? '-' : '+'">
-          <b-form-input
-            v-model="model.categories[i][1]"
-            type="number"
-            step="0.01"
-          ></b-form-input>
-        </b-input-group>
+  <form @submit="handleSubmit">
+    <div class="field">
+      <label class="label">Date</label>
+      <div class="control">
+        <input class="input" type="date" required v-model="model.date" />
       </div>
+    </div>
 
-      <b-btn size="sm" variant="outline-secondary" @click="addCategory">
-        <span v-html="octicons['plus'].toSVG()"></span>
-      </b-btn>
-    </b-form-group>
+    <div class="field">
+      <label class="label">Payee</label>
+      <div class="control">
+        <input class="input" required v-model="model.payee" />
+      </div>
+    </div>
 
-    <b-button type="submit" variant="primary">Save</b-button>
-  </b-form>
+    <label class="label">Amount</label>
+    <div class="field has-addons">
+      <div class="control">
+        <input class="input" type="number" step="0.01" required v-model="model.amount" />
+      </div>
+      <div class="control">
+        <div class="select">
+          <select v-model="isDebit">
+            <option :value="true">Expense</option>
+            <option :value="false">Credit</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <AccountSelector :accounts="accounts" :model="model" />
+
+    <div class="field">
+      <label class="label">Memo</label>
+      <div class="control">
+        <input v-model="model.memo" class="input" />
+      </div>
+    </div>
+
+    <label class="label">Categories</label>
+    <CategorySelector
+      v-for="(categoryModel, i) in model.categories"
+      :key="categoryModel[0] + i"
+      :categories="categories"
+      :model="model.categories[i]"
+    />
+
+    <div class="field">
+      <div class="control">
+        <button class="button" @click="addCategory">Add Category</button>
+      </div>
+    </div>
+
+    <button class="button" type="submit">Save</button>
+  </form>
 </template>
 
 <script lang="ts">
 /* tslint:disable:no-console */
 import fromPairs from 'lodash/fp/fromPairs';
 /* tslint:disable-next-line:no-var-requires */
-const octicons = require('octicons');
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
+import AccountSelector from './AccountSelector.vue';
+import CategorySelector from './CategorySelector.vue';
 
 function convertForDebit(isDebit: boolean, amount: Txns.Pennies): Txns.Pennies {
   return isDebit ? amount * -1 as Txns.Pennies : amount;
@@ -116,7 +75,13 @@ function convertFromDebit(isDebit: boolean, amount: Txns.Pennies): Txns.Pennies 
   return isDebit ? amount * -1 as Txns.Pennies : amount;
 }
 
-@Component({})
+interface Model extends Txns.BankTxn {
+  date: Date;
+  amount: string;
+  categories: Array<[string, string]>;
+}
+
+@Component({components: {AccountSelector, CategorySelector}})
 export default class EditBankTxn extends Vue {
   @Prop({type: Object})
   public txn!: Txns.BankTxn;
@@ -132,19 +97,18 @@ export default class EditBankTxn extends Vue {
   @Prop({type: Function})
   public onSubmit!: (txn: Txns.BankTxn) => any;
 
-  public octicons = octicons;
-
-  private model = {
+  private model: Partial<Model> = {
     ...JSON.parse(JSON.stringify(this.txn)),
     type: this.txn.type || 'banktxn',
     date: utils.formatDate(new Date(this.txn.date)),
     memo: this.txn.memo || '',
     payee: this.txn.payee || '',
-    account: this.txn.account || this.accounts[0],
+    account: this.txn ? this.txn.account : this.accounts[0].name,
+    categories: [],
   };
 
   public addCategory() {
-    this.model.categories.push([this.categories[0], 0]);
+    this.model.categories!.push([this.categories[0].name, '0']);
   }
 
   public mounted() {
@@ -153,7 +117,7 @@ export default class EditBankTxn extends Vue {
     this.model.categories =
       Object.entries(this.txn.categories || {}).
       map(([category, amount]) =>
-        [category, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)],
+        [category, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)] as [string, string],
       );
   }
 

@@ -1,18 +1,24 @@
 <template>
-  <div class="ui grid">
-      <div class="five wide column">
-        <div class="ui top attached tabular menu" ref="menu">
-          <a class="active item" data-tab="Categories">Categories</a>
-          <a class="item" data-tab="Accounts">Accounts</a>
-          <a class="item" data-tab="Transactions">Transactions</a>
+  <div class="columns">
+      <div class="column is-one-third">
+        <div class="tabs" style="margin-bottom: 0;">
+          <ul>
+            <li :class="{'is-active': $route.name === 'home/categories'}">
+              <router-link :to="{name: 'home'}">Categories</router-link>
+            </li>
+            <li :class="{'is-active': $route.name === 'home/accounts'}">
+              <router-link :to="{name: 'home/accounts'}">Accounts</router-link>
+            </li>
+            <li :class="{'is-active': $route.name === 'home/transactions', 'is-hidden-tablet': true}">
+              <router-link :to="{name: 'home/transactions'}">Transactions</router-link>
+            </li>
+          </ul>
         </div>
 
-        <div class="ui bottom attached active tab segment" data-tab="Categories"><Categories></Categories></div>
-        <div class="ui bottom attached tab segment" data-tab="Accounts"><Accounts></Accounts></div>
-        <div class="ui bottom attached tab segment" data-tab="Transactions"><Transactions /></div>
+        <div class=""><router-view /></div>
       </div>
 
-      <div class="eleven wide column">
+      <div class="column is-two-thirds">
         <Transactions />
       </div>
   </div>
@@ -34,8 +40,5 @@ import Transactions from '@/components/Transactions.vue';
   },
 })
 export default class Home extends Vue {
-  public mounted() {
-    (jQuery('.item', this.$refs.menu) as any).tab();
-  }
 }
 </script>

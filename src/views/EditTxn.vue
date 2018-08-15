@@ -1,6 +1,17 @@
 <template>
   <div>
-    <b-form-select v-model="txnType" :options="txnTypeSelect" :disabled="!isNewTxn" />
+    <div class="select">
+      <select v-model="txnType" :disabled="!isNewTxn">
+        <option
+          v-for="option in txnTypeSelect"
+          :key="option.value"
+          :disabled="option.value === null"
+          :value="option.value"
+        >
+          {{option.text}}
+        </option>
+      </select>
+    </div>
 
     <EditBankTxn
       v-if="txn && txn.type === 'banktxn'"

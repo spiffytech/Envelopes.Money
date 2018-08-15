@@ -1,33 +1,31 @@
 <template>
-  <div class="ui celled relaxed list">
-    <div class="item">
-      <div class="list-item">
-        <p class="header">Total</p>
-        <p>{{formatAmount(totalBalance)}}</p>
-      </div>
-    </div>
+  <table class="table is-fullwidth">
+    <tr>
+      <td class="list-item">
+        <p class="has-text-weight-semibold">Total</p>
+        <p class="is-size-4 has-text-weight-semibold">{{formatAmount(totalBalance)}}</p>
+      </td>
+    </tr>
 
-    <div class="item" v-for="category in categories" :key="category.category.name">
-      <div class="list-item">
-        <p class="header">{{category.category.name}}</p>
-        <p class="header">{{formatAmount(category.balance)}}</p>
-      </div>
-
-      <div class="list-item">
-        <div
-          :class="{ui: true, progress: true, success: category.balance >= 0, error: category.balance < 0}"
-          :data-percent="progressAmount(category.balance, category.category.target) * .75"
-          style="margin-bottom: 0; width: 80%; height: 0.6rem;"
-          :id="'progress-' + category.category.name"
-          ref="progress"
-        >
-          <div class="bar" :style="{width: progressAmount(category.balance, category.category.target) + '%', height: '0.6rem'}"></div>
+    <tr v-for="category in categories" :key="category.category.name">
+      <td>
+        <div class="list-item">
+          <p class="is-size-6 has-text-weight-semibold">{{category.category.name}}</p>
+          <p class="is-size-6 has-text-weight-semibold">{{formatAmount(category.balance)}}</p>
         </div>
 
-        <small>{{formatAmount(category.category.target)}}</small>
-      </div>
-    </div>
-  </div>
+        <div class="list-item">
+          <progress
+            :class="{progress: true, 'is-small': true, 'is-success': category.balance >= 0, 'is-danger': category.balance < 0}"
+            :value="Math.abs(category.balance) || 0"
+            :max="category.category.target > 0 ? category.category.target : Math.abs(category.balance)"
+            style="width: 80%; margin-bottom: 0;"
+          />
+          <span class="is-size-7">{{formatAmount(category.category.target)}}</span>
+        </div>
+      </td>
+    </tr>
+  </table>
 </template>
 
 <script lang="ts">
@@ -68,10 +66,6 @@ export default class Categories extends Vue {
 
   public progressAmount(balance: Txns.Pennies, target: Txns.Pennies) {
     return Math.abs(Math.max(-100, Math.min(100, balance / target)));
-  }
-
-  public activateProgressBars(els: any[]) {
-    this.$nextTick(() => els.forEach((el) => (jQuery(el) as any).progress(30)));
   }
 }
 </script>

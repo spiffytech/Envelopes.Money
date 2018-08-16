@@ -1,5 +1,12 @@
 <template>
   <div>
+
+    <a class="button" @click="deleteTransaction" v-if="txn">
+      <span class="icon">
+        <i class="fas fa-trash-alt" title="Delete Transaction" />
+      </span>
+    </a>
+
     <div class="select">
       <select v-model="txnType" :disabled="!isNewTxn">
         <option
@@ -14,7 +21,7 @@
     </div>
 
     <EditBankTxn
-      v-if="txn && txn.type === 'banktxn'"
+      v-if="txnType === 'banktxn'"
       :txn="txn"
       :categories="categories"
       :accounts="accounts"
@@ -80,10 +87,15 @@ export default Vue.extend({
       this.txn = await db.get<Txns.BankTxn>(id);
       this.txnType = this.txn.type;
     },
+
+    deleteTransaction() {
+      if (!this.txn) return;
+      utils.activeDB(this.$store.state).remove(this.txn as any);
+    },
   },
 
   mounted() {
     if (!this.isNewTxn) this.loadExistingTxn(this.existingTxnId!);
-  }
+  },
 });
 </script>

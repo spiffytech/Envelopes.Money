@@ -17,7 +17,7 @@
     <label class="label">Amount</label>
     <div class="field has-addons">
       <div class="control">
-        <input class="input" type="number" step="0.01" required v-model="model.amount" />
+        <input :class="{input: true, 'is-danger': !doesAmountEqualCategories(this.model)}" type="number" step="0.01" required v-model="model.amount" />
       </div>
       <div class="control">
         <div class="select">
@@ -28,6 +28,7 @@
         </div>
       </div>
     </div>
+    <p class="help is-danger" v-if="!doesAmountEqualCategories(this.model)">Amount is different from the total of category amounts</p>
 
     <AccountSelector :accounts="accounts" :model="model" />
 
@@ -48,7 +49,7 @@
 
     <div class="field">
       <div class="control">
-        <button class="button" @click="addCategory">Add Category</button>
+        <button class="button" type="button" @click="addCategory">Add Category</button>
       </div>
     </div>
 
@@ -80,7 +81,7 @@ interface Model {
   account: string;
   payee: string;
   type: 'banktxn';
-  date: Date;
+  date: string;
   memo: string;
   amount: string;
   categories: Array<[string, string]>;
@@ -106,7 +107,7 @@ export default class EditBankTxn extends Vue {
     this.txn ? {
     _id: this.txn._id,
     type: this.txn.type,
-    date: new Date(this.txn.date),
+    date: utils.formatDate(this.txn.date),
     amount: Txns.penniesToDollars(convertForDebit(this.isDebit, this.txn.amount)).toFixed(2),
     memo: this.txn.memo,
     payee: this.txn.payee,
@@ -117,7 +118,7 @@ export default class EditBankTxn extends Vue {
   } : {
     _id: null,
     type: 'banktxn',
-    date: new Date(),
+    date: utils.formatDate(new Date().toJSON()),
     amount: '0.00',
     memo: '',
     payee: '',
@@ -126,7 +127,7 @@ export default class EditBankTxn extends Vue {
   };
 
   public addCategory() {
-    this.model.categories!.push([this.categories[0].name, '0']);
+    this.model.categories.push([this.categories[0].name, '0']);
   }
 
   public handleSubmit(event: any) {
@@ -136,16 +137,24 @@ export default class EditBankTxn extends Vue {
       return this.$store.commit('setFlash', {msg: 'You must select an acconut', type: 'error'});
     }
 
+    this.removeZeroCategories();
+
     const account = this.accounts.find((a) => a.name === this.model.account);
     if (!account) throw new Error('No matching account found');
+
     const categoryIds = fromPairs(this.model.categories.map(([name, amount]) => {
       const category = this.categories.find((c) => c.name === name);
       if (!category) throw new Error(`No such category: ${name}`);
       return [category._id, Txns.stringToPennies(amount)] as [string, Txns.Pennies];
     }));
+
+    if (!this.doesAmountEqualCategories(this.model)) {
+      throw new Error('Transaction amount does not equal category amounts');
+    }
+
     const newTxn: Txns.BankTxn = {
       _id: this.model._id || Txns.idForBankTxn(new Date(this.model.date), this.model.payee),
-      date: new Date(this.model.date).toISOString(),  // Convert to date to get timestamp
+      date: new Date(this.model.date).toJSON(),  // Convert to date to get timestamp
       amount: convertFromDebit(this.isDebit, Txns.stringToPennies(this.model.amount)),
       memo: this.model.memo,
       account: this.model.account,
@@ -160,8 +169,17 @@ export default class EditBankTxn extends Vue {
       categoryIds,
     };
 
-    console.log(newTxn);
     this.onSubmit(newTxn);
+  }
+
+  private removeZeroCategories() {
+    this.model.categories = this.model.categories.filter(([_, amount]) => Txns.stringToPennies(amount) !== 0);
+  }
+
+  private doesAmountEqualCategories(model: Model) {
+    const amountPennies = Txns.stringToPennies(model.amount);
+    const categoriesPennies = model.categories.map(([_, amount]) => Txns.stringToPennies(amount));
+    return amountPennies === categoriesPennies.reduce((acc, item) => acc + item, 0);
   }
 }
 </script>

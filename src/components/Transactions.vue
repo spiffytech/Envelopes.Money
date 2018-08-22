@@ -30,7 +30,7 @@
             <small>
               <span>{{txn.account}}</span>
               •
-              <span>{{Object.keys(txn.categories).join(', ')}}</span>
+              <span>{{txn.categories.map(({category}) => category).join(', ')}}</span>
             </small>
           </template>
 
@@ -61,7 +61,7 @@
 import {debounce} from 'lodash';
 import {pipe, throttle} from 'lodash/fp';
 const octicons = require('octicons');
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import Vue from 'vue';
 
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';

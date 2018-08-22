@@ -25,7 +25,6 @@
 </template>
 
 <script lang="ts">
-import jQuery from 'jquery';
 import { Component, Vue } from 'vue-property-decorator';
 
 import Accounts from '@/components/Accounts.vue'; // @ is an alias to /src

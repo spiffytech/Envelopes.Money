@@ -257,7 +257,7 @@ export const designDocs: {[key: string]: DesignDoc} = {
           if (doc.type === 'banktxn') {
             for (var category in doc.categories) {
               if (doc.categories.hasOwnProperty(category)) {
-                emit(category, doc.categories[category]);
+                emit(doc.categories[category].category, doc.categories[category].amount);
               }
             }
           } else if (doc.type === 'envelopeTransfer') {

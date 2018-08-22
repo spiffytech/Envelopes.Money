@@ -1,5 +1,4 @@
 /* tslint:disable-next-line:no-var-requires */
-(window as any).jQuery = require('jquery');
 import {pipe} from 'lodash/fp';
 import { then } from 'pipeable-promises/dist';
 import Vue from 'vue';

@@ -90,7 +90,7 @@ export default Vue.extend({
 
     deleteTransaction() {
       if (!this.txn) return;
-      utils.activeDB(this.$store.state).remove(this.txn as any);
+      return utils.activeDB(this.$store.state).remove(this.txn as any);
     },
   },
 

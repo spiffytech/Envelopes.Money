@@ -1,6 +1,4 @@
 import {debounce} from 'lodash';
-import fromPairs from 'lodash/fp/fromPairs';
-import getOr from 'lodash/fp/getOr';
 import Vue from 'vue';
 import {Module, Store} from 'vuex';
 

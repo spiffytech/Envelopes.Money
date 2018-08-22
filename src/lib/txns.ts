@@ -31,12 +31,16 @@ export interface EnvelopeTransfer extends LedgerEvent {
   type: 'envelopeTransfer';
 }
 
+export interface TransactionCategory {
+  category: string;
+  categoryId: string;
+  amount: Pennies;
+}
 export interface BankTxn extends LedgerEvent {
   account: string;
   accountId: string;
   payee: string;
-  categories: {[key: string]: Pennies};
-  categoryIds: {[key: string]: Pennies};
+  categories: TransactionCategory[];
   type: 'banktxn';
 }
 
@@ -122,8 +126,8 @@ export function accountsForTxn(txn: BankTxn | AccountTransfer): TxnItem[] {
 export function categoriesForTxn(txn: BankTxn | EnvelopeTransfer): TxnItem[] {
   if (isBankTxn(txn)) {
     return (
-      Object.entries(txn.categories).
-      map(([category, amount]): TxnItem =>
+      txn.categories.
+      map(({category, amount}): TxnItem =>
         ({account: category, amount}),
       )
     );
@@ -250,8 +254,7 @@ const ZeroBankTxn: BankTxn = {
   account: '',
   accountId: '',
   payee: '',
-  categories: {},
-  categoryIds: {},
+  categories: [],
   type: 'banktxn',
 };
 

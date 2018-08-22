@@ -29,7 +29,6 @@
 </template>
 
 <script lang="ts">
-import jQuery from 'jquery';
 import add from 'lodash/fp/add';
 import fromPairs from 'lodash/fp/fromPairs';
 import { Component, Vue } from 'vue-property-decorator';

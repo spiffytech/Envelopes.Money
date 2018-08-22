@@ -112,7 +112,7 @@ export default class EditBankTxn extends Vue {
     memo: this.txn.memo,
     payee: this.txn.payee,
     account: this.txn.account,
-    categories: Object.entries(this.txn.categories).map(([category, amount]) =>
+    categories: this.txn.categories.map(({category, amount}) =>
       [category, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)] as [string, string],
     ),
   } : {
@@ -130,6 +130,12 @@ export default class EditBankTxn extends Vue {
     this.model.categories.push([this.categories[0].name, '0']);
   }
 
+  public findCategoryId(categoryName: string): string {
+    const category = this.categories.find((c) => c.name === categoryName);
+    if (!category) throw new Error(`No such category: ${name}`);
+    return category._id;
+  }
+
   public handleSubmit(event: any) {
     event.preventDefault();
     this.$store.commit('clearFlash');
@@ -141,12 +147,6 @@ export default class EditBankTxn extends Vue {
 
     const account = this.accounts.find((a) => a.name === this.model.account);
     if (!account) throw new Error('No matching account found');
-
-    const categoryIds = fromPairs(this.model.categories.map(([name, amount]) => {
-      const category = this.categories.find((c) => c.name === name);
-      if (!category) throw new Error(`No such category: ${name}`);
-      return [category._id, Txns.stringToPennies(amount)] as [string, Txns.Pennies];
-    }));
 
     if (!this.doesAmountEqualCategories(this.model)) {
       throw new Error('Transaction amount does not equal category amounts');
@@ -161,12 +161,14 @@ export default class EditBankTxn extends Vue {
       accountId: account._id,
       payee: this.model.payee,
       type: 'banktxn',
-      categories: fromPairs(
+      categories:
         this.model.categories.map(([category, amount]: [string, string]) =>
-          [category, convertFromDebit(this.isDebit, Txns.stringToPennies(amount))],
+          ({
+            category,
+            categoryId: this.findCategoryId(category),
+            amount: convertFromDebit(this.isDebit, Txns.stringToPennies(amount)),
+          }),
         ),
-      ),
-      categoryIds,
     };
 
     this.onSubmit(newTxn);

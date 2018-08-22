@@ -45,16 +45,23 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
   });
 }
 
-export function parseCategories(row: GoodBudgetRow): {[key: string]: Txns.Pennies} {
+export function parseCategories(row: GoodBudgetRow): Txns.TransactionCategory[] {
   /* tslint:disable-next-line:curly */
-  if (row.Details === '') return {[row.Envelope]: amountOfStr(row.Amount)};
+  if (row.Details === '') return [{
+    category: row.Envelope,
+    categoryId: row.Envelope,
+    amount: amountOfStr(row.Amount),
+  }];
+
   return (
-    row.Envelope ? {[row.Envelope]: amountOfStr(row.Amount)} :
+    row.Envelope ? [{category: row.Envelope, categoryId: row.Envelope, amount: amountOfStr(row.Amount)}] :
     row.Details.split('||').
       map((detail: string) => detail.split('|')).
-      reduce((acc: {[key: string]: number}, [category, amount]) =>
-        ({...acc, [category]: amountOfStr(amount)})
-      , {})
+      map(([category, amount]): Txns.TransactionCategory => ({
+        category,
+        categoryId: category,
+        amount: amountOfStr(amount),
+      }))
   );
 }
 
@@ -200,7 +207,6 @@ export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
     payee: row.Name,
     memo: row.Notes,
     categories: parseCategories(row),
-    categoryIds: parseCategories(row),
     type: 'banktxn',
   };
 }
@@ -325,15 +331,12 @@ async function main() {
     console.log(remote === null);
     const accountIds = await discoverAccounts(remote, txns);
     const categoryIds = await discoverCategories(remote, txns);
-    const txns_: Txns.Txn[] = txns.map((txn) => {
+    const txns_: Txns.Txn[] = txns.map((txn): Txns.Txn => {
       if (Txns.isBankTxn(txn)) {
-        const categoryIdsForTxn = R.fromPairs(Object.entries(txn.categories).map(
-          ([category, balance]) => [categoryIds[category], balance] as [string, Txns.Pennies]),
-        );
         return {
           ...txn,
+          categories: txn.categories.map((category) => ({...category, categoryId: categoryIds[category.category]})),
           accountId: accountIds[txn.account],
-          categoryIds: categoryIdsForTxn,
         };
       } else if (Txns.isAccountTxfr(txn)) {
         return {

@@ -1,5 +1,6 @@
-/* tslint:disable-next-line:no-var-requires */
 import {pipe} from 'lodash/fp';
+/* tslint:disable-next-line:no-var-requires */
+const logrocket = require('logrocket');
 import { then } from 'pipeable-promises/dist';
 import Vue from 'vue';
 
@@ -9,6 +10,8 @@ import App from './App.vue';
 import './registerServiceWorker';
 import mkRouter from './router';
 import mkStore from './store';
+
+// logrocket.init(process.env.VUE_APP_LOGROCKET);
 
 Vue.config.productionTip = false;
 

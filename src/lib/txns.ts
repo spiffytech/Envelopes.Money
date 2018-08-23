@@ -17,6 +17,12 @@ export interface TxnItem {
   amount: Pennies;
 }
 
+export interface EnvelopeEvent {
+  name: string;
+  id: string;
+  amount: Pennies;
+}
+
 export interface LedgerEvent {
   _id: string;
   date: string;
@@ -31,16 +37,11 @@ export interface EnvelopeTransfer extends LedgerEvent {
   type: 'envelopeTransfer';
 }
 
-export interface TransactionCategory {
-  category: string;
-  categoryId: string;
-  amount: Pennies;
-}
 export interface BankTxn extends LedgerEvent {
   account: string;
   accountId: string;
   payee: string;
-  categories: TransactionCategory[];
+  categories: EnvelopeEvent[];
   type: 'banktxn';
 }
 
@@ -127,8 +128,8 @@ export function categoriesForTxn(txn: BankTxn | EnvelopeTransfer): TxnItem[] {
   if (isBankTxn(txn)) {
     return (
       txn.categories.
-      map(({category, amount}): TxnItem =>
-        ({account: category, amount}),
+      map(({name, amount}): TxnItem =>
+        ({account: name, amount}),
       )
     );
   } else if (isEnvelopeTxfr(txn)) {

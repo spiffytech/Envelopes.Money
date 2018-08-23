@@ -112,8 +112,8 @@ export default class EditBankTxn extends Vue {
     memo: this.txn.memo,
     payee: this.txn.payee,
     account: this.txn.account,
-    categories: this.txn.categories.map(({category, amount}) =>
-      [category, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)] as [string, string],
+    categories: this.txn.categories.map(({name, amount}) =>
+      [name, Txns.penniesToDollars(convertForDebit(this.isDebit, amount)).toFixed(2)] as [string, string],
     ),
   } : {
     _id: null,
@@ -162,10 +162,10 @@ export default class EditBankTxn extends Vue {
       payee: this.model.payee,
       type: 'banktxn',
       categories:
-        this.model.categories.map(([category, amount]: [string, string]) =>
+        this.model.categories.map(([name, amount]: [string, string]) =>
           ({
-            category,
-            categoryId: this.findCategoryId(category),
+            name,
+            id: this.findCategoryId(name),
             amount: convertFromDebit(this.isDebit, Txns.stringToPennies(amount)),
           }),
         ),

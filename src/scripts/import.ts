@@ -45,21 +45,21 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
   });
 }
 
-export function parseCategories(row: GoodBudgetRow): Txns.TransactionCategory[] {
+export function parseCategories(row: GoodBudgetRow): Txns.EnvelopeEvent[] {
   /* tslint:disable-next-line:curly */
   if (row.Details === '') return [{
-    category: row.Envelope,
-    categoryId: row.Envelope,
+    name: row.Envelope,
+    id: row.Envelope,
     amount: amountOfStr(row.Amount),
   }];
 
   return (
-    row.Envelope ? [{category: row.Envelope, categoryId: row.Envelope, amount: amountOfStr(row.Amount)}] :
+    row.Envelope ? [{name: row.Envelope, id: row.Envelope, amount: amountOfStr(row.Amount)}] :
     row.Details.split('||').
       map((detail: string) => detail.split('|')).
-      map(([category, amount]): Txns.TransactionCategory => ({
-        category,
-        categoryId: category,
+      map(([name, amount]): Txns.EnvelopeEvent => ({
+        name,
+        id: name,
         amount: amountOfStr(amount),
       }))
   );
@@ -348,7 +348,7 @@ async function main() {
       if (Txns.isBankTxn(txn)) {
         return {
           ...txn,
-          categories: txn.categories.map((category) => ({...category, categoryId: categoryIds[category.category]})),
+          categories: txn.categories.map((category) => ({...category, id: categoryIds[category.name]})),
           accountId: accountIds[txn.account],
         };
       } else if (Txns.isAccountTxfr(txn)) {

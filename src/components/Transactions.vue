@@ -30,7 +30,7 @@
             <small>
               <span>{{txn.account}}</span>
               •
-              <span>{{txn.categories.map(({category}) => category).join(', ')}}</span>
+              <span>{{txn.categories.map(({name}) => name).join(', ')}}</span>
             </small>
           </template>
 

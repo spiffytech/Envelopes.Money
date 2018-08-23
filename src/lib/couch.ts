@@ -253,11 +253,11 @@ export const designDocs: {[key: string]: DesignDoc} = {
     version: new Date().getTime(),
     views: {
       balances: {
-        map: function(doc: any) {
+        map: function(doc: Txns.Txn) {
           if (doc.type === 'banktxn') {
             for (var category in doc.categories) {
               if (doc.categories.hasOwnProperty(category)) {
-                emit(doc.categories[category].category, doc.categories[category].amount);
+                emit(doc.categories[category].name, doc.categories[category].amount);
               }
             }
           } else if (doc.type === 'envelopeTransfer') {

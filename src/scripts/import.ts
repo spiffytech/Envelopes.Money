@@ -69,12 +69,12 @@ export function parseCategories(row: GoodBudgetRow): Txns.TransactionCategory[] 
  * GoodBudget's export breaks account transfers into two transactions, so we'd
  * import double transfers (or transfers with no payees) if we imported as-is
  */
-function mergeAccountTransfers(gbRows: any): Array<GoodBudgetRow | GoodBudgetTxfr> {
+function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow | GoodBudgetTxfr> {
   const newRows: GoodBudgetRow[] = [];
   const txfrs: {[key: string]: GoodBudgetRow[]} = {};
   gbRows.forEach((row: any) => {
     /* tslint:disable-next-line:curly */
-    if (typeForRow(row) !== 'accountTransfer') return newRows.push(row);
+    if (typeForRow(row) !== type_) return newRows.push(row);
 
     const key = `${row.Date}-${row.Amount.replace('-', '')}`;
     const arr = txfrs[key];
@@ -89,11 +89,12 @@ function mergeAccountTransfers(gbRows: any): Array<GoodBudgetRow | GoodBudgetTxf
       const to = txfrRows.find((row) => parseFloat(row.Amount) > 0);
       console.log(txfrRows.length);
 
+      console.log(txfrRows, to, from);
       // Remove the items from the array
       txfrRows.splice(txfrRows.indexOf(from), 1);
       txfrRows.splice(txfrRows.indexOf(to), 1);
 
-      newRows.push({...from, Name: to.Account, txfrId});
+      newRows.push({...from, Name: to.Account || to.Envelope, Account: from.Account || from.Envelope, txfrId});
     }
   });
 
@@ -227,8 +228,19 @@ export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
   };
 }
 
-export function rowToEnvelopeTransfer(_row: GoodBudgetRow): Txns.EnvelopeTransfer {
-  throw new Error('Conversion to envelope transfers is not implemented yet');
+export function rowToEnvelopeTransfer(row: GoodBudgetRow): Txns.EnvelopeTransfer {
+  const date = new Date(row.Date).toJSON();
+  return {
+    _id: ['txn', date, 'envelopeTransfer', shortid.generate()].join('/'),
+    date,
+    amount: amountOfStr(row.Amount),
+    memo: row.Notes,
+    from: row.Account,
+    to: row.Name,
+    fromId: '',
+    toId: '',
+    type: 'envelopeTransfer',
+  };
 }
 
 export function rowToTxn(
@@ -293,9 +305,10 @@ async function main() {
   nconf.required(['file']);
 
   const rows = await readCsv(nconf.get('file'));
+  const mergedAccountTxfrs =
+    mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]'), 'accountTransfer');
   const txns: Txns.Txn[] =
-    mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]')).
-    filter((row) => typeForRow(row) !== 'envelopeTransfer').
+    mergeAccountTransfers(mergedAccountTxfrs.filter((row: any) => row.Account !== '[none]'), 'envelopeTransfer').
     filter((row) => row.Account !== '[none]').  // It's a fill
     map((row) => rowToTxn(row)).
     filter(nullFilter);

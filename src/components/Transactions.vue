@@ -39,7 +39,11 @@
           </template>
 
           <template v-if="txn.type === 'envelopeTransfer'">
-            <small>{{txn.from}} ⇨ {{txn.to}}</small>
+            <small>
+              {{txn.from.name}} 
+              ⇨ 
+              {{txn.to.map(({name}) => name).join(', ')}}
+              </small>
           </template>
         </td>
 

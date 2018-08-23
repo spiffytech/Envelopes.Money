@@ -261,8 +261,12 @@ export const designDocs: {[key: string]: DesignDoc} = {
               }
             }
           } else if (doc.type === 'envelopeTransfer') {
-            emit(doc.from, doc.amount);
-            emit(doc.to, -doc.amount);
+            emit(doc.from.name, doc.amount);
+            for (var event in doc.to) {
+              if (doc.to.hasOwnProperty(event)) {
+                emit(doc.to[event].name, doc.to[event].amount);
+              }
+            }
             return;
           }
         }.toString(),

@@ -30,10 +30,8 @@ export interface LedgerEvent {
   memo: string;
 }
 export interface EnvelopeTransfer extends LedgerEvent {
-  from: string;
-  to: string;
-  fromId: string;
-  toId: string;
+  from: EnvelopeEvent;
+  to: EnvelopeEvent[];
   type: 'envelopeTransfer';
 }
 
@@ -134,8 +132,8 @@ export function categoriesForTxn(txn: BankTxn | EnvelopeTransfer): TxnItem[] {
     );
   } else if (isEnvelopeTxfr(txn)) {
     return [
-      {account: txn.from, amount: txn.amount},
-      {account: txn.to, amount: -txn.amount as Pennies},
+      {account: txn.from.name, amount: txn.amount},
+      ...txn.to.map(({name, amount}) => ({account: name, amount})),
     ];
   }
   const n: never = txn;

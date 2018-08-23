@@ -235,10 +235,8 @@ export function rowToEnvelopeTransfer(row: GoodBudgetRow): Txns.EnvelopeTransfer
     date,
     amount: amountOfStr(row.Amount),
     memo: row.Notes,
-    from: row.Account,
-    to: row.Name,
-    fromId: '',
-    toId: '',
+    from: {name: row.Account, id: '', amount: amountOfStr(row.Amount)},
+    to: [{name: row.Name, id: '', amount: -amountOfStr(row.Amount) as Txns.Pennies}],
     type: 'envelopeTransfer',
   };
 }
@@ -360,8 +358,8 @@ async function main() {
       } else if (Txns.isEnvelopeTxfr(txn)) {
         return {
           ...txn,
-          fromId: categoryIds[txn.from],
-          toId: categoryIds[txn.to],
+          from: {...txn.from, id: categoryIds[txn.from.name]},
+          to: txn.to.map((event) => ({...event, id: categoryIds[event.name]})),
         };
       }
       const t: never = txn;

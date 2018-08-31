@@ -83,7 +83,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     },
 
     async watchAccounts({commit}, db: PouchDB.Database) {
-      if (changesAccounts) changesAccounts.cancel();
+      if (changesAccounts && changesAccounts.status !== 'cancelled') changesAccounts.cancel();
       changesAccounts = await Couch.watchSelector(
         db,
         {
@@ -97,7 +97,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     },
 
     async watchCategories({commit}, db: PouchDB.Database) {
-      if (changesCategories) changesCategories.cancel();
+      if (changesCategories && changesCategories.status !== 'cancelled') changesCategories.cancel();
       changesCategories = await Couch.watchSelector(
         db,
         {

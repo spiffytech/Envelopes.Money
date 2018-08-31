@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <a class="button" @click="deleteTransaction" v-if="txn">
       <span class="icon">
         <i class="fas fa-trash-alt" title="Delete Transaction" />

@@ -1,4 +1,5 @@
-import format from 'date-fns/format';
+/* tslint:disable-next-line:no-var-requires */
+const format = require('date-fns').format;
 import add from 'lodash/fp/add';
 import curry from 'lodash/fp/curry';
 import flatten from 'lodash/fp/flatten';

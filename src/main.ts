@@ -1,6 +1,6 @@
 import {pipe} from 'lodash/fp';
 /* tslint:disable-next-line:no-var-requires */
-const logrocket = require('logrocket');
+// const logrocket = require('logrocket');
 import { then } from 'pipeable-promises/dist';
 import Vue from 'vue';
 

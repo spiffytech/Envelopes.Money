@@ -1,21 +1,21 @@
 <template>
-  <b-form @submit="onSubmit">
-    <b-form-group
-      label="Username"
-      label-for="username"
-    >
-      <b-form-input id="username" v-model="username" required></b-form-input>
-    </b-form-group>
+  <form @submit="onSubmit">
+    <div class="field">
+      <label class="label">Username</label>
+      <div class="control">
+        <input class="input" v-model="username" required />
+      </div>
+    </div>
 
-    <b-form-group
-      label="Password"
-      label-for="password"
-    >
-      <b-form-input id="password" type="password" v-model="password" required></b-form-input>
-    </b-form-group>
+    <div class="field">
+      <label class="label">Password</label>
+      <div class="control">
+        <input class="input" type="password" v-model="password" required />
+      </div>
+    </div>
 
-    <b-button type="submit" variant="primary">Log In</b-button>
-  </b-form>
+    <button class="button" type="submit">Log In</button>
+  </form>
 </template>
 
 <script lang="ts">

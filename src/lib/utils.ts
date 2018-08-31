@@ -1,6 +1,7 @@
 /* tslint:disable:no-console */
 
-import format from 'date-fns/format';
+/* tslint:disable-next-line:no-var-requires */
+const format = require('date-fns').format;
 
 import * as StoreTypes from '../store/types';
 import * as Txns from './txns';

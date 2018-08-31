@@ -59,7 +59,6 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
-import fromPairs from 'lodash/fp/fromPairs';
 /* tslint:disable-next-line:no-var-requires */
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
@@ -181,7 +180,7 @@ export default class EditBankTxn extends Vue {
   private doesAmountEqualCategories(model: Model) {
     const amountPennies = Txns.stringToPennies(model.amount);
     const categoriesPennies = model.categories.map(([_, amount]) => Txns.stringToPennies(amount));
-    return amountPennies === categoriesPennies.reduce((acc, item) => acc + item, 0);
+    return amountPennies === categoriesPennies.reduce((acc: number, item: number) => acc + item, 0);
   }
 }
 </script>

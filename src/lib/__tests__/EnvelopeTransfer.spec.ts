@@ -1,0 +1,29 @@
+import EnvelopeTransfer from '../EnvelopeTransfer';
+import * as Txns from '../txns',;
+
+const ETPOJO: Txns.EnvelopeTransfer = {
+  _id: 'stuff',
+  date: new Date('2018-09-15 23:59:59').toJSON(),
+  amount: 500 as Txns.Pennies,
+  memo: '',
+  from: {name: 'Savings', id: 'abcd', amount: 500 as Txns.Pennies},
+  to: [
+    {name: 'Vacations', id: 'defg', amount: 300 as Txns.Pennies},
+    {name: 'Gas', id: 'hijk', amount: 200 as Txns.Pennies},
+  ],
+  type: 'envelopeTransfer',
+}
+
+describe('EnvelopeTransfers converting to/from POJO', () => {
+  it('Returns an identical POJO to its constructor', () => {
+    const transfer = EnvelopeTransfer.POJO(ETPOJO);
+    expect(transfer.toPOJO()).toEqual(ETPOJO);
+  });
+});
+
+describe('Date strings', () => {
+  it('Converts to a date string', () => {
+    const transfer = EnvelopeTransfer.POJO(ETPOJO);
+    expect(transfer.dateString).toEqual('2018-09-15');
+  });
+});

@@ -15,3 +15,12 @@ export interface Account {
 export interface Category {
   name: string;
 }
+
+export interface Amount {
+  pennies: number;
+  dollars: number;
+}
+
+export interface Txn {
+  amount: Amount;
+}

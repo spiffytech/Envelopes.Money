@@ -246,6 +246,10 @@ export function idForBankTxn(date: Date, payee: string): string {
   return ['txn', date.toISOString(), 'banktxn', payee, shortid.generate()].join('/');
 }
 
+export function idForEnvelopeTransfer(date: Date): string {
+  return ['txn', date, 'envelopeTransfer', shortid.generate()].join('/');
+}
+
 const ZeroBankTxn: BankTxn = {
   _id: '',
   date: '',

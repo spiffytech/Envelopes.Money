@@ -47,7 +47,7 @@
           </template>
         </td>
 
-        <td>{{txn.memo}}</td>
+        <td style="min-width=10em;">{{txn.memo}}</td>
 
         <td>
           {{formatAmount(txn.amount)}}

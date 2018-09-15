@@ -2,7 +2,7 @@
   <div class="field is-grouped">
     <div class="control">
       <div class="select">
-        <select v-model="model[0]">
+        <select v-model="model.name">
           <option v-for="category in categories" :key="category.name" :value="category.name">
             {{category.name}}
           </option>
@@ -11,7 +11,7 @@
     </div>
 
     <div class="control">
-      <input v-model="model[1]" class="input" type="number" step="0.01" />
+      <input v-model="model.amount" class="input" type="number" step="0.01" />
     </div>
   </div>
 </template>

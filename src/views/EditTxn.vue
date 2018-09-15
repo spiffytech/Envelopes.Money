@@ -25,7 +25,14 @@
       :categories="categories"
       :accounts="accounts"
       :onSubmit="onSubmit.bind(this)"
-    ></EditBankTxn>
+    />
+
+    <EditEnvelopeTransfer
+      v-else-if="txnType === 'envelopeTransfer'"
+      :txn="txn"
+      :categories="categories"
+      :onSubmit="onSubmit.bind(this)"
+    />
   </div>
 </template>
 
@@ -34,12 +41,13 @@
 import Vue from 'vue';
 
 import EditBankTxn from '@/components/EditBankTxn.vue';
+import EditEnvelopeTransfer from '@/components/EditEnvelopeTransfer.vue';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
 
 export default Vue.extend({
-  components: {EditBankTxn},
+  components: {EditBankTxn, EditEnvelopeTransfer},
 
   data() {
     return {
@@ -62,6 +70,7 @@ export default Vue.extend({
       return [
         {value: null, text: 'Select a transaction type'},
         {value: 'banktxn', text: 'Bank Transaction'},
+        {value: 'envelopeTransfer', text: 'Envelope Transfer'},
       ];
     },
 
@@ -78,6 +87,7 @@ export default Vue.extend({
 
   methods: {
     onSubmit(txn: Txns.Txn) {
+      console.log(txn);
       return Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
     },
 

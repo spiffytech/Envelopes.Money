@@ -81,7 +81,7 @@ export default class BankTxn {
     const pennies = (
       this._categories.
       map((category) => category.amount.pennies).
-      reduce((a, b) => a + b)
+      reduce((a, b) => a + b, 0)
     );
 
     return Amount.Pennies(pennies);

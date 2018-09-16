@@ -63,4 +63,4 @@ describe('Serializing', () => {
     const txn = BankTxn.POJO(BTPOJO);
     expect(txn.toPOJO()).toEqual(BTPOJO);
   });
-})
+});

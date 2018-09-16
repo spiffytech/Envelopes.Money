@@ -14,17 +14,15 @@ interface BTData {
   account: string;
   accountId: string;
   categories: EnvelopeEvent[];
+  type?: string;
+  amount?: number | Txns.Pennies;
 }
 
 export default class BankTxn {
   public static POJO(txn: ClassicBankTxn) {
     return new BankTxn({
-      _id: txn._id,
+      ...txn,
       date: new Date(txn.date),
-      memo: txn.memo,
-      payee: txn.payee,
-      account: txn.account,
-      accountId: txn.accountId,
       categories: txn.categories.map((category) =>
         ({...category, amount: Amount.Pennies(category.amount)}),
       ),

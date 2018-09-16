@@ -23,7 +23,6 @@ global.Promise = bluebird;
 /* tslint:disable:object-literal-sort-keys */
 
 require('dotenv').config();
-console.log('host', process.env.COUCH_HOST);
 
 nconf.argv().env();
 

@@ -92,4 +92,15 @@ export default class AccountTransfer {
       ['txn', utils.formatDate(this.date), 'envelopeTransfer', shortid.generate()].join('/')
     );
   }
+
+  public validate() {
+    return Boolean(
+      this.amount.pennies !== 0 &&
+      this.from &&
+      this.to &&
+      this.fromId &&
+      this.toId &&
+      this.txfrId,
+    );
+  }
 }

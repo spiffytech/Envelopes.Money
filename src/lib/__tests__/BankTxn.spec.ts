@@ -1,6 +1,6 @@
-import Amount from '../Amount';
 import BankTxn from '../BankTxn';
 import * as Txns from '../txns';
+import * as types from '../types';
 
 const BTPOJO: Txns.BankTxn = {
   _id: 'aBogusTxn',
@@ -16,6 +16,11 @@ const BTPOJO: Txns.BankTxn = {
   ],
   type: 'banktxn',
 };
+
+it('Is assignable to the Txn interface', () => {
+  const txn: types.Txn = BankTxn.Empty();
+  expect(txn).not.toBe(null);  // A dummy use of txn to satisfy the linter
+});
 
 describe('Getters/setters', () => {
   it('Sums up items into the correct amount', () => {
@@ -62,5 +67,60 @@ describe('Serializing', () => {
   it('Returns the same object we put in', () => {
     const txn = BankTxn.POJO(BTPOJO);
     expect(txn.toPOJO()).toEqual(BTPOJO);
+  });
+});
+
+describe('Validation', () => {
+  it('Accepts our sample POJO', () => {
+    const txn = BankTxn.POJO(BTPOJO);
+    expect(txn.validate()).toBe(true);
+  });
+
+  it('Rejects the empty object', () => {
+    const txn = BankTxn.Empty();
+    expect(txn.validate()).toBe(false);
+  });
+
+  it('Rejects when payee is empty', () => {
+    const txn = BankTxn.POJO({
+      ...BTPOJO,
+      payee: '',
+    });
+    expect(txn.validate()).toBe(false);
+  });
+
+  it('Rejects when account is empty', () => {
+    const txn = BankTxn.POJO({
+      ...BTPOJO,
+      account: '',
+    });
+    expect(txn.validate()).toBe(false);
+  });
+
+  it('Rejects when accountId is empty', () => {
+    const txn = BankTxn.POJO({
+      ...BTPOJO,
+      accountId: '',
+    });
+    expect(txn.validate()).toBe(false);
+  });
+
+  it('Rejects when there are no categories', () => {
+    const txn = BankTxn.POJO({
+      ...BTPOJO,
+      categories: [],
+    });
+    expect(txn.validate()).toBe(false);
+  });
+
+  it('Rejects when categories contain zero-amount items', () => {
+    const txn = BankTxn.POJO({
+      ...BTPOJO,
+      categories: [
+        ...BTPOJO.categories,
+        {name: 'stuff', id: 'stuff again', amount: 0 as Txns.Pennies},
+      ],
+    });
+    expect(txn.validate()).toBe(false);
   });
 });

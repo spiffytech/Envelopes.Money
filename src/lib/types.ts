@@ -1,3 +1,5 @@
+import Amount from './Amount';
+
 // These are in here because putting them inside Txns means the Firebase
 // functions tsc can't import them, since the txns module uses es2017 features
 export interface DETxn {
@@ -16,13 +18,10 @@ export interface Category {
   name: string;
 }
 
-export interface Amount {
-  pennies: number;
-  dollars: number;
-}
-
 export interface Txn {
   amount: Amount;
+  dateString: string;
+  validate(): boolean;
 }
 export interface EnvelopeEvent {
   name: string;

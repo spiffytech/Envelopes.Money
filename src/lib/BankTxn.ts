@@ -119,4 +119,14 @@ export default class BankTxn {
       ({...category, amount: Amount.Pennies(category.amount.pennies * -1)}),
     );
   }
+
+  public validate() {
+    return Boolean(
+      this.payee &&
+      this.account &&
+      this.accountId &&
+      this._categories.length > 0 &&
+      this.categories.filter((category) => category.amount.pennies === 0).length === 0,
+    );
+  }
 }

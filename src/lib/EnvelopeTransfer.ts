@@ -65,6 +65,10 @@ export default class EnvelopeTransfer {
     };
   }
 
+  get amount(): Amount {
+    return this.from.amount;
+  }
+
   get dateString() {
     return utils.formatDate(this.date);
   }
@@ -86,5 +90,14 @@ export default class EnvelopeTransfer {
 
   public addTo(event: EnvelopeEvent) {
     this._to.push(event);
+  }
+
+  public validate() {
+    return Boolean(
+      this.from.amount.pennies > 0 &&
+      this._to.length > 0 &&
+      this._to.filter((to) => to.amount.pennies === 0).length === 0 &&
+      this.from.amount.pennies === this._to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0),
+    );
   }
 }

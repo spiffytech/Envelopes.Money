@@ -11,7 +11,7 @@
     </div>
 
     <div class="control">
-      <input v-model="model.amount.dollars" class="input" type="number" step="0.01" />
+      <input v-model="model.amount.human" class="input" type="number" step="0.01" />
     </div>
   </div>
 </template>

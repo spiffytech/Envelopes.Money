@@ -31,6 +31,6 @@ describe('Date strings', () => {
 describe('From an empty object', () => {
   it('Uses a generated ID if no ID has been given', () => {
     const transfer = EnvelopeTransfer.Empty();
-    expect(transfer.id).toMatch(/txn\/2018-09-15\/envelopeTransfer\/[a-zA-Z0-9]+/);
+    expect(transfer.id).toMatch(/txn\/[20\d{4}-\d{2}-\d{2}\/envelopeTransfer\/[a-zA-Z0-9]+/);
   });
 });

@@ -9,6 +9,8 @@ export default class Amount {
     return amt;
   }
 
+  protected _human: string | null = null;
+
   protected constructor(public pennies: number) {}
 
   get dollars() {
@@ -17,5 +19,14 @@ export default class Amount {
 
   set dollars(d: number) {
     this.pennies = d * 100;
+  }
+
+  get human() {
+    return this._human || this.dollars.toFixed(2);
+  }
+
+  set human(h: string) {
+    this._human = h;
+    this.pennies = Math.round(Number.parseFloat(h) * 100);
   }
 }

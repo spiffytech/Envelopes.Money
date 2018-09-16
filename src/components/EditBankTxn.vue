@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <p>Amount: ${{model.amount.dollars}}</p>
+    <p>Amount: ${{model.amount.human}}</p>
 
     <label class="label">Categories</label>
     <CategorySelector

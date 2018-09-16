@@ -35,3 +35,28 @@ describe('It handles dollars', () => {
     expect(amount.pennies).toBe(500);
   });
 });
+
+describe('Human strings', () => {
+  it('Returns a human representation of the initialized value', () => {
+    const amount = Amount.Pennies(5);
+    expect(amount.human).toBe('0.05');
+  });
+
+  it('Sets the human amount', () => {
+    const amount = Amount.Dollars(5);
+    amount.human = '6.23';
+    expect(amount.human).toBe('6.23');
+  });
+
+  it('Changes the value when the human amount changes', () => {
+    const amount = Amount.Dollars(5);
+    amount.human = '6.23';
+    expect(amount.pennies).toBe(623);
+  });
+
+  it('Rounds human values to the nearest penny', () => {
+    const amount = Amount.Dollars(5);
+    amount.human = '6.4567';
+    expect(amount.pennies).toBe(646);
+  });
+});

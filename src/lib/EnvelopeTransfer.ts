@@ -1,3 +1,5 @@
+import * as shortid from 'shortid';
+
 import Amount from './Amount';
 import {EnvelopeTransfer as ClassicEnvelopeTransfer} from './txns';
 import * as Txns from './txns';
@@ -10,7 +12,7 @@ interface EnvelopeEvent {
 }
 
 interface ETData {
-  _id: string;
+  _id: string | null;
   date: Date;
   memo: string;
   from: EnvelopeEvent;
@@ -30,16 +32,38 @@ export default class EnvelopeTransfer {
     });
   }
 
-  protected constructor(private data: ETData) {}
+  public static Empty() {
+    return new EnvelopeTransfer({
+      _id: null,
+      date: new Date(),
+      memo: '',
+      from: {name: '', id: '', amount: Amount.Pennies(0)},
+      to: [],
+    });
+  }
+
+  public date: Date;
+  public memo: string;
+  public from: EnvelopeEvent;
+  private _id: string | null;
+  private _to: EnvelopeEvent[] = [];
+
+  protected constructor(data: ETData) {
+    this._id = data._id;
+    this.date = data.date;
+    this.memo = data.memo;
+    this.from = data.from;
+    this._to = data.to;
+  }
 
   public toPOJO(): ClassicEnvelopeTransfer {
     return {
-      _id: this.data._id,
-      date: this.data.date.toJSON(),
-      amount: this.data.from.amount.pennies as Txns.Pennies,
-      memo: this.data.memo,
-      from: {...this.data.from, amount: this.data.from.amount.pennies as Txns.Pennies},
-      to: this.data.to.map((to) =>
+      _id: this.id,
+      date: this.date.toJSON(),
+      amount: this.from.amount.pennies as Txns.Pennies,
+      memo: this.memo,
+      from: {...this.from, amount: this.from.amount.pennies as Txns.Pennies},
+      to: this._to.map((to) =>
         ({...to, amount: to.amount.pennies as Txns.Pennies}),
       ),
       type: 'envelopeTransfer',
@@ -47,10 +71,25 @@ export default class EnvelopeTransfer {
   }
 
   get dateString() {
-    return utils.formatDate(this.data.date);
+    return utils.formatDate(this.date);
   }
 
   set dateString(d: string) {
-    this.data.date = new Date(d);
+    this.date = new Date(d);
+  }
+
+  get id() {
+    return (
+      this._id  ||
+      ['txn', utils.formatDate(this.date), 'envelopeTransfer', shortid.generate()].join('/')
+    );
+  }
+
+  get to() {
+    return this._to;
+  }
+
+  public addTo(event: EnvelopeEvent) {
+    this._to.push(event);
   }
 }

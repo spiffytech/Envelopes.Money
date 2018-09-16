@@ -1,5 +1,5 @@
 import EnvelopeTransfer from '../EnvelopeTransfer';
-import * as Txns from '../txns',;
+import * as Txns from '../txns';
 
 const ETPOJO: Txns.EnvelopeTransfer = {
   _id: 'stuff',
@@ -12,7 +12,7 @@ const ETPOJO: Txns.EnvelopeTransfer = {
     {name: 'Gas', id: 'hijk', amount: 200 as Txns.Pennies},
   ],
   type: 'envelopeTransfer',
-}
+};
 
 describe('EnvelopeTransfers converting to/from POJO', () => {
   it('Returns an identical POJO to its constructor', () => {
@@ -25,5 +25,12 @@ describe('Date strings', () => {
   it('Converts to a date string', () => {
     const transfer = EnvelopeTransfer.POJO(ETPOJO);
     expect(transfer.dateString).toEqual('2018-09-15');
+  });
+});
+
+describe('From an empty object', () => {
+  it('Uses a generated ID if no ID has been given', () => {
+    const transfer = EnvelopeTransfer.Empty();
+    expect(transfer.id).toMatch(/txn\/2018-09-15\/envelopeTransfer\/[a-zA-Z0-9]+/);
   });
 });

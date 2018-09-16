@@ -3,22 +3,22 @@
     <div class="field">
       <label class="label">Date</label>
       <div class="control">
-        <input class="input" type="date" required v-model="model.date" />
+        <input class="input" type="date" required v-model="model.dateString" />
       </div>
     </div>
 
     <label class="label">From</label>
     <CategorySelector
       :categories="categories"
-      :model="model.fromDollars"
+      :model="model.from"
     />
 
     <label class="label">To</label>
     <CategorySelector
-      v-for="(categoryModel, i) in model.toDollars"
+      v-for="(categoryModel, i) in model.to"
       :key="categoryModel.name + i"
       :categories="categories"
-      :model="model.toDollars[i]"
+      :model="model.to[i]"
     />
 
     <div class="field">
@@ -41,9 +41,11 @@
 <script lang="ts">
 import Vue from "vue";
 
-import CategorySelector from "./CategorySelector.vue";
-import * as Txns from "@/lib/txns";
-import * as utils from "@/lib/utils";
+import Amount from '@/lib/Amount';
+import CategorySelector from './CategorySelector.vue';
+import EnvelopeTransfer from '@/lib/EnvelopeTransfer';
+import * as Txns from '@/lib/txns';
+import * as utils from '@/lib/utils';
 
 interface Model extends Partial<Txns.EnvelopeTransfer> {
   fromDollars: { name: string; id: string; amount: string };
@@ -56,57 +58,23 @@ export default Vue.extend({
   data() {
     return {
       model: this.txn ?
-        (this as any).txnToModel(this.txn) :
-        (this as any).emptyModel(),
+        EnvelopeTransfer.POJO(this.txn) :
+        EnvelopeTransfer.Empty(),
     };
   },
   
   methods: {
-    txnToModel(txn: Txns.EnvelopeTransfer): Model {
-      return {
-        ...txn,
-        date: utils.formatDate(txn.date),
-        fromDollars: {
-          ...txn.from,
-          amount: Txns.penniesToDollars(
-            txn.from.amount
-          ).toFixed(2)
-        },
-        toDollars: txn.to.map(to => ({
-          ...to,
-          amount: Txns.penniesToDollars(to.amount).toFixed(2)
-        }))
-      };
-    },
-
-    emptyModel(): Model {
-      return {
-        fromDollars: {name: this.categories[0].name, id: this.categories[0].id, amount: '0.00'},
-        toDollars: [],
-      };
-    },
-
     addCategory() {
-      this.model.toDollars.push({
+      this.model.addTo({
         name: this.categories[0].name,
         id: this.categories[0]._id,
-        amount: '0',
+        amount: Amount.Pennies(0),
       });
     },
 
     handleSubmit(event: any) {
-      const model: Model = this.model;
       this.$store.commit('clearFlash');
-      const date = new Date(model.date || new Date());
-      const txn: Txns.EnvelopeTransfer = {
-        _id: model._id || Txns.idForEnvelopeTransfer(date),
-        date: date.toJSON(),
-        amount: Txns.stringToPennies(model.fromDollars.amount),
-        memo: model.memo || '',
-        from: {...model.fromDollars, amount: Txns.stringToPennies(model.fromDollars.amount)},
-        to: model.toDollars.map((to) => ({...to, amount: Txns.stringToPennies(to.amount)})),
-        type: 'envelopeTransfer',
-      };
+      const txn: Txns.EnvelopeTransfer = this.model.toPOJO();
 
       if (txn.from.amount !== txn.to.map((to) => to.amount).reduce((x, y) => x + y, 0)) {
         this.$store.commit('setFlash', {

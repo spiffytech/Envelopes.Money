@@ -10,6 +10,7 @@ export default class Amount {
   }
 
   protected constructor(public pennies: number) {}
+
   get dollars() {
     return this.pennies / 100;
   }

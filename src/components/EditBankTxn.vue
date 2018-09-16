@@ -3,7 +3,7 @@
     <div class="field">
       <label class="label">Date</label>
       <div class="control">
-        <input class="input" type="date" required v-model="model.date" />
+        <input class="input" type="date" required v-model="model.dateString" />
       </div>
     </div>
 
@@ -14,22 +14,6 @@
       </div>
     </div>
 
-    <label class="label">Amount</label>
-    <div class="field has-addons">
-      <div class="control">
-        <input :class="{input: true, 'is-danger': !doesAmountEqualCategories(this.model)}" type="number" step="0.01" required v-model="model.amount" />
-      </div>
-      <div class="control">
-        <div class="select">
-          <select v-model="isDebit">
-            <option :value="true">Expense</option>
-            <option :value="false">Credit</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <p class="help is-danger" v-if="!doesAmountEqualCategories(this.model)">Amount is different from the total of category amounts</p>
-
     <AccountSelector :accounts="accounts" :model="model" />
 
     <div class="field">
@@ -38,6 +22,8 @@
         <input v-model="model.memo" class="input" />
       </div>
     </div>
+
+    <p>Amount: ${{model.amount.dollars}}</p>
 
     <label class="label">Categories</label>
     <CategorySelector
@@ -60,41 +46,18 @@
 <script lang="ts">
 /* tslint:disable:no-console */
 /* tslint:disable-next-line:no-var-requires */
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
-import * as Txns from "@/lib/txns";
-import * as utils from "@/lib/utils";
-import AccountSelector from "./AccountSelector.vue";
-import CategorySelector from "./CategorySelector.vue";
-
-function convertForDebit(isDebit: boolean, amount: Txns.Pennies): Txns.Pennies {
-  return isDebit ? ((amount * -1) as Txns.Pennies) : amount;
-}
-
-function convertFromDebit(
-  isDebit: boolean,
-  amount: Txns.Pennies
-): Txns.Pennies {
-  return isDebit ? ((amount * -1) as Txns.Pennies) : amount;
-}
-
-interface Model {
-  _id: string | null;
-  account: string;
-  payee: string;
-  type: "banktxn";
-  date: string;
-  memo: string;
-  amount: string;
-  categories: Array<{ name: string; id: string; amount: string }>;
-}
+import Amount from '@/lib/Amount';
+import BankTxn from '@/lib/BankTxn';
+import * as Txns from '@/lib/txns';
+import AccountSelector from './AccountSelector.vue';
+import CategorySelector from './CategorySelector.vue';
 
 @Component({ components: { AccountSelector, CategorySelector } })
 export default class EditBankTxn extends Vue {
   @Prop({ type: Object })
   public txn?: Txns.BankTxn;
-
-  public isDebit = this.txn ? this.txn.amount < 0 : true;
 
   @Prop({ type: Array })
   public accounts!: Txns.Account[];
@@ -105,107 +68,45 @@ export default class EditBankTxn extends Vue {
   @Prop({ type: Function })
   public onSubmit!: (txn: Txns.BankTxn) => any;
 
-  private model: Model = this.txn
-    ?
-    {
-      _id: this.txn._id,
-      type: this.txn.type,
-      date: utils.formatDate(this.txn.date),
-      amount: Txns.penniesToDollars(
-        convertForDebit(this.isDebit, this.txn.amount)
-      ).toFixed(2),
-      memo: this.txn.memo,
-      payee: this.txn.payee,
-      account: this.txn.account,
-      categories: (this.txn as Txns.BankTxn).categories.map((event) => ({
-        ...event,
-        amount: Txns.penniesToDollars(convertForDebit(this.isDebit, event.amount)).toFixed(2),
-      })),
-    }
-    : {
-        _id: null,
-        type: "banktxn",
-        date: utils.formatDate(new Date().toJSON()),
-        amount: "0.00",
-        memo: "",
-        payee: "",
-        account: this.accounts[0].name,
-        categories: [],
-      };
+  private model = this.txn ? BankTxn.POJO(this.txn) : BankTxn.Empty();
+
+  public constructor() {
+    super();
+    this.model.toggleDebit();
+  }
 
   public addCategory() {
-    this.model.categories.push({
+    this.model.addCategory({
       name: this.categories[0].name,
       id: this.categories[0]._id,
-      amount: '0',
+      amount: Amount.Pennies(0),
     });
   }
 
   public findCategoryId(categoryName: string): string {
-    const category = this.categories.find(c => c.name === categoryName);
+    const category = this.categories.find((c) => c.name === categoryName);
     if (!category) throw new Error(`No such category: ${name}`);
     return category._id;
   }
 
-  public handleSubmit(event: any) {
-    this.$store.commit("clearFlash");
+  public handleSubmit(_event: any) {
+    this.$store.commit('clearFlash');
     if (!this.model.account) {
-      return this.$store.commit("setFlash", {
-        msg: "You must select an acconut",
-        type: "error"
+      return this.$store.commit('setFlash', {
+        msg: 'You must select an acconut',
+        type: 'error',
       });
     }
 
-    this.removeZeroCategories();
+    this.model.removeZeroCategories();
 
-    const account = this.accounts.find(a => a.name === this.model.account);
-    if (!account) throw new Error("No matching account found");
+    const account = this.accounts.find((a) => a.name === this.model.account);
+    if (!account) throw new Error('No matching account found');
 
-    if (!this.doesAmountEqualCategories(this.model)) {
-      throw new Error("Transaction amount does not equal category amounts");
-    }
-
-    const newTxn: Txns.BankTxn = {
-      _id:
-        this.model._id ||
-        Txns.idForBankTxn(new Date(this.model.date), this.model.payee),
-      date: new Date(this.model.date).toJSON(), // Convert to date to get timestamp
-      amount: convertFromDebit(
-        this.isDebit,
-        Txns.stringToPennies(this.model.amount)
-      ),
-      memo: this.model.memo,
-      account: this.model.account,
-      accountId: account._id,
-      payee: this.model.payee,
-      type: "banktxn",
-      categories: this.model.categories.map(
-        (event) => ({
-          ...event,
-          amount: convertFromDebit(this.isDebit, Txns.stringToPennies(event.amount)),
-          id: this.findCategoryId(event.name),
-        })
-      )
-    };
+    this.model.toggleDebit();
+    const newTxn: Txns.BankTxn = this.model.toPOJO();
 
     this.onSubmit(newTxn);
-  }
-
-  private removeZeroCategories() {
-    this.model.categories = this.model.categories.filter(
-      ({amount}) => Txns.stringToPennies(amount) !== 0
-    );
-  }
-
-  private doesAmountEqualCategories(model: Model) {
-    const amountPennies = Txns.stringToPennies(model.amount);
-    const categoriesPennies = model.categories.map(({amount}) =>
-      Txns.stringToPennies(amount)
-    );
-    return (
-      amountPennies ===
-      categoriesPennies.reduce((acc: number, item: number) => acc + item, 0)
-    );
   }
 }
 </script>

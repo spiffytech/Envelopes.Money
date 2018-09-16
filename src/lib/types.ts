@@ -24,3 +24,8 @@ export interface Amount {
 export interface Txn {
   amount: Amount;
 }
+export interface EnvelopeEvent {
+  name: string;
+  id: string;
+  amount: Amount;
+}

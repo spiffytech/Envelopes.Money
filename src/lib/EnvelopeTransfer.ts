@@ -3,13 +3,8 @@ import * as shortid from 'shortid';
 import Amount from './Amount';
 import {EnvelopeTransfer as ClassicEnvelopeTransfer} from './txns';
 import * as Txns from './txns';
+import {EnvelopeEvent} from './types';
 import * as utils from './utils';
-
-interface EnvelopeEvent {
-  name: string;
-  id: string;
-  amount: Amount;
-}
 
 interface ETData {
   _id: string | null;

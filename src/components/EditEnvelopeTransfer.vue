@@ -39,18 +39,12 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import Vue from 'vue';
 
 import Amount from '@/lib/Amount';
-import CategorySelector from './CategorySelector.vue';
 import EnvelopeTransfer from '@/lib/EnvelopeTransfer';
 import * as Txns from '@/lib/txns';
-import * as utils from '@/lib/utils';
-
-interface Model extends Partial<Txns.EnvelopeTransfer> {
-  fromDollars: { name: string; id: string; amount: string };
-  toDollars: Array<{ name: string; id: string; amount: string }>;
-}
+import CategorySelector from './CategorySelector.vue';
 
 export default Vue.extend({
   props: ['categories', 'onSubmit', 'txn'],
@@ -62,7 +56,7 @@ export default Vue.extend({
         EnvelopeTransfer.Empty(),
     };
   },
-  
+
   methods: {
     addCategory() {
       this.model.addTo({
@@ -72,19 +66,19 @@ export default Vue.extend({
       });
     },
 
-    handleSubmit(event: any) {
+    handleSubmit(_event: any) {
       this.$store.commit('clearFlash');
-      const txn: Txns.EnvelopeTransfer = this.model.toPOJO();
 
-      if (txn.from.amount !== txn.to.map((to) => to.amount).reduce((x, y) => x + y, 0)) {
+      if (this.model.from.amount.pennies !== this.model.to.map((to) => to.amount.pennies).reduce((x, y) => x + y, 0)) {
         this.$store.commit('setFlash', {
           msg: 'From/to amounts must add up',
           type: 'error',
         });
         throw new Error('From/To amounts don\'t add up');
       }
+      const txn: Txns.EnvelopeTransfer = this.model.toPOJO();
       this.onSubmit(txn);
-    }
+    },
   },
 });
 </script>

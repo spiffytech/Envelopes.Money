@@ -20,7 +20,7 @@
     </div>
 
     <EditBankTxn
-      v-if="txnType === 'banktxn'"
+      v-if="txnType === 'banktxn' && txn"
       :txn="txn"
       :categories="categories"
       :accounts="accounts"
@@ -28,7 +28,7 @@
     />
 
     <EditEnvelopeTransfer
-      v-else-if="txnType === 'envelopeTransfer'"
+      v-else-if="txnType === 'envelopeTransfer' && txn"
       :txn="txn"
       :categories="categories"
       :onSubmit="onSubmit.bind(this)"
@@ -103,8 +103,8 @@ export default Vue.extend({
     },
   },
 
-  mounted() {
-    if (!this.isNewTxn) this.loadExistingTxn(this.existingTxnId!);
+  async mounted() {
+    if (!this.isNewTxn) await this.loadExistingTxn(this.existingTxnId!);
   },
 });
 </script>

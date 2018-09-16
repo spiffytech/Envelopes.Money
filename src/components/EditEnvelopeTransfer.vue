@@ -39,6 +39,7 @@
 </template>
 
 <script lang="ts">
+import * as Monet from 'monet';
 import Vue from 'vue';
 
 import Amount from '@/lib/Amount';
@@ -51,9 +52,9 @@ export default Vue.extend({
   components: { CategorySelector },
   data() {
     return {
-      model: this.txn ?
-        EnvelopeTransfer.POJO(this.txn) :
-        EnvelopeTransfer.Empty(),
+      model: (this.txn as Monet.Maybe<Txns.EnvelopeTransfer>).
+        map((txn) => EnvelopeTransfer.POJO(txn)).
+        orSome(EnvelopeTransfer.Empty()),
     };
   },
 

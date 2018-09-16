@@ -20,7 +20,7 @@
     </div>
 
     <EditBankTxn
-      v-if="txnType === 'banktxn' && txn"
+      v-if="txnType === 'banktxn'"
       :txn="txn"
       :categories="categories"
       :accounts="accounts"
@@ -28,7 +28,7 @@
     />
 
     <EditEnvelopeTransfer
-      v-else-if="txnType === 'envelopeTransfer' && txn"
+      v-else-if="txnType === 'envelopeTransfer'"
       :txn="txn"
       :categories="categories"
       :onSubmit="onSubmit.bind(this)"
@@ -38,6 +38,7 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
+import * as Monet from 'monet';
 import Vue from 'vue';
 
 import EditBankTxn from '@/components/EditBankTxn.vue';
@@ -52,7 +53,7 @@ export default Vue.extend({
   data() {
     return {
       txns: this.$store.state.txns.txns,
-      txn: null as null | Txns.BankTxn,
+      txn: Monet.None() as Monet.Maybe<Txns.BankTxn | Txns.EnvelopeEvent | Txns.AccountTransfer>,
       txnType: null as null | string,
     };
   },
@@ -93,8 +94,9 @@ export default Vue.extend({
 
     async loadExistingTxn(id: string) {
       const db = utils.activeDB(this.$store.state);
-      this.txn = await db.get<Txns.BankTxn>(id);
-      this.txnType = this.txn.type;
+      const txn = await db.get<Txns.BankTxn>(id);
+      this.txn = Monet.Some(txn);
+      this.txnType = txn.type;
     },
 
     deleteTransaction() {
@@ -104,7 +106,11 @@ export default Vue.extend({
   },
 
   async mounted() {
-    if (!this.isNewTxn) await this.loadExistingTxn(this.existingTxnId!);
+    if (this.isNewTxn) {
+      this.txn = Monet.None();
+    } else {
+      await this.loadExistingTxn(this.existingTxnId!);
+    }
   },
 });
 </script>

@@ -45,7 +45,7 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
-/* tslint:disable-next-line:no-var-requires */
+import * as Monet from 'monet';
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import Amount from '@/lib/Amount';
@@ -57,7 +57,7 @@ import CategorySelector from './CategorySelector.vue';
 @Component({ components: { AccountSelector, CategorySelector } })
 export default class EditBankTxn extends Vue {
   @Prop({ type: Object })
-  public txn?: Txns.BankTxn;
+  public txn!: Monet.Maybe<Txns.BankTxn>;
 
   @Prop({ type: Array })
   public accounts!: Txns.Account[];
@@ -68,7 +68,10 @@ export default class EditBankTxn extends Vue {
   @Prop({ type: Function })
   public onSubmit!: (txn: Txns.BankTxn) => any;
 
-  private model = this.txn ? BankTxn.POJO(this.txn) : BankTxn.Empty();
+  private model =
+    this.txn.
+    map((txn) => BankTxn.POJO(txn)).
+    orSome(BankTxn.Empty());
 
   public constructor() {
     super();

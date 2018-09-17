@@ -66,7 +66,7 @@ export default class EditBankTxn extends Vue {
   public categories!: Txns.Category[];
 
   @Prop({ type: Function })
-  public onSubmit!: (txn: Txns.BankTxn) => any;
+  public onSubmit!: (txn: BankTxn) => any;
 
   private model =
     this.txn.
@@ -107,9 +107,8 @@ export default class EditBankTxn extends Vue {
     if (!account) throw new Error('No matching account found');
 
     this.model.toggleDebit();
-    const newTxn: Txns.BankTxn = this.model.toPOJO();
 
-    this.onSubmit(newTxn);
+    this.onSubmit(this.model);
   }
 }
 </script>

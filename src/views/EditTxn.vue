@@ -53,6 +53,7 @@ import EditBankTxn from '@/components/EditBankTxn.vue';
 import EditEnvelopeTransfer from '@/components/EditEnvelopeTransfer.vue';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
+import * as Types from '@/lib/types';
 import * as utils from '@/lib/utils';
 
 export default Vue.extend({
@@ -96,9 +97,16 @@ export default Vue.extend({
   },
 
   methods: {
-    onSubmit(txn: Txns.Txn) {
-      console.log(txn);
-      return Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
+    onSubmit(txn: Types.Txn) {
+      console.log(txn.toPOJO());
+      if (!txn.validate()) {
+        return this.$store.commit('setFlash', {
+          msg: 'Make sure you\'ve filled in all the form fields',
+          type: 'error',
+        });
+      }
+      const pojo = txn.toPOJO();
+      return Couch.upsertTxn(utils.activeDB(this.$store.state), pojo);
     },
 
     async loadExistingTxn(id: string) {

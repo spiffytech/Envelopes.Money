@@ -58,9 +58,7 @@ export default Vue.extend({
       this.$store.commit('clearFlash');
 
       this.model.toggleDebit();
-      console.log(this.model.toPOJO());
-      const txn = this.model.toPOJO();
-      this.onSubmit(txn);
+      this.onSubmit(this.model);
     },
   },
 });

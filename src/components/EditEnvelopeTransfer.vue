@@ -77,8 +77,7 @@ export default Vue.extend({
         });
         throw new Error('From/To amounts don\'t add up');
       }
-      const txn: Txns.EnvelopeTransfer = this.model.toPOJO();
-      this.onSubmit(txn);
+      this.onSubmit(this.model);
     },
   },
 });

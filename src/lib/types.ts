@@ -1,4 +1,5 @@
 import Amount from './Amount';
+import * as Txns from './txns';
 
 // These are in here because putting them inside Txns means the Firebase
 // functions tsc can't import them, since the txns module uses es2017 features
@@ -21,6 +22,7 @@ export interface Category {
 export interface Txn {
   amount: Amount;
   dateString: string;
+  toPOJO(): Txns.Txn;
   validate(): boolean;
 }
 export interface EnvelopeEvent {

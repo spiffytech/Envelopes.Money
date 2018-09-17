@@ -3,7 +3,7 @@
       <div class="column is-one-third">
         <div class="tabs" style="margin-bottom: 0;">
           <ul>
-            <li :class="{'is-active': $route.name === 'home/categories'}">
+            <li :class="{'is-active': $route.name === 'home/categories' || $route.name === 'home'}">
               <router-link :to="{name: 'home'}">Categories</router-link>
             </li>
             <li :class="{'is-active': $route.name === 'home/accounts'}">

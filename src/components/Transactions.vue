@@ -83,8 +83,6 @@ export default Vue.extend({
     };
   },
 
-  props: ['accounts', 'categories'],
-
   mounted() {
     const tss = this.$refs.txnsScrollSentinel;
     const addVisible = throttle(500, () => {
@@ -105,6 +103,12 @@ export default Vue.extend({
       this.fetchTxns.bind(this),
       {immediate: true},
     );
+  },
+
+  beforeDestroy() {
+    console.log('Destroying txns component');
+    if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
+    this.txnsSubscription.cancel();
   },
 
   computed: {
@@ -165,11 +169,6 @@ export default Vue.extend({
         ),
       );
       this.txnsSubscription.on('error', console.error);
-    },
-
-    beforeDestroy() {
-      console.log('Destroying txns component');
-      if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
     },
 
     formatAmount(amount: Txns.Pennies): string {

@@ -46,10 +46,12 @@ export default class AccountTransfer {
   public memo: string;
   public from: string;
   public to: string;
-  private _id: string | null;
-  private fromId: string;
-  private toId: string;
-  private txfrId: string;
+  protected _id: string | null;
+  protected fromId: string;
+  protected toId: string;
+  protected txfrId: string;
+
+  protected _debitMode = false;
 
   protected constructor(data: ATDATA) {
     this._id = data._id;
@@ -93,8 +95,13 @@ export default class AccountTransfer {
     );
   }
 
-  public toggleDebit() {
-    this.amount.pennies *= -1;
+  get debitMode() {
+    return this._debitMode;
+  }
+
+  set debitMode(b: boolean) {
+    if (this._debitMode !== b) this.amount.pennies *= -1;
+    this._debitMode = b;
   }
 
   public validate() {

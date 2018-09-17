@@ -75,7 +75,7 @@ export default class EditBankTxn extends Vue {
 
   public constructor() {
     super();
-    this.model.toggleDebit();
+    this.model.debitMode = true;
   }
 
   public addCategory() {
@@ -106,9 +106,9 @@ export default class EditBankTxn extends Vue {
     const account = this.accounts.find((a) => a.name === this.model.account);
     if (!account) throw new Error('No matching account found');
 
-    this.model.toggleDebit();
-
+    this.model.debitMode = false;
     this.onSubmit(this.model);
+    this.model.debitMode = true;
   }
 }
 </script>

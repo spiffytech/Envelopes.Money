@@ -49,6 +49,8 @@ export default class BankTxn {
   private _id: string | null;
   private _categories: EnvelopeEvent[] = [];
 
+  private _debitMode = false;
+
   protected constructor(data: BTData) {
     this._id = data._id;
     this.payee = data.payee;
@@ -114,10 +116,17 @@ export default class BankTxn {
     );
   }
 
-  public toggleDebit() {
-    this._categories = this._categories.map((category) =>
-      ({...category, amount: Amount.Pennies(category.amount.pennies * -1)}),
-    );
+  get debitMode() {
+    return this._debitMode;
+  }
+
+  set debitMode(b: boolean) {
+    if (this._debitMode !== b) {
+      this._categories = this._categories.map((category) =>
+        ({...category, amount: Amount.Pennies(category.amount.pennies * -1)}),
+      );
+    }
+    this._debitMode = b;
   }
 
   public validate() {

@@ -50,15 +50,16 @@ export default Vue.extend({
   },
 
   beforeMount() {
-    this.model.toggleDebit();
+    this.model.debitMode = true;
   },
 
   methods: {
     handleSubmit() {
       this.$store.commit('clearFlash');
 
-      this.model.toggleDebit();
+      this.model.debitMode = false;
       this.onSubmit(this.model);
+      this.model.debitMode = true;
     },
   },
 });

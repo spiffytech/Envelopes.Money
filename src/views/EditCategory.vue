@@ -43,6 +43,7 @@
 <script lang="ts">
 import Vue from 'vue';
 
+import Amount from '@/lib/Amount';
 import Category from '@/lib/Category';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
@@ -69,7 +70,14 @@ export default Vue.extend({
 
   async beforeMount() {
     if (!this.isNewCategory) {
-      this.model = this.$store.getters['txns/categories'][this.$route.params.categoryId];
+      const modelCandidate = this.$store.getters['txns/categories'][this.$route.params.categoryId];
+      // We won't have this if we navigated straight to the page, since the page
+      // loads faster than the store
+      if (modelCandidate) {
+        this.model = modelCandidate;
+      } else {
+        this.model = await this.loadModel(this.$route.params.categoryId);
+      }
     }
   },
 
@@ -77,6 +85,16 @@ export default Vue.extend({
     handleSubmit() {
       return Couch.upsertCategory(utils.activeDB(this.$store.state), this.model.toPOJO());
     },
+
+    async loadModel(id: string): Promise<Category> {
+      const pojo = await utils.activeDB(this.$store.state).get<Txns.Category>(id);
+      const balance =
+        (await utils.activeDB(this.$store.state).
+        query('categories/balances', {group: true, key: pojo.name})).
+        rows[0].value;
+
+      return Category.POJO(pojo, Amount.Pennies(balance));
+    }
   },
 });
 </script>

@@ -32,9 +32,7 @@ describe('Getters/setters', () => {
 describe('Handling credit/debit numbers', () => {
   it('Toggles numbers from negative to positive', () => {
     const txn = BankTxn.POJO(BTPOJO);
-    console.log(txn.toPOJO());
     txn.debitMode = true;
-    console.log(txn.toPOJO());
     expect(txn.amount.pennies).toBe(500);
   });
 

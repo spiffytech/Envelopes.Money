@@ -11,7 +11,9 @@ export default class Amount {
 
   protected _human: string | null = null;
 
-  protected constructor(public pennies: number) {}
+  protected constructor(public pennies: number) {
+    if (pennies === null || pennies === undefined) throw new Error('Amount was initialized with no value');
+  }
 
   get dollars() {
     return this.pennies / 100;

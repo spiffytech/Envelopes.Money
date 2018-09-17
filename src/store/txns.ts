@@ -7,6 +7,9 @@ import * as Txns from '../lib/txns';
 import {activeDB} from '../lib/utils';
 import * as Types from './types';
 
+import Amount from '../lib/Amount';
+import Category from '../lib/Category';
+
 (window as any).Txns = Txns;
 
 /* tslint:disable:no-console */
@@ -44,6 +47,14 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
           if (state.categories[name]) return {balance, name: state.categories[name].name};
           return {name, balance};
         });
+    },
+
+    categories(state, getters) {
+      return Object.entries(state.categories).
+      map(([_key, categoryPojo]) => {
+        const balance = state.categoryBalances[categoryPojo.name];
+        return Category.POJO(categoryPojo, Amount.Pennies(balance || 0));
+      });
     },
   },
 

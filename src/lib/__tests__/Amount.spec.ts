@@ -60,3 +60,9 @@ describe('Human strings', () => {
     expect(amount.pennies).toBe(646);
   });
 });
+
+describe('Validation', () => {
+  it('Throws an error if no value is passed in', () => {
+    expect(() => Amount.Pennies(undefined as any as number)).toThrow();
+  });
+});

@@ -7,21 +7,25 @@
       </td>
     </tr>
 
-    <tr v-for="category in categories" :key="category.category.name">
+    <tr
+      v-for="category in $store.getters['txns/categories']"
+      :key="category.name"
+      @click="() => rowClicked(category)"
+    >
       <td>
         <div class="list-item">
-          <p class="is-size-6 has-text-weight-semibold">{{category.category.name}}</p>
-          <p class="is-size-6 has-text-weight-semibold">{{formatAmount(category.balance)}}</p>
+          <p class="is-size-6 has-text-weight-semibold">{{category.name}}</p>
+          <p class="is-size-6 has-text-weight-semibold">{{formatAmount(category.balance.pennies)}}</p>
         </div>
 
         <div class="list-item">
           <progress
-            :class="{progress: true, 'is-small': true, 'is-success': category.balance >= 0, 'is-danger': category.balance < 0}"
-            :value="Math.abs(category.balance) || 0"
-            :max="category.category.target > 0 ? category.category.target : Math.abs(category.balance)"
+            :class="{progress: true, 'is-small': true, 'is-success': category.balance.pennies >= 0, 'is-danger': category.balance.pennies < 0}"
+            :value="Math.abs(category.balance.pennies) || 0"
+            :max="category.target.pennies > 0 ? category.target.pennies : Math.abs(category.balance.pennies)"
             style="width: 80%; margin-bottom: 0;"
           />
-          <span class="is-size-7">{{formatAmount(category.category.target)}}</span>
+          <span class="is-size-7">{{formatAmount(category.target.pennies)}}</span>
         </div>
       </td>
     </tr>
@@ -65,6 +69,10 @@ export default class Categories extends Vue {
 
   public progressAmount(balance: Txns.Pennies, target: Txns.Pennies) {
     return Math.abs(Math.max(-100, Math.min(100, balance / target)));
+  }
+
+  public rowClicked(category: Txns.Category) {
+    this.$router.push({name: 'editCategory', params: {categoryId: category._id}});
   }
 }
 </script>

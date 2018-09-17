@@ -19,5 +19,5 @@ export interface TxnsState {
   accounts: {[key: string]: Txns.Account};
   categories: {[key: string]: Txns.Category};
   accountBalances: {[key: string]: Txns.Balance};
-  categoryBalances: {[key: string]: Txns.Balance};
+  categoryBalances: {[key: string]: number};
 }

@@ -8,7 +8,7 @@
     </tr>
 
     <tr
-      v-for="category in $store.getters['txns/categories']"
+      v-for="category in Object.values($store.getters['txns/categories'])"
       :key="category.name"
       @click="() => rowClicked(category)"
     >

@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import {Store} from 'vuex';
 
 import * as StoreTypes from '@/store/types';
+import EditCategory from './views/EditCategory.vue';
 import EditTxn from './views/EditTxn.vue';
 import Home from './views/Home.vue';
 import Login from './views/Login.vue';
@@ -30,6 +31,12 @@ const router = new Router({
       name: 'login',
       component: Login,
       meta: {public: true},
+    },
+
+    {
+      path: '/editCategory/:categoryId?',
+      name: 'editCategory',
+      component: EditCategory,
     },
 
     {

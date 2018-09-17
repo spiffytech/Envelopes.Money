@@ -1,4 +1,4 @@
-import {debounce} from 'lodash';
+import {debounce, fromPairs} from 'lodash';
 import Vue from 'vue';
 import {Module, Store} from 'vuex';
 
@@ -50,11 +50,14 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
     },
 
     categories(state, getters) {
-      return Object.entries(state.categories).
-      map(([_key, categoryPojo]) => {
-        const balance = state.categoryBalances[categoryPojo.name];
-        return Category.POJO(categoryPojo, Amount.Pennies(balance || 0));
-      });
+      return fromPairs(
+        Object.entries(state.categories).
+        map(([_key, categoryPojo]) => {
+          const balance = state.categoryBalances[categoryPojo.name];
+          const cat2 = Category.POJO(categoryPojo, Amount.Pennies(balance || 0));
+          return [cat2.id, cat2] as [string, Category];
+        }),
+      );
     },
   },
 

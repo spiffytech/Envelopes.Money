@@ -33,6 +33,13 @@
       :categories="categories"
       :onSubmit="onSubmit.bind(this)"
     />
+
+    <EditAccountTransfer
+      v-else-if="txnType === 'accountTransfer'"
+      :txn="txn"
+      :accounts="accounts"
+      :onSubmit="onSubmit.bind(this)"
+    />
   </div>
 </template>
 
@@ -41,6 +48,7 @@
 import * as Monet from 'monet';
 import Vue from 'vue';
 
+import EditAccountTransfer from '@/components/EditAccountTransfer.vue';
 import EditBankTxn from '@/components/EditBankTxn.vue';
 import EditEnvelopeTransfer from '@/components/EditEnvelopeTransfer.vue';
 import * as Couch from '@/lib/couch';
@@ -48,7 +56,7 @@ import * as Txns from '@/lib/txns';
 import * as utils from '@/lib/utils';
 
 export default Vue.extend({
-  components: {EditBankTxn, EditEnvelopeTransfer},
+  components: {EditAccountTransfer, EditBankTxn, EditEnvelopeTransfer},
 
   data() {
     return {
@@ -71,6 +79,7 @@ export default Vue.extend({
       return [
         {value: null, text: 'Select a transaction type'},
         {value: 'banktxn', text: 'Bank Transaction'},
+        {value: 'accountTransfer', text: 'Account Transfer'},
         {value: 'envelopeTransfer', text: 'Envelope Transfer'},
       ];
     },

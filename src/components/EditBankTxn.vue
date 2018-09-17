@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <AccountSelector :accounts="accounts" :model="model" />
+    <AccountSelector :accounts="accounts" :model="model.account" />
 
     <div class="field">
       <label class="label">Memo</label>

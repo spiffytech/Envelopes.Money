@@ -93,6 +93,10 @@ export default class AccountTransfer {
     );
   }
 
+  public toggleDebit() {
+    this.amount.pennies *= -1;
+  }
+
   public validate() {
     return Boolean(
       this.amount.pennies !== 0 &&

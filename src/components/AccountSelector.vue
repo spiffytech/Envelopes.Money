@@ -3,7 +3,7 @@
     <label class="label">Account</label>
     <div class="select">
       <div class="control">
-        <select v-model="model.account">
+        <select v-model="model">
           <option
             v-for="account in accounts"
             :key="account.name"

@@ -6,7 +6,13 @@
           <router-link :to="{name: 'home'}" class="navbar-item is-size-5 has-text-weight-bold">Hacker Budget</router-link>
         </div>
 
-        <router-link :to="{name: 'editTxn', params: {txnId: null}}" class="navbar-item" style="color: inherit">Add Transaction</router-link>
+        <router-link
+          :to="{name: 'editTxn', params: {txnId: null}}"
+          class="navbar-item"
+          style="color: inherit"
+        >
+          Add Transaction
+        </router-link>
 
         <div class="navbar-item icon">
           <i v-if="syncing" class="fas fa-sync" />
@@ -14,6 +20,14 @@
       </div>
 
       <div class="navbar-item level-right">
+        <router-link
+          :to="{name: 'editCategory', params: {txnId: null}}"
+          class="navbar-item"
+          style="color: inherit"
+        >
+          Add Category
+        </router-link>
+
         <router-link :to="{name: 'login'}" v-if="!loggedIn" class="navbar-item">Log In</router-link>
 
         <button class="button navbar-item" @click="logout" v-if="loggedIn">Log Out</button>

@@ -15,7 +15,7 @@
           </ul>
         </div>
 
-        <div class=""><router-view /></div>
+        <div><router-view /></div>
       </div>
 
       <div class="column is-two-thirds">

@@ -19,9 +19,20 @@ export interface Category {
   name: string;
 }
 
+
+export interface TxnExport {
+  date: Date;
+  amount: Amount;
+  to: string;
+  from: string;
+  memo: string;
+  type: string
+}
+
 export interface Txn {
   amount: Amount;
   dateString: string;
+  export(): TxnExport;
   toPOJO(): Txns.Txn;
   validate(): boolean;
 }

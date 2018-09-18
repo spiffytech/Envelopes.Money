@@ -3,7 +3,7 @@ import * as shortid from 'shortid';
 import Amount from './Amount';
 import {EnvelopeTransfer as ClassicEnvelopeTransfer} from './txns';
 import * as Txns from './txns';
-import {EnvelopeEvent} from './types';
+import {EnvelopeEvent, TxnExport} from './types';
 import * as utils from './utils';
 
 interface ETData {
@@ -61,6 +61,17 @@ export default class EnvelopeTransfer {
       to: this._to.map((to) =>
         ({...to, amount: to.amount.pennies as Txns.Pennies}),
       ),
+      type: 'envelopeTransfer',
+    };
+  }
+
+  public export(): TxnExport {
+    return {
+      date: this.date,
+      amount: this.amount,
+      from: this.from.name,
+      to: this.to.map((to) => to.name).join('||'),
+      memo: this.memo,
       type: 'envelopeTransfer',
     };
   }

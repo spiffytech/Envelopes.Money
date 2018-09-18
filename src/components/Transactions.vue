@@ -1,5 +1,10 @@
 <template>
   <div>
+    <div style="display: flex; justify-content: space-between;">
+      <h1>Transactions</h1>
+      <button class="button" @click="() => exportTransactionsAsCSV()">Export Transactions</button>
+    </div>
+
     <table class="table" style="width: 100%;">
       <thead>
         <tr>
@@ -65,6 +70,7 @@
 import {debounce} from 'lodash';
 import {pipe, throttle} from 'lodash/fp';
 const octicons = require('octicons');
+import {saveAs} from 'file-saver';
 import Vue from 'vue';
 
 import * as Couch from '@/lib/couch';
@@ -184,6 +190,28 @@ export default Vue.extend({
         elm.offsetParent !== null;
       // console.log(rect, window.innerHeight || document.documentElement.clientHeight, elm.offsetParent, ret);
       return ret;
+    },
+
+    async exportTransactionsAsCSV() {
+      const db = utils.activeDB(this.$store.state);
+      const txns = await Couch.getTxns(db, Number.MAX_SAFE_INTEGER).promise();
+      const csv =
+        txns.
+        filter((txn) => txn).
+        map((txn) => utils.txnFromPOJO(txn!)).
+        map((txn) => txn.export()).
+        map((e) => [
+          utils.formatDate(e.date),
+          e.amount.dollars.toFixed(2),
+          e.from,
+          e.to,
+          e.memo,
+          e.type,
+        ].join(',')).
+        join('\n');
+
+      const blob = new Blob([csv], {type: 'text/csv'});
+      saveAs(blob, 'transactions.csv');
     },
   },
 });

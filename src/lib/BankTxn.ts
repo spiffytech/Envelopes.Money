@@ -3,7 +3,7 @@ import * as shortid from 'shortid';
 import Amount from './Amount';
 import {BankTxn as ClassicBankTxn} from './txns';
 import * as Txns from './txns';
-import {EnvelopeEvent} from './types';
+import {EnvelopeEvent, TxnExport} from './types';
 import * as utils from './utils';
 
 interface BTData {
@@ -73,6 +73,17 @@ export default class BankTxn {
       categories: this._categories.map((category) =>
         ({...category, amount: category.amount.pennies as Txns.Pennies}),
       ),
+      type: 'banktxn',
+    };
+  }
+
+  public export(): TxnExport {
+    return {
+      date: this.date,
+      amount: this.amount,
+      from: this.categories.map((category) => category.name).join('||'),
+      to: this.payee,
+      memo: this.memo,
       type: 'banktxn',
     };
   }

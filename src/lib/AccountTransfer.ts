@@ -3,7 +3,7 @@ import * as shortid from 'shortid';
 import Amount from './Amount';
 import {AccountTransfer as ClassicAccountTransfer} from './txns';
 import * as Txns from './txns';
-import {EnvelopeEvent} from './types';
+import {TxnExport} from './types';
 import * as utils from './utils';
 
 interface ATDATA {
@@ -76,6 +76,17 @@ export default class AccountTransfer {
       fromId: this.fromId,
       toId: this.toId,
       txfrId: this.txfrId,
+      type: 'accountTransfer',
+    };
+  }
+
+  public export(): TxnExport {
+    return {
+      date: this.date,
+      amount: this.amount,
+      from: this.from,
+      to: this.to,
+      memo: this.memo,
       type: 'accountTransfer',
     };
   }

@@ -1,13 +1,7 @@
 /* tslint:disable-next-line:no-var-requires */
-const format = require('date-fns').format;
-import add from 'lodash/fp/add';
 import curry from 'lodash/fp/curry';
 import flatten from 'lodash/fp/flatten';
-import uniq from 'lodash/fp/uniq';
 import * as shortid from 'shortid';
-
-import {DETxn} from './types';
-export {DETxn} from './types';
 
 export type Dollars = number & {_type: 'dollars'};
 export type Pennies = number & {_type: 'pennies'};
@@ -158,17 +152,6 @@ export function penniesToDollars(pennies: Pennies): Dollars {
 
 export function dollarsToPennies(dollars: Dollars): Pennies {
   return Math.round(dollars * 100) as Pennies;
-}
-
-function balancesFromTxnItems(items: Array<[string, TxnItem[]]>): Balance[] {
-  return (
-    items.map(([account, txnItems]): Balance =>
-      ({
-        balance: txnItems.map((item) => item.amount as number).reduce(add) as Pennies,
-        name: account,
-      }),
-    )
-  );
 }
 
 export function idForCategoryName(name: string) {

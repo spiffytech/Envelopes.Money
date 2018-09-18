@@ -19,14 +19,13 @@ export interface Category {
   name: string;
 }
 
-
 export interface TxnExport {
   date: Date;
   amount: Amount;
   to: string;
   from: string;
   memo: string;
-  type: string
+  type: string;
 }
 
 export interface Txn {

@@ -94,7 +94,7 @@ export default Vue.extend({
         rows[0].value;
 
       return Category.POJO(pojo, Amount.Pennies(balance));
-    }
+    },
   },
 });
 </script>

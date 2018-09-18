@@ -49,7 +49,7 @@ const module: Module<Types.TxnsState, Types.RootState & {couch?: Types.CouchStat
         });
     },
 
-    categories(state, getters) {
+    categories(state) {
       return fromPairs(
         Object.entries(state.categories).
         map(([_key, categoryPojo]) => {

@@ -78,7 +78,9 @@ export default Vue.extend({
     handleSubmit(_event: any) {
       this.$store.commit('clearFlash');
 
-      if (this.model.from.amount.pennies !== this.model.to.map((to) => to.amount.pennies).reduce((x, y) => x + y, 0)) {
+      if (this.model.from.amount.pennies !== this.model.to.map(
+        (to) => to.amount.pennies).reduce((x, y) => x as number + y as number, 0)
+      ) {
         this.$store.commit('setFlash', {
           msg: 'From/to amounts must add up',
           type: 'error',

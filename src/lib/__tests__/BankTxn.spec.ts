@@ -74,12 +74,12 @@ describe('Serializing', () => {
 describe('Validation', () => {
   it('Accepts our sample POJO', () => {
     const txn = BankTxn.POJO(BTPOJO);
-    expect(txn.validate()).toBe(true);
+    expect(txn.errors()).toBe(null);
   });
 
   it('Rejects the empty object', () => {
     const txn = BankTxn.Empty();
-    expect(txn.validate()).toBe(false);
+    expect(txn.errors()!.length).toBeGreaterThan(0);
   });
 
   it('Rejects when payee is empty', () => {
@@ -87,7 +87,7 @@ describe('Validation', () => {
       ...BTPOJO,
       payee: '',
     });
-    expect(txn.validate()).toBe(false);
+    expect(txn.errors()).toEqual(['Payee is missing']);
   });
 
   it('Rejects when account is empty', () => {
@@ -95,7 +95,7 @@ describe('Validation', () => {
       ...BTPOJO,
       account: '',
     });
-    expect(txn.validate()).toBe(false);
+    expect(txn.errors()).toEqual(['Account is missing']);
   });
 
   it('Rejects when accountId is empty', () => {
@@ -103,7 +103,7 @@ describe('Validation', () => {
       ...BTPOJO,
       accountId: '',
     });
-    expect(txn.validate()).toBe(false);
+    expect(txn.errors()).toEqual(['Program error: Account ID did not get set']);
   });
 
   it('Rejects when there are no categories', () => {
@@ -111,7 +111,7 @@ describe('Validation', () => {
       ...BTPOJO,
       categories: [],
     });
-    expect(txn.validate()).toBe(false);
+    expect(txn.errors()).toEqual(['You must include at least one category']);
   });
 
   it('Rejects when categories contain zero-amount items', () => {
@@ -122,6 +122,6 @@ describe('Validation', () => {
         {name: 'stuff', id: 'stuff again', amount: 0 as Txns.Pennies},
       ],
     });
-    expect(txn.validate()).toBe(false);
+    expect(txn.errors()).toEqual(['All categories must have a non-zero balance']);
   });
 });

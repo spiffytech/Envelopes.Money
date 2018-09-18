@@ -115,13 +115,14 @@ export default class AccountTransfer {
     this._debitMode = b;
   }
 
-  public validate() {
-    return Boolean(
-      this.amount.pennies !== 0 &&
-      this.from &&
-      this.to &&
-      this.fromId &&
-      this.toId,
-    );
+  public errors(): string[] | null {
+    const errors = [
+      this.amount.pennies === 0 && 'May not transfer $0',
+      !this.from && 'Must supply a "from" category',
+      !this.to && 'Must supply a "to" category',
+      !this.fromId && 'Program error: fromId did not get set',
+      !this.toId && 'Program error: toId did not get set',
+    ].filter(utils.isString);
+    return errors.length > 0 ? errors : null;
   }
 }

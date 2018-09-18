@@ -140,13 +140,15 @@ export default class BankTxn {
     this._debitMode = b;
   }
 
-  public validate() {
-    return Boolean(
-      this.payee &&
-      this.account &&
-      this.accountId &&
-      this._categories.length > 0 &&
-      this.categories.filter((category) => category.amount.pennies === 0).length === 0,
-    );
+  public errors(): string[] | null {
+    const errors = [
+      !this.payee && 'Payee is missing',
+      !this.account && 'Account is missing',
+      !this.accountId && 'Program error: Account ID did not get set',
+      this.categories.length === 0 && 'You must include at least one category',
+      this.categories.filter((category) => category.amount.pennies === 0).length > 0 &&
+        'All categories must have a non-zero balance',
+    ].filter(utils.isString);
+    return errors.length > 0 ? errors : null;
   }
 }

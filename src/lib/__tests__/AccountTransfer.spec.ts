@@ -40,3 +40,60 @@ describe('From an empty object', () => {
     expect(transfer.id).toMatch(/txn\/[20\d{4}-\d{2}-\d{2}\/envelopeTransfer\/[a-zA-Z0-9]+/);
   });
 });
+
+describe('Validation', () => {
+  it('Accepts our sample POJO', () => {
+    const txn = AccountTransfer.POJO(ATPOJO);
+    expect(txn.errors()).toBe(null);
+  });
+
+  it('Rejects the empty object', () => {
+    const txn = AccountTransfer.Empty();
+    expect(txn.errors()!.length).toBeGreaterThan(0);
+  });
+
+  it('Rejects if the amount is zero', () => {
+    const txn = AccountTransfer.POJO({
+      ...ATPOJO,
+      amount: 0 as Txns.Pennies,
+    });
+
+    expect(txn.errors()).toEqual(['May not transfer $0']);
+  });
+
+  it('Rejects if "from" is not set', () => {
+    const txn = AccountTransfer.POJO({
+      ...ATPOJO,
+      from: '',
+    });
+
+    expect(txn.errors()).toEqual(['Must supply a "from" category']);
+  });
+
+  it('Rejects if "to" is not set', () => {
+    const txn = AccountTransfer.POJO({
+      ...ATPOJO,
+      to: '',
+    });
+
+    expect(txn.errors()).toEqual(['Must supply a "to" category']);
+  });
+
+  it('Rejects if "fromId" is not set', () => {
+    const txn = AccountTransfer.POJO({
+      ...ATPOJO,
+      fromId: '',
+    });
+
+    expect(txn.errors()).toEqual(['Program error: fromId did not get set']);
+  });
+
+  it('Rejects if "toId" is not set', () => {
+    const txn = AccountTransfer.POJO({
+      ...ATPOJO,
+      toId: '',
+    });
+
+    expect(txn.errors()).toEqual(['Program error: toId did not get set']);
+  });
+});

@@ -101,9 +101,9 @@ export default Vue.extend({
       const pojo = txn.toPOJO();
       console.log(pojo);
 
-      if (!txn.validate()) {
+      if (txn.errors()) {
         return this.$store.commit('setFlash', {
-          msg: 'Make sure you\'ve filled in all the form fields',
+          msg: txn.errors()!.join(', '),
           type: 'error',
         });
       }

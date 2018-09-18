@@ -44,12 +44,12 @@ describe('From an empty object', () => {
 describe('Validation', () => {
   it('Validates our sample POJO', () => {
     const transfer = EnvelopeTransfer.POJO(ETPOJO);
-    expect(transfer.validate()).toBe(true);
+    expect(transfer.errors()).toBe(null);
   });
 
   it('Rejects the empty object', () => {
     const transfer = EnvelopeTransfer.Empty();
-    expect(transfer.validate()).toBe(false);
+    expect(transfer.errors()!.length).toBeGreaterThan(0);
   });
 
   it('Rejects when "from" is zero', () => {
@@ -57,7 +57,7 @@ describe('Validation', () => {
       ...ETPOJO,
       from: {...ETPOJO.from, amount: 0 as Txns.Pennies},
     });
-    expect(transfer.validate()).toBe(false);
+    expect(transfer.errors()).toContain('May not transfer $0');
   });
 
   it('Rejects when "to" is empty', () => {
@@ -65,7 +65,7 @@ describe('Validation', () => {
       ...ETPOJO,
       to: [],
     });
-    expect(transfer.validate()).toBe(false);
+    expect(transfer.errors()).toContain('Must move money to at least one category');
   });
 
   it('Rejects when "to" contains zero-amount items', () => {
@@ -76,7 +76,7 @@ describe('Validation', () => {
         {name: 'stuff', id: 'stuff again', amount: 0 as Txns.Pennies},
       ],
     });
-    expect(transfer.validate()).toBe(false);
+    expect(transfer.errors()).toEqual(['All movement must have a non-zero amount']);
   });
 
   it('Rejects when "from" total doesn\'t match "to" total', () => {
@@ -84,6 +84,6 @@ describe('Validation', () => {
       ...ETPOJO,
       from: {...ETPOJO.from, amount: (ETPOJO.from.amount as number + (1 as number)) as Txns.Pennies},
     });
-    expect(transfer.validate()).toBe(false);
+    expect(transfer.errors()).toEqual(['"from" and "to" amounts don\'t match']);
   });
 });

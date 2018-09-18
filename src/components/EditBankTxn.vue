@@ -98,12 +98,6 @@ export default class EditBankTxn extends Vue {
 
   public handleSubmit(_event: any) {
     this.$store.commit('clearFlash');
-    if (!this.model.account) {
-      return this.$store.commit('setFlash', {
-        msg: 'You must select an acconut',
-        type: 'error',
-      });
-    }
 
     this.model.removeZeroCategories();
 

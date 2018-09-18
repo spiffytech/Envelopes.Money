@@ -114,12 +114,15 @@ export default class EnvelopeTransfer {
     this._to.push(event);
   }
 
-  public validate() {
-    return Boolean(
-      this.from.amount.pennies > 0 &&
-      this._to.length > 0 &&
-      this._to.filter((to) => to.amount.pennies === 0).length === 0 &&
-      this.from.amount.pennies === this._to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0),
-    );
+  public errors(): string[] | null {
+    const errors = [
+      this.from.amount.pennies === 0 && 'May not transfer $0',
+      this._to.length === 0 && 'Must move money to at least one category',
+      this._to.filter((to) => to.amount.pennies === 0).length > 0 && 'All movement must have a non-zero amount',
+      this.from.amount.pennies !==
+        this._to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0) &&
+        '"from" and "to" amounts don\'t match',
+    ].filter(utils.isString);
+    return errors.length > 0 ? errors : null;
   }
 }

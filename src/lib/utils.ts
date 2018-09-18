@@ -38,3 +38,7 @@ export function txnFromPOJO(txn: Txns.Txn): Types.Txn {
   else if (txn.type === 'envelopeTransfer') return EnvelopeTransfer.POJO(txn);
   else throw new Error(`Invalid txn type ${(txn as any).type}`);
 }
+
+export function isString(t: string | any): t is string {
+  return typeof t === 'string';
+}

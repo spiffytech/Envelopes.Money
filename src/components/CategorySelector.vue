@@ -2,7 +2,7 @@
   <div class="field is-grouped">
     <div class="control">
       <div class="select">
-        <select v-model="model.name">
+        <select v-model="model.name" required>
           <option v-for="category in categories" :key="category.name" :value="category.name">
             {{category.name}}
           </option>

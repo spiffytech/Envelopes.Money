@@ -33,7 +33,7 @@ export interface Txn {
   dateString: string;
   export(): TxnExport;
   toPOJO(): Txns.Txn;
-  validate(): boolean;
+  errors(): string[] | null;
 }
 export interface EnvelopeEvent {
   name: string;

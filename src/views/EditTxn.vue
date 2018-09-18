@@ -108,6 +108,7 @@ export default Vue.extend({
         });
       }
       await Couch.upsertTxn(utils.activeDB(this.$store.state), pojo);
+      this.$router.push({name: 'home'});
     },
 
     async loadExistingTxn(id: string) {

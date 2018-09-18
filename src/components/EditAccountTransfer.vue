@@ -10,7 +10,7 @@
     <div class="field">
       <label class="label">Amount</label>
       <div class="control">
-        <input v-model="model.amount.human" class="input" type="number" step="0.01" />
+        <input v-model="model.amount.human" class="input" type="number" step="0.01" required />
       </div>
     </div>
 
@@ -18,7 +18,7 @@
       <label class="label">From</label>
       <div class="select">
         <div class="control">
-          <select v-model="model.from">
+          <select v-model="model.from" required>
             <option
               v-for="account in accounts"
               :key="account.name"
@@ -35,7 +35,7 @@
       <label class="label">To</label>
       <div class="select">
         <div class="control">
-          <select v-model="model.to">
+          <select v-model="model.to" required>
             <option
               v-for="account in accounts"
               :key="account.name"

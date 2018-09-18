@@ -36,6 +36,7 @@ const store = new Vuex.Store<Types.RootState>({
 
     setFlash(state, flash) {
       state.flash = flash;
+      document.body.scrollTop = document.documentElement.scrollTop = 0;
     },
 
     clearFlash(state) {

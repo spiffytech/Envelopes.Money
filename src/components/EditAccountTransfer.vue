@@ -14,9 +14,39 @@
       </div>
     </div>
 
-    <AccountSelector :accounts="accounts" :model="model.from" />
+    <div class="field">
+      <label class="label">From</label>
+      <div class="select">
+        <div class="control">
+          <select v-model="model.from">
+            <option
+              v-for="account in accounts"
+              :key="account.name"
+              :value="account.name"
+            >
+              {{account.name}}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
 
-    <AccountSelector :accounts="accounts" :model="model.to" />
+    <div class="field">
+      <label class="label">To</label>
+      <div class="select">
+        <div class="control">
+          <select v-model="model.to">
+            <option
+              v-for="account in accounts"
+              :key="account.name"
+              :value="account.name"
+            >
+              {{account.name}}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
 
     <div class="field">
       <label class="label">Memo</label>
@@ -53,9 +83,16 @@ export default Vue.extend({
     this.model.debitMode = true;
   },
 
+  beforeDestroy() {
+    this.$store.commit('clearFlash');
+  },
+
   methods: {
     handleSubmit() {
       this.$store.commit('clearFlash');
+
+      this.model.fromId = this.accounts.find((account: any) => account.name === this.model.from)._id;
+      this.model.toId = this.accounts.find((account: any) => account.name === this.model.to)._id;
 
       this.model.debitMode = false;
       this.onSubmit(this.model);

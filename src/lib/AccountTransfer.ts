@@ -46,9 +46,9 @@ export default class AccountTransfer {
   public memo: string;
   public from: string;
   public to: string;
+  public fromId: string;
+  public toId: string;
   protected _id: string | null;
-  protected fromId: string;
-  protected toId: string;
   protected txfrId: string;
 
   protected _debitMode = false;
@@ -121,8 +121,7 @@ export default class AccountTransfer {
       this.from &&
       this.to &&
       this.fromId &&
-      this.toId &&
-      this.txfrId,
+      this.toId,
     );
   }
 }

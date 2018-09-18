@@ -97,16 +97,17 @@ export default Vue.extend({
   },
 
   methods: {
-    onSubmit(txn: Types.Txn) {
-      console.log(txn.toPOJO());
+    async onSubmit(txn: Types.Txn) {
+      const pojo = txn.toPOJO();
+      console.log(pojo);
+
       if (!txn.validate()) {
         return this.$store.commit('setFlash', {
           msg: 'Make sure you\'ve filled in all the form fields',
           type: 'error',
         });
       }
-      const pojo = txn.toPOJO();
-      return Couch.upsertTxn(utils.activeDB(this.$store.state), pojo);
+      await Couch.upsertTxn(utils.activeDB(this.$store.state), pojo);
     },
 
     async loadExistingTxn(id: string) {
@@ -116,9 +117,10 @@ export default Vue.extend({
       this.txnType = txn.type;
     },
 
-    deleteTransaction() {
+    async deleteTransaction() {
       if (!this.txn) return;
-      return utils.activeDB(this.$store.state).remove(this.txn as any);
+      await this.txn.map((txn) => utils.activeDB(this.$store.state).remove(txn as any));
+      this.$router.push({name: 'home'});
     },
   },
 

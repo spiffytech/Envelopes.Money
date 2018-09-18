@@ -3,7 +3,6 @@ const format = require('date-fns').format;
 import add from 'lodash/fp/add';
 import curry from 'lodash/fp/curry';
 import flatten from 'lodash/fp/flatten';
-import groupBy from 'lodash/fp/groupBy';
 import uniq from 'lodash/fp/uniq';
 import * as shortid from 'shortid';
 
@@ -55,23 +54,6 @@ export interface AccountTransfer extends LedgerEvent {
 
 export type Txn = BankTxn | AccountTransfer | EnvelopeTransfer;
 
-export interface BankTxnFriendly extends BankTxn {
-  accountName: string;
-  categoryNames: {[key: string]: Pennies};
-}
-
-export interface AccountTransferFriendly extends AccountTransfer {
-  fromName: string;
-  toName: string;
-}
-
-export interface EnvelopeTransferFriendly extends EnvelopeTransfer {
-  fromName: string;
-  toName: string;
-}
-
-export type TxnFriendly = BankTxnFriendly | AccountTransferFriendly | EnvelopeTransferFriendly;
-
 export interface Balance {
   name: string;
   balance: Pennies;
@@ -90,20 +72,6 @@ export interface Category {
   due?: string;
   type: 'category';
   _id: string;
-}
-
-export function learnAccountsFromTxns(txns: DETxn[]): string[] {
-  return flatten(
-    uniq(flatten(txns.map((txn) => Object.keys(txn.items)))).
-    map((account) => {
-      const splits = account.split(':');
-      const ret = [];
-      for (let i = 1; i <= splits.length; i++) {
-        ret.push(account.split(':', i).join(':'));
-      }
-      return ret;
-    }),
-  );
 }
 
 /**
@@ -154,7 +122,7 @@ export function isEnvelopeTxfr(txn: Txn): txn is EnvelopeTransfer {
 }
 
 /**
- * Used in CouchDB views, so be careful about what goes in herer
+ * Used in CouchDB views, so be careful about what goes in here
  */
 export function touchesBank(txn: Txn): txn is BankTxn | AccountTransfer {
   switch (txn.type) {
@@ -184,20 +152,12 @@ export const touchesAccount = curry((account: string, txn: Txn): boolean => {
   return txn.from === account || txn.to === account;
 });
 
-export function formatDate(date: string) {
-  return format(date, 'YYYY-MM-DD');
-}
-
 export function penniesToDollars(pennies: Pennies): Dollars {
   return pennies / 100 as Dollars;
 }
 
 export function dollarsToPennies(dollars: Dollars): Pennies {
   return Math.round(dollars * 100) as Pennies;
-}
-
-export function stringToPennies(str: string): Pennies {
-  return parseInt(str.replace('.', ''), 10) as Pennies;
 }
 
 function balancesFromTxnItems(items: Array<[string, TxnItem[]]>): Balance[] {
@@ -209,29 +169,6 @@ function balancesFromTxnItems(items: Array<[string, TxnItem[]]>): Balance[] {
       }),
     )
   );
-}
-
-export function accountBalances(txns: Txn[]): Balance[] {
-  const groups = groupBy(
-    (txnItem) => txnItem.account,
-    journalToLedger(Array.from(txns)),
-  );
-
-  return balancesFromTxnItems(Object.entries(groups));
-}
-
-export function categoryBalances(txns: Txn[]): Balance[] {
-  const ledger = flatten(
-    Array.from(txns).
-      filter(hasCategories).
-      map(categoriesForTxn),
-  );
-  const groups = groupBy(
-    (txnItem) => txnItem.account,
-    ledger,
-  );
-
-  return balancesFromTxnItems(Object.entries(groups));
 }
 
 export function idForCategoryName(name: string) {
@@ -249,19 +186,3 @@ export function idForBankTxn(date: Date, payee: string): string {
 export function idForEnvelopeTransfer(date: Date): string {
   return ['txn', date, 'envelopeTransfer', shortid.generate()].join('/');
 }
-
-const ZeroBankTxn: BankTxn = {
-  _id: '',
-  date: '',
-  amount: 0 as Pennies,
-  memo: '',
-  account: '',
-  accountId: '',
-  payee: '',
-  categories: [],
-  type: 'banktxn',
-};
-
-export const Zero = {
-  BankTxn: ZeroBankTxn,
-};

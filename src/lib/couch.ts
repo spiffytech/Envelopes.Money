@@ -225,13 +225,6 @@ export const designDocs: {[key: string]: DesignDoc} = {
     _id: '_design/accounts',
     version: new Date().getTime(),
     views: {
-      /*
-      lib: {
-        journalToLedger: Txns.journalToLedger.toString() as any,
-        touchesBank: Txns.touchesBank.toString() as any,
-      } as any,
-      */
-
       balances: {
         map: function(doc: any) {
           if (doc.type === 'banktxn') {

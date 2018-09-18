@@ -149,8 +149,6 @@ export default Vue.extend({
       );
 
       const db = utils.activeDB(this.$store.state);
-      await Couch.getTxns(db, this.visibleTxns).map(setTxns).promise();
-
       if (this.txnsSubscription) this.txnsSubscription.cancel();
 
       this.txnsSubscription = db.changes({
@@ -175,6 +173,8 @@ export default Vue.extend({
         ),
       );
       this.txnsSubscription.on('error', console.error);
+
+      await Couch.getTxns(db, this.visibleTxns).map(setTxns).promise();
     },
 
     formatAmount(amount: Txns.Pennies): string {

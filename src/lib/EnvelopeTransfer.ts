@@ -43,6 +43,8 @@ export default class EnvelopeTransfer {
   private _id: string | null;
   private _to: EnvelopeEvent[] = [];
 
+  private _debitMode = false;
+
   protected constructor(data: ETData) {
     this._id = data._id;
     this.date = data.date;
@@ -86,6 +88,15 @@ export default class EnvelopeTransfer {
 
   set dateString(d: string) {
     this.date = new Date(d);
+  }
+
+  get debitMode() {
+    return this._debitMode;
+  }
+
+  set debitMode(b: boolean) {
+    if (this._debitMode !== b) this.from.amount.pennies *= -1;
+    this._debitMode = b;
   }
 
   get id() {

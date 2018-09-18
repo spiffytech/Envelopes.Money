@@ -58,6 +58,14 @@ export default Vue.extend({
     };
   },
 
+  beforeMount() {
+    this.model.debitMode = true;
+  },
+
+  beforeDestroy() {
+    this.$store.commit('clearFlash');
+  },
+
   methods: {
     addCategory() {
       this.model.addTo({
@@ -77,7 +85,10 @@ export default Vue.extend({
         });
         throw new Error('From/To amounts don\'t add up');
       }
+
+      this.model.debitMode = false;
       this.onSubmit(this.model);
+      this.model.debitMode = true;
     },
   },
 });

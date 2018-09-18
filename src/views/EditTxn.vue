@@ -119,8 +119,10 @@ export default Vue.extend({
 
     async deleteTransaction() {
       if (!this.txn) return;
-      await this.txn.map((txn) => utils.activeDB(this.$store.state).remove(txn as any));
-      this.$router.push({name: 'home'});
+      this.txn.map(async (txn) => {
+        await utils.activeDB(this.$store.state).remove(txn as any);
+        this.$router.push({name: 'home'});
+      });
     },
   },
 

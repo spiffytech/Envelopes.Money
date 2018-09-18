@@ -78,6 +78,10 @@ export default class EditBankTxn extends Vue {
     this.model.debitMode = true;
   }
 
+  public beforeDestroy() {
+    this.$store.commit('clearFlash');
+  }
+
   public addCategory() {
     this.model.addCategory({
       name: this.categories[0].name,

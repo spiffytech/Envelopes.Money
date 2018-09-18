@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table class="table">
+    <table class="table" style="width: 100%;">
       <thead>
         <tr>
           <th>Date</th>

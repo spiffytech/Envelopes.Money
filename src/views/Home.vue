@@ -1,4 +1,5 @@
 <template>
+  <div class="section" style="padding-top: inherit;">
   <div class="columns">
       <div class="column is-one-third">
         <div class="tabs" style="margin-bottom: 0;">
@@ -21,6 +22,7 @@
       <div class="column is-two-thirds">
         <Transactions />
       </div>
+  </div>
   </div>
 </template>
 

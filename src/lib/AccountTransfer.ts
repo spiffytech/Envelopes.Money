@@ -8,7 +8,7 @@ import * as utils from './utils';
 
 interface ATDATA {
   _id: string | null;
-  amount: number | Txns.Pennies;
+  amount: Amount;
   date: Date;
   memo: string;
   from: string;
@@ -23,6 +23,7 @@ export default class AccountTransfer {
   public static POJO(txn: ClassicAccountTransfer) {
     return new AccountTransfer({
       ...txn,
+      amount: Amount.Pennies(txn.amount),
       date: new Date(txn.date),
     });
   }
@@ -30,7 +31,7 @@ export default class AccountTransfer {
   public static Empty() {
     return new AccountTransfer({
       _id: null,
-      amount: 0,
+      amount: Amount.Pennies(0),
       date: new Date(),
       memo: '',
       from: '',
@@ -55,7 +56,7 @@ export default class AccountTransfer {
 
   protected constructor(data: ATDATA) {
     this._id = data._id;
-    this.amount = Amount.Pennies(data.amount);
+    this.amount = data.amount;
     this.date = data.date;
     this.memo = data.memo;
     this.from = data.from;

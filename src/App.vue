@@ -42,7 +42,6 @@
 
 <script lang="ts">
 /* tslint:disable-next-line:no-var-requires */
-const octicons = require('octicons');
 import { Component, Vue } from 'vue-property-decorator';
 
 @Component({})
@@ -70,10 +69,6 @@ export default class App extends Vue {
 
   get syncing() {
     return this.$store.state.syncing;
-  }
-
-  get syncIcon() {
-    return octicons.sync.toSVG();
   }
 }
 </script>

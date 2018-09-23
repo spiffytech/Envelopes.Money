@@ -69,7 +69,6 @@
 /* tslint:disable:no-var-requires */
 import debounce from 'lodash/debounce';
 import {pipe, throttle} from 'lodash/fp';
-const octicons = require('octicons');
 import {saveAs} from 'file-saver';
 import Vue from 'vue';
 
@@ -115,20 +114,6 @@ export default Vue.extend({
     console.log('Destroying txns component');
     if (this.txnsScrollWatcher) clearInterval(this.txnsScrollWatcher);
     this.txnsSubscription.cancel();
-  },
-
-  computed: {
-    banktxnIcon() {
-      return octicons['credit-card'].toSVG();
-    },
-
-    accountTransferIcon() {
-      return octicons.code.toSVG();
-    },
-
-    envelopeTransferIcon() {
-      return octicons['git-compare'].toSVG();
-    },
   },
 
   methods: {

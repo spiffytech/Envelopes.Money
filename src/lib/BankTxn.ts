@@ -1,6 +1,8 @@
 import * as shortid from 'shortid';
 
 import Amount from './Amount';
+import BucketAmount from './BucketAmount';
+import BucketReference from './BucketReference';
 import {BankTxn as ClassicBankTxn} from './txns';
 import * as Txns from './txns';
 import {EnvelopeEvent, TxnExport} from './types';
@@ -11,11 +13,13 @@ interface BTData {
   date: Date;
   memo: string;
   payee: string;
-  account: string;
-  accountId: string;
+  from: BucketReference;
   categories: EnvelopeEvent[];
   type?: string;
+  // Legacy POJO values that we can ignore
   amount?: number | Txns.Pennies;
+  account?: string;
+  accountId?: string;
 }
 
 export default class BankTxn {
@@ -26,6 +30,7 @@ export default class BankTxn {
       categories: txn.categories.map((category) =>
         ({...category, amount: Amount.Pennies(category.amount)}),
       ),
+      from: BucketReference.POJO({name: txn.account, id: txn.accountId, type: 'account'}),
     });
   }
 
@@ -35,15 +40,13 @@ export default class BankTxn {
       date: new Date(),
       memo: '',
       payee: '',
-      account: '',
-      accountId: '',
+      from: BucketReference.Empty('account'),
       categories: [],
     });
   }
 
-  public account: string;
-  public accountId: string;
   public date: Date;
+  public from: BucketReference;
   public memo: string;
   public payee: string;
   private _id: string | null;
@@ -54,8 +57,7 @@ export default class BankTxn {
   protected constructor(data: BTData) {
     this._id = data._id;
     this.payee = data.payee;
-    this.account = data.account;
-    this.accountId = data.accountId;
+    this.from = data.from;
     this.date = data.date;
     this.memo = data.memo;
     this._categories = data.categories;
@@ -67,8 +69,8 @@ export default class BankTxn {
       date: this.date.toJSON(),
       amount: this.amount.pennies as Txns.Pennies,
       payee: this.payee,
-      account: this.account,
-      accountId: this.accountId,
+      account: this.from.name,
+      accountId: this.from.id,
       memo: this.memo,
       categories: this._categories.map((category) =>
         ({...category, amount: category.amount.pennies as Txns.Pennies}),
@@ -143,8 +145,8 @@ export default class BankTxn {
   public errors(): string[] | null {
     const errors = [
       !this.payee && 'Payee is missing',
-      !this.account && 'Account is missing',
-      !this.accountId && 'Program error: Account ID did not get set',
+      !this.from.name && 'Account is missing',
+      !this.from.id && 'Program error: Account ID did not get set',
       this.categories.length === 0 && 'You must include at least one category',
       this.categories.filter((category) => category.amount.pennies === 0).length > 0 &&
         'All categories must have a non-zero balance',

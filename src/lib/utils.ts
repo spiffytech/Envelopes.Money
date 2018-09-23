@@ -1,8 +1,5 @@
 /* tslint:disable:no-console */
 
-/* tslint:disable-next-line:no-var-requires */
-const format = require('date-fns').format;
-
 import * as StoreTypes from '../store/types';
 import AccountTransfer from './AccountTransfer';
 import BankTxn from './BankTxn';
@@ -18,7 +15,8 @@ export function formatCurrency(dollars: Txns.Dollars): string {
 }
 
 export function formatDate(date: string | Date): string {
-  return format(date, 'YYYY-MM-DD');
+  if (typeof date === 'string') date = new Date(date);
+  return date.toISOString().split('T')[0];
 }
 
 export function activeDB(state: StoreTypes.RootState & {couch: StoreTypes.CouchState}) {

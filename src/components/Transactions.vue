@@ -141,13 +141,19 @@ export default Vue.extend({
       this.visibleTxns = Math.min(numTxns + n, this.visibleTxns as number + n);
     },
 
-    async fetchTxns() {
+    async fetchNewTxns() {
       const setTxns = (txns: Array<Txns.Txn | undefined>) => Vue.set(
         this,
         'txns',
         txns.filter((txn) => txn !== undefined) as Txns.Txn[],
       );
 
+      const db = utils.activeDB(this.$store.state);
+      const docs = await Couch.getTxns(db, this.visibleTxns);
+      setTxns(docs.filter((e) => e !== undefined))
+    },
+
+    async fetchTxns() {
       const db = utils.activeDB(this.$store.state);
       if (this.txnsSubscription) this.txnsSubscription.cancel();
 
@@ -167,14 +173,14 @@ export default Vue.extend({
         // We use debounce because multiple refleshes get going at once and
         // finish out of order
         debounce(
-          () => Couch.getTxns(db, this.visibleTxns).map(setTxns).promise(),
+          async () => this.fetchNewTxns(),
           1000,
           {trailing: true},
         ),
       );
       this.txnsSubscription.on('error', console.error);
 
-      await Couch.getTxns(db, this.visibleTxns).map(setTxns).promise();
+      await this.fetchNewTxns();
     },
 
     formatAmount(amount: Txns.Pennies): string {
@@ -194,7 +200,7 @@ export default Vue.extend({
 
     async exportTransactionsAsCSV() {
       const db = utils.activeDB(this.$store.state);
-      const txns = await Couch.getTxns(db, Number.MAX_SAFE_INTEGER).promise();
+      const txns = await Couch.getTxns(db, Number.MAX_SAFE_INTEGER);
       const csv =
         txns.
         filter((txn) => txn).

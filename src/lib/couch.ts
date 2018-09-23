@@ -174,16 +174,15 @@ export async function watchSelector<T>(
   return subscription;
 }
 
-export function getTxns(db: PouchDB.Database, limit: number): Future.Future<any, Array<Txns.Txn | undefined>> {
-  return Future.tryP(() => db.allDocs<Txns.Txn>({
+export async function getTxns(db: PouchDB.Database, limit: number): Promise<Array<Txns.Txn | undefined>> {
+  const rows = await db.allDocs<Txns.Txn>({
     startkey: 'txn/\uffff',
     endkey: 'txn/',
     include_docs: true,
     limit,
     descending: true,
-  })).
-  map(get('rows')).
-  map(_map(get('doc')));
+  });
+  return rows.rows.map((row) => row.doc);
 }
 
 /**

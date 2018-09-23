@@ -15,12 +15,6 @@ PouchDB.plugin(require('pouchdb-adapter-memory'));
 // PouchDB.debug.enable('*');
 PouchDB.debug.disable();
 
-import * as Future from 'fluture';
-/* tslint:disable-next-line:no-var-requires */
-const {env: flutureEnv} = require('fluture-sanctuary-types');
-import {create, env} from 'sanctuary';
-const S = create({checkTypes: true, env: env.concat(flutureEnv)});
-
 import * as Txns from './txns';
 
 interface DesignDoc {
@@ -132,11 +126,12 @@ export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
   return db.upsert(txn._id, (doc: any) => ({_rev: doc['_rev'], ...txn}));
 }
 
-export function getDesignDoc(couch: PouchDB.Database, docName: string) {
-  return (
-    Future.tryP(() => (couch as PouchDB.Database<DesignDoc>).get(docName)).
-    fold(S.Left, S.Right)
-  );
+export async function getDesignDoc(couch: PouchDB.Database, docName: string) {
+  try {
+    return await (couch as PouchDB.Database<DesignDoc>).get(docName);
+  } catch (ex) {
+    return null;
+  }
 }
 
 export async function getAccountBalances(db: PouchDB.Database): Promise<Txns.Balance[]> {
@@ -191,28 +186,22 @@ export async function getTxns(db: PouchDB.Database, limit: number): Promise<Arra
 declare var emit: any;
 
 export function createDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
-  return Future.tryP(() => couch.put(doc as any)).fold(S.Left, S.Right);
+  return couch.put(doc as any);
 }
 
-export function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
-  const getDoc = () => getDesignDoc(couch, doc._id);
-  return (
-    getDoc().
-    chain(
-      S.either(
-        () => createDesignDoc(couch, doc).chain(getDoc),
-      )(
-        (dbDoc) => {
-          if (dbDoc.version !== doc.version) {
-            return createDesignDoc(couch, {...doc, _rev: dbDoc._rev}).
-              chain(getDoc);
-          } else {
-            return Future.of(S.Right(dbDoc));
-          }
-        },
-      ),
-    )
-  );
+export async function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
+  let dbDoc = await getDesignDoc(couch, doc._id);
+  if (!dbDoc) {
+    await createDesignDoc(couch, doc);
+    dbDoc = await getDesignDoc(couch, doc._id);
+  }
+
+  if (dbDoc!.version !== doc.version) {
+    await createDesignDoc(couch, {...doc, _rev: dbDoc!._rev});
+    return getDesignDoc(couch, doc._id);
+  } else {
+    return dbDoc;
+  }
 }
 
 /* tslint:disable:only-arrow-functions */

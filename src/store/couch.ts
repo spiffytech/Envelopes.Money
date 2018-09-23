@@ -67,8 +67,8 @@ const module: Module<Types.CouchState, Types.RootState> = {
       const pouch = Couch.mkLocalDB(needsMemoryPouch);
       commit('setPouch', pouch);
 
-      await Couch.upsertDesignDoc(pouch, Couch.designDocs.accounts).promise();
-      await Couch.upsertDesignDoc(pouch, Couch.designDocs.categories).promise();
+      await Couch.upsertDesignDoc(pouch, Couch.designDocs.accounts);
+      await Couch.upsertDesignDoc(pouch, Couch.designDocs.categories);
 
       /* tslint:disable-next-line:no-floating-promises */
       return dispatch('lookUpLocalSession');

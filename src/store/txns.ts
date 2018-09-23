@@ -1,4 +1,5 @@
-import {debounce, fromPairs} from 'lodash';
+import debounce from 'lodash/debounce';
+import fromPairs from 'lodash/fromPairs';
 import Vue from 'vue';
 import {Module, Store} from 'vuex';
 

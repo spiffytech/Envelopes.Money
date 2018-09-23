@@ -62,7 +62,7 @@ export default Vue.extend({
   data() {
     return {
       txns: this.$store.state.txns.txns,
-      txn: Monet.None() as Monet.Maybe<Txns.BankTxn | Txns.EnvelopeEvent | Txns.AccountTransfer>,
+      txn: Monet.None() as Monet.Maybe<Txns.BankTxn | Txns.EnvelopeTransfer | Txns.AccountTransfer>,
       txnType: null as null | string,
     };
   },

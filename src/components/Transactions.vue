@@ -67,7 +67,7 @@
 <script lang="ts">
 /* tslint:disable:no-console */
 /* tslint:disable:no-var-requires */
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import {pipe, throttle} from 'lodash/fp';
 const octicons = require('octicons');
 import {saveAs} from 'file-saver';

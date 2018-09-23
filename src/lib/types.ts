@@ -31,7 +31,7 @@ export interface TxnExport {
 export interface Txn {
   amount: Amount;
   dateString: string;
-  export(): TxnExport;
+  export(): TxnExport;  // Export as string
   toPOJO(): Txns.Txn;
   errors(): string[] | null;
 }
@@ -40,3 +40,12 @@ export interface EnvelopeEvent {
   id: string;
   amount: Amount;
 }
+
+export interface MoneyBucket {
+  name: string;
+  id: string;
+  amount: Amount;
+  type: string;
+}
+
+export type BucketTypes = 'category' | 'account';

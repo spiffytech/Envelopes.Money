@@ -41,11 +41,11 @@ export interface EnvelopeEvent {
   amount: Amount;
 }
 
+export type BucketTypes = 'category' | 'account';
+
 export interface MoneyBucket {
   name: string;
   id: string;
   amount: Amount;
-  type: string;
+  type: BucketTypes;
 }
-
-export type BucketTypes = 'category' | 'account';

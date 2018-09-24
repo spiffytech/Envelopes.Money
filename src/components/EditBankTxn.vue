@@ -14,7 +14,22 @@
       </div>
     </div>
 
-    <AccountSelector :accounts="accounts" :model="model.account" />
+    <div class="field">
+      <label class="label">Account</label>
+      <div class="select">
+        <div class="control">
+          <select :value="model.getFromName" @change="(event) => model.setFromByName(accounts, event.target.value)" required>
+            <option
+              v-for="account in accounts"
+              :key="account.name"
+              :value="account.name"
+            >
+              {{account.name}}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
 
     <div class="field">
       <label class="label">Memo</label>
@@ -100,9 +115,6 @@ export default class EditBankTxn extends Vue {
     this.$store.commit('clearFlash');
 
     this.model.removeZeroCategories();
-
-    const account = this.accounts.find((a) => a.name === this.model.account);
-    if (!account) throw new Error('No matching account found');
 
     this.model.debitMode = false;
     this.onSubmit(this.model);

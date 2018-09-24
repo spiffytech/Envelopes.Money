@@ -5,7 +5,7 @@ import BucketAmount from './BucketAmount';
 import BucketReference from './BucketReference';
 import {BankTxn as ClassicBankTxn} from './txns';
 import * as Txns from './txns';
-import {EnvelopeEvent, TxnExport} from './types';
+import {EnvelopeEvent, MoneyBucket, TxnExport} from './types';
 import * as utils from './utils';
 
 interface BTData {
@@ -140,6 +140,16 @@ export default class BankTxn {
       );
     }
     this._debitMode = b;
+  }
+
+  get getFromName() {
+    return this.from.name;
+  }
+
+  public setFromByName(candidates: MoneyBucket[], name: string) {
+    const bucket = candidates.find((candidate) => candidate.name === name);
+    if (!bucket) throw new Error(`No matching bucket form "${name}"`);
+    this.from = new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type});
   }
 
   public errors(): string[] | null {

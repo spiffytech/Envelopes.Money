@@ -1,6 +1,7 @@
+import Amount from '../Amount';
 import BankTxn from '../BankTxn';
 import * as Txns from '../txns';
-import * as types from '../types';
+import * as Types from '../types';
 
 const BTPOJO: Txns.BankTxn = {
   _id: 'aBogusTxn',
@@ -18,7 +19,7 @@ const BTPOJO: Txns.BankTxn = {
 };
 
 it('Is assignable to the Txn interface', () => {
-  const txn: types.Txn = BankTxn.Empty();
+  const txn: Types.Txn = BankTxn.Empty();
   expect(txn).not.toBe(null);  // A dummy use of txn to satisfy the linter
 });
 
@@ -26,6 +27,13 @@ describe('Getters/setters', () => {
   it('Sums up items into the correct amount', () => {
     const txn = BankTxn.POJO(BTPOJO);
     expect(txn.amount.pennies).toBe(-500);
+  });
+
+  it('Categories total to the same as "amount"', () => {
+    const txn = BankTxn.POJO(BTPOJO);
+    expect(
+      txn.categories.map((category) => category.amount.pennies).reduce((a, b) => a + b, 0),
+    ).toBe(txn.amount.pennies);
   });
 });
 
@@ -123,5 +131,29 @@ describe('Validation', () => {
       ],
     });
     expect(txn.errors()).toEqual(['All categories must have a non-zero balance']);
+  });
+});
+
+describe('Handling "from"', () => {
+  it('Returns the name of the "from" reference', () => {
+    const txn = BankTxn.POJO(BTPOJO);
+    expect(txn.getFromName).toBe('Checking');
+  });
+
+  it('Sets the "from" object based on the name of the new account', () => {
+    const txn = BankTxn.POJO(BTPOJO);
+    const buckets: Types.MoneyBucket[] = [
+      {name: 'Checking', id: 'checking1', amount: Amount.Pennies(0), type: 'account'},
+      {name: 'Savings', id: 'savings1', amount: Amount.Pennies(0), type: 'account'},
+      {name: 'Investment', id: 'investment', amount: Amount.Pennies(0), type: 'account'},
+    ];
+    txn.setFromByName(buckets, 'Savings');
+    expect(txn.from.name).toBe('Savings');
+    expect(txn.from.id).toBe('savings1');
+  });
+
+  it('Throws an error if there is no match for "from"', () => {
+    const txn = BankTxn.POJO(BTPOJO);
+    expect(() => txn.setFromByName([], 'Savings')).toThrow();
   });
 });

@@ -41,12 +41,33 @@
     <p>Amount: ${{model.amount.human}}</p>
 
     <label class="label">Categories</label>
-    <CategorySelector
-      v-for="(categoryModel, i) in model.categories"
-      :key="categoryModel.name + i"
-      :categories="categories"
-      :model="model.categories[i]"
-    />
+    <div
+      class="field is-grouped"
+      v-for="(modelCategory, i) in model.categories"
+      :key="'categorySelector-' + i"
+    >
+      <div class="control">
+        <div class="select">
+          <select
+            :value="modelCategory.bucketName"
+            @change="(event) => model.setToByName(categories, event.target.value, i)"
+            required
+          >
+            <option
+              v-for="category in categories"
+              :key="category.name"
+              :value="category.name"
+            >
+              {{category.name}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control">
+        <input v-model="model.amount.human" class="input" type="number" step="0.01" />
+      </div>
+    </div>
 
     <div class="field">
       <div class="control">
@@ -65,11 +86,11 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import Amount from '@/lib/Amount';
 import BankTxn from '@/lib/BankTxn';
+import BucketAmount from '@/lib/BucketAmount';
 import * as Txns from '@/lib/txns';
 import AccountSelector from './AccountSelector.vue';
-import CategorySelector from './CategorySelector.vue';
 
-@Component({ components: { AccountSelector, CategorySelector } })
+@Component({ components: { AccountSelector } })
 export default class EditBankTxn extends Vue {
   @Prop({ type: Object })
   public txn!: Monet.Maybe<Txns.BankTxn>;
@@ -98,11 +119,14 @@ export default class EditBankTxn extends Vue {
   }
 
   public addCategory() {
-    this.model.addCategory({
-      name: this.categories[0].name,
-      id: this.categories[0]._id,
-      amount: Amount.Pennies(0),
-    });
+    this.model.addCategory(BucketAmount.POJO({
+      bucketRef: {
+        name: this.categories[0].name,
+        id: this.categories[0]._id,
+        type: 'category',
+      },
+      amount: 0,
+    }));
   }
 
   public findCategoryId(categoryName: string): string {

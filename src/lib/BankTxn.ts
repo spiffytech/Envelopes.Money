@@ -14,7 +14,7 @@ interface BTData {
   memo: string;
   payee: string;
   from: BucketReference;
-  categories: EnvelopeEvent[];
+  categories: BucketAmount[];
   type?: string;
   // Legacy POJO values that we can ignore
   amount?: number | Txns.Pennies;
@@ -28,7 +28,10 @@ export default class BankTxn {
       ...txn,
       date: new Date(txn.date),
       categories: txn.categories.map((category) =>
-        ({...category, amount: Amount.Pennies(category.amount)}),
+        BucketAmount.POJO({
+          amount: category.amount,
+          bucketRef: {id: category.id, name: category.name, type: 'category'},
+        }),
       ),
       from: BucketReference.POJO({name: txn.account, id: txn.accountId, type: 'account'}),
     });
@@ -50,7 +53,7 @@ export default class BankTxn {
   public memo: string;
   public payee: string;
   private _id: string | null;
-  private _categories: EnvelopeEvent[] = [];
+  private _categories: BucketAmount[] = [];
 
   private _debitMode = false;
 
@@ -73,7 +76,7 @@ export default class BankTxn {
       accountId: this.from.id,
       memo: this.memo,
       categories: this._categories.map((category) =>
-        ({...category, amount: category.amount.pennies as Txns.Pennies}),
+        ({id: category.bucketId, name: category.bucketName, amount: category.amount.pennies as Txns.Pennies}),
       ),
       type: 'banktxn',
     };
@@ -83,7 +86,7 @@ export default class BankTxn {
     return {
       date: this.date,
       amount: this.amount,
-      from: this.categories.map((category) => category.name).join('||'),
+      from: this.categories.map((category) => category.bucketName).join('||'),
       to: this.payee,
       memo: this.memo,
       type: 'banktxn',
@@ -98,10 +101,6 @@ export default class BankTxn {
     );
 
     return Amount.Pennies(pennies);
-  }
-
-  get categories() {
-    return this._categories;
   }
 
   get dateString() {
@@ -119,8 +118,12 @@ export default class BankTxn {
     );
   }
 
-  public addCategory(event: EnvelopeEvent) {
+  public addCategory(event: BucketAmount) {
     this._categories.push(event);
+  }
+
+  get categories() {
+    return this._categories;
   }
 
   public removeZeroCategories() {
@@ -135,8 +138,8 @@ export default class BankTxn {
 
   set debitMode(b: boolean) {
     if (this._debitMode !== b) {
-      this._categories = this._categories.map((category) =>
-        ({...category, amount: Amount.Pennies(category.amount.pennies * -1)}),
+      this._categories.forEach((category) =>
+        category.invertAmount(),
       );
     }
     this._debitMode = b;
@@ -150,6 +153,15 @@ export default class BankTxn {
     const bucket = candidates.find((candidate) => candidate.name === name);
     if (!bucket) throw new Error(`No matching bucket form "${name}"`);
     this.from = new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type});
+  }
+
+  public setToByName(candidates: MoneyBucket[], name: string, index: number) {
+    const bucket = candidates.find((candidate) => candidate.name === name);
+    if (!bucket) throw new Error(`No matching bucket form "${name}"`);
+    this.categories[index] = new BucketAmount(
+      this.categories[index].amount,
+      new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type}),
+    );
   }
 
   public errors(): string[] | null {

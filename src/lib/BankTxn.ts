@@ -3,9 +3,10 @@ import * as shortid from 'shortid';
 import Amount from './Amount';
 import BucketAmount from './BucketAmount';
 import BucketReference from './BucketReference';
+import Transaction from './Transaction';
 import {BankTxn as ClassicBankTxn} from './txns';
 import * as Txns from './txns';
-import {EnvelopeEvent, MoneyBucket, TxnExport} from './types';
+import {MoneyBucket, TxnExport} from './types';
 import * as utils from './utils';
 
 interface BTData {
@@ -14,12 +15,13 @@ interface BTData {
   memo: string;
   payee: string;
   from: BucketReference;
-  categories: BucketAmount[];
+  to: BucketAmount[];
   type?: string;
   // Legacy POJO values that we can ignore
   amount?: number | Txns.Pennies;
   account?: string;
   accountId?: string;
+  categories?: any;
 }
 
 export default class BankTxn {
@@ -27,7 +29,7 @@ export default class BankTxn {
     return new BankTxn({
       ...txn,
       date: new Date(txn.date),
-      categories: txn.categories.map((category) =>
+      to: txn.categories.map((category) =>
         BucketAmount.POJO({
           amount: category.amount,
           bucketRef: {id: category.id, name: category.name, type: 'category'},
@@ -44,7 +46,7 @@ export default class BankTxn {
       memo: '',
       payee: '',
       from: BucketReference.Empty('account'),
-      categories: [],
+      to: [],
     });
   }
 
@@ -52,8 +54,11 @@ export default class BankTxn {
   public from: BucketReference;
   public memo: string;
   public payee: string;
+
+  protected type = 'banktxn';
+
   private _id: string | null;
-  private _categories: BucketAmount[] = [];
+  private _to: BucketAmount[] = [];
 
   private _debitMode = false;
 
@@ -63,7 +68,7 @@ export default class BankTxn {
     this.from = data.from;
     this.date = data.date;
     this.memo = data.memo;
-    this._categories = data.categories;
+    this._to = data.to;
   }
 
   public toPOJO(): ClassicBankTxn {
@@ -75,7 +80,7 @@ export default class BankTxn {
       account: this.from.name,
       accountId: this.from.id,
       memo: this.memo,
-      categories: this._categories.map((category) =>
+      categories: this._to.map((category) =>
         ({id: category.bucketId, name: category.bucketName, amount: category.amount.pennies as Txns.Pennies}),
       ),
       type: 'banktxn',
@@ -86,7 +91,7 @@ export default class BankTxn {
     return {
       date: this.date,
       amount: this.amount,
-      from: this.categories.map((category) => category.bucketName).join('||'),
+      from: this.to.map((category) => category.bucketName).join('||'),
       to: this.payee,
       memo: this.memo,
       type: 'banktxn',
@@ -95,7 +100,7 @@ export default class BankTxn {
 
   get amount(): Amount {
     const pennies = (
-      this._categories.
+      this._to.
       map((category) => category.amount.pennies).
       reduce((a, b) => a + b, 0)
     );
@@ -119,15 +124,15 @@ export default class BankTxn {
   }
 
   public addCategory(event: BucketAmount) {
-    this._categories.push(event);
+    this._to.push(event);
   }
 
-  get categories() {
-    return this._categories;
+  get to() {
+    return this._to;
   }
 
   public removeZeroCategories() {
-    this._categories = this._categories.filter(
+    this._to = this._to.filter(
       ({amount}) => amount.pennies !== 0,
     );
   }
@@ -138,7 +143,7 @@ export default class BankTxn {
 
   set debitMode(b: boolean) {
     if (this._debitMode !== b) {
-      this._categories.forEach((category) =>
+      this._to.forEach((category) =>
         category.invertAmount(),
       );
     }
@@ -158,8 +163,8 @@ export default class BankTxn {
   public setToByName(candidates: MoneyBucket[], name: string, index: number) {
     const bucket = candidates.find((candidate) => candidate.name === name);
     if (!bucket) throw new Error(`No matching bucket form "${name}"`);
-    this.categories[index] = new BucketAmount(
-      this.categories[index].amount,
+    this.to[index] = new BucketAmount(
+      this.to[index].amount,
       new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type}),
     );
   }
@@ -169,8 +174,8 @@ export default class BankTxn {
       !this.payee && 'Payee is missing',
       !this.from.name && 'Account is missing',
       !this.from.id && 'Program error: Account ID did not get set',
-      this.categories.length === 0 && 'You must include at least one category',
-      this.categories.filter((category) => category.amount.pennies === 0).length > 0 &&
+      this.to.length === 0 && 'You must include at least one category',
+      this.to.filter((category) => category.amount.pennies === 0).length > 0 &&
         'All categories must have a non-zero balance',
     ].filter(utils.isString);
     return errors.length > 0 ? errors : null;

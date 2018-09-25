@@ -32,7 +32,7 @@ describe('Getters/setters', () => {
   it('Categories total to the same as "amount"', () => {
     const txn = BankTxn.POJO(BTPOJO);
     expect(
-      txn.categories.map((category) => category.amount.pennies).reduce((a, b) => a + b, 0),
+      txn.to.map((category) => category.amount.pennies).reduce((a, b) => a + b, 0),
     ).toBe(txn.amount.pennies);
   });
 });

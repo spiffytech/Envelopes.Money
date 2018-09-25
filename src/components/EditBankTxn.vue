@@ -43,7 +43,7 @@
     <label class="label">Categories</label>
     <div
       class="field is-grouped"
-      v-for="(modelCategory, i) in model.categories"
+      v-for="(modelCategory, i) in model.to"
       :key="'categorySelector-' + i"
     >
       <div class="control">
@@ -127,12 +127,6 @@ export default class EditBankTxn extends Vue {
       },
       amount: 0,
     }));
-  }
-
-  public findCategoryId(categoryName: string): string {
-    const category = this.categories.find((c) => c.name === categoryName);
-    if (!category) throw new Error(`No such category: ${name}`);
-    return category._id;
   }
 
   public handleSubmit(_event: any) {

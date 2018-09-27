@@ -16,11 +16,11 @@ interface ATDATA {
   date: Date;
   memo: string;
   from: BucketReference;
-  to: string;
-  toId: string;
+  to: BucketAmount[];
   txfrId: string;
   type?: string;
   fromId?: string;
+  toId?: string;
 }
 
 export default class AccountTransfer /*extends Transaction<TxnData>*/ {
@@ -30,6 +30,10 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
       amount: Amount.Pennies(txn.amount),
       date: new Date(txn.date),
       from: BucketReference.POJO({name: txn.from, id: txn.fromId, type: 'account'}),
+      to: [BucketAmount.POJO({
+        amount: txn.amount,
+        bucketRef: {id: txn.toId, name: txn.to, type: 'account'},
+      })],
     });
   }
 
@@ -40,7 +44,7 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
       date: new Date(),
       memo: '',
       from: BucketReference.Empty('account'),
-      to: '',
+      to: [],
       toId: '',
       txfrId: '',
     });
@@ -50,8 +54,7 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
   public date: Date;
   public memo: string;
   public from: BucketReference;
-  public to: string;
-  public toId: string;
+  public to: BucketAmount[];
   protected _id: string | null;
   protected txfrId: string;
 
@@ -65,7 +68,6 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
     this.memo = data.memo;
     this.from = data.from;
     this.to = data.to;
-    this.toId = data.toId;
     this.txfrId = data.txfrId;
   }
 
@@ -76,9 +78,9 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
       amount: this.amount.pennies as Txns.Pennies,
       memo: this.memo,
       from: this.from.name,
-      to: this.to,
+      to: this.to[0]!.bucketName,
       fromId: this.from.id,
-      toId: this.toId,
+      toId: this.to[0].bucketId,
       txfrId: this.txfrId,
       type: 'accountTransfer',
     };
@@ -89,7 +91,7 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
       date: this.date,
       amount: this.amount,
       from: this.from.name,
-      to: this.to,
+      to: this.to[0].bucketName,
       memo: this.memo,
       type: 'accountTransfer',
     };
@@ -120,12 +122,13 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
   }
 
   public errors(): string[] | null {
+    if (this.to.length === 0) return ['You must have a "to" account'];
     const errors = [
       this.amount.pennies === 0 && 'May not transfer $0',
       !this.from.name && 'Must supply a "from" category',
       !this.from.id && 'Program error: fromId did not get set',
-      !this.to && 'Must supply a "to" category',
-      !this.toId && 'Program error: toId did not get set',
+      !this.to[0].bucketName && 'Must supply a "to" category',
+      !this.to[0].bucketId && 'Program error: toId did not get set',
     ].filter(utils.isString);
     return errors.length > 0 ? errors : null;
   }
@@ -134,5 +137,14 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
     const bucket = candidates.find((candidate) => candidate.name === name);
     if (!bucket) throw new Error(`No matching bucket form "${name}"`);
     this.from = new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type});
+  }
+
+  public setToByName(candidates: MoneyBucket[], name: string, index: number) {
+    const bucket = candidates.find((candidate) => candidate.name === name);
+    if (!bucket) throw new Error(`No matching bucket form "${name}"`);
+    this.to[index] = new BucketAmount(
+      this.to[index].amount,
+      new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type}),
+    );
   }
 }

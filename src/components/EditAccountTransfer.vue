@@ -19,7 +19,7 @@
       <div class="select">
         <div class="control">
           <select
-            v-model="model.from"
+            v-model="model.from.name"
             @change="(event) => model.setFromByName(accounts, event.target.value)"
             required
           >
@@ -39,7 +39,11 @@
       <label class="label">To</label>
       <div class="select">
         <div class="control">
-          <select v-model="model.to" required>
+          <select
+            v-model="model.to[0].bucketName"
+            @change="(event) => model.setToByName(accounts, event.target.value, 1)"
+            required
+          >
             <option
               v-for="account in accounts"
               :key="account.name"
@@ -94,8 +98,6 @@ export default Vue.extend({
   methods: {
     handleSubmit() {
       this.$store.commit('clearFlash');
-
-      this.model.toId = this.accounts.find((account: any) => account.name === this.model.to)._id;
 
       this.model.debitMode = false;
       this.onSubmit(this.model);

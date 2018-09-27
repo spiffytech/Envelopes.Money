@@ -13,7 +13,7 @@ interface ETData {
   date: Date;
   memo: string;
   from: BucketReference;
-  to: EnvelopeEvent[];
+  to: BucketAmount[];
 }
 
 export default class EnvelopeTransfer {
@@ -23,8 +23,11 @@ export default class EnvelopeTransfer {
       date: new Date(txn.date),
       memo: txn.memo,
       from: BucketReference.POJO({name: txn.from.name, id: txn.from.id, type: 'category'}),
-      to: txn.to.map((to) =>
-        ({...to, amount: Amount.Pennies(to.amount)}),
+      to: txn.to.map((category) =>
+        BucketAmount.POJO({
+          amount: category.amount,
+          bucketRef: {id: category.id, name: category.name, type: 'category'},
+        }),
       ),
     });
   }
@@ -43,7 +46,7 @@ export default class EnvelopeTransfer {
   public memo: string;
   public from: BucketReference;
   private _id: string | null;
-  private _to: EnvelopeEvent[] = [];
+  private _to: BucketAmount[] = [];
 
   private _debitMode = false;
 
@@ -63,7 +66,7 @@ export default class EnvelopeTransfer {
       memo: this.memo,
       from: {id: this.from.id, name: this.from.name, amount: this.amount.pennies as Txns.Pennies},
       to: this._to.map((to) =>
-        ({...to, amount: to.amount.pennies as Txns.Pennies}),
+        ({name: to.bucketName, id: to. bucketId, amount: to.amount.pennies as Txns.Pennies}),
       ),
       type: 'envelopeTransfer',
     };
@@ -74,7 +77,7 @@ export default class EnvelopeTransfer {
       date: this.date,
       amount: this.amount,
       from: this.from.name,
-      to: this.to.map((to) => to.name).join('||'),
+      to: this.to.map((to) => to.bucketName).join('||'),
       memo: this.memo,
       type: 'envelopeTransfer',
     };
@@ -115,7 +118,10 @@ export default class EnvelopeTransfer {
   }
 
   public addTo(event: EnvelopeEvent) {
-    this._to.push(event);
+    this._to.push(BucketAmount.POJO({
+      amount: event.amount.pennies,
+      bucketRef: {name: event.name, id: event.id, type: 'category'},
+    }));
   }
 
   public errors(): string[] | null {

@@ -21,12 +21,33 @@
     </div>
 
     <label class="label">To</label>
-    <CategorySelector
-      v-for="(categoryModel, i) in model.to"
-      :key="categoryModel.name + i"
-      :categories="categories"
-      :model="model.to[i]"
-    />
+    <div
+      class="field is-grouped"
+      v-for="(modelCategory, i) in model.to"
+      :key="'categorySelector-' + i"
+    >
+      <div class="control">
+        <div class="select">
+          <select
+            :value="modelCategory.bucketName"
+            @change="(event) => model.setToByName(categories, event.target.value, i)"
+            required
+          >
+            <option
+              v-for="category in categories"
+              :key="category.name"
+              :value="category.name"
+            >
+              {{category.name}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control">
+        <input v-model="model.amount.human" class="input" type="number" step="0.01" />
+      </div>
+    </div>
 
     <div class="field">
       <div class="control">

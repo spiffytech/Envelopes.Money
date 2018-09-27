@@ -3,6 +3,8 @@ import * as shortid from 'shortid';
 import Amount from './Amount';
 import BucketAmount from './BucketAmount';
 import BucketReference from './BucketReference';
+import Transaction from './Transaction';
+import {TxnData} from './Transaction';
 import {EnvelopeTransfer as ClassicEnvelopeTransfer} from './txns';
 import * as Txns from './txns';
 import {EnvelopeEvent, TxnExport} from './types';
@@ -16,7 +18,7 @@ interface ETData {
   to: BucketAmount[];
 }
 
-export default class EnvelopeTransfer {
+export default class EnvelopeTransfer extends Transaction<TxnData> {
   public static POJO(txn: ClassicEnvelopeTransfer) {
     return new EnvelopeTransfer({
       _id: txn._id,
@@ -42,21 +44,8 @@ export default class EnvelopeTransfer {
     });
   }
 
-  public date: Date;
-  public memo: string;
-  public from: BucketReference;
-  private _id: string | null;
-  private _to: BucketAmount[] = [];
-
+  protected type = 'envelopeTransfer';
   private _debitMode = false;
-
-  protected constructor(data: ETData) {
-    this._id = data._id;
-    this.date = data.date;
-    this.memo = data.memo;
-    this.from = data.from;
-    this._to = data.to;
-  }
 
   public toPOJO(): ClassicEnvelopeTransfer {
     return {

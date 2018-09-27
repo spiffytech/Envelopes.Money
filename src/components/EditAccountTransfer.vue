@@ -18,7 +18,11 @@
       <label class="label">From</label>
       <div class="select">
         <div class="control">
-          <select v-model="model.from" required>
+          <select
+            v-model="model.from"
+            @change="(event) => model.setFromByName(accounts, event.target.value)"
+            required
+          >
             <option
               v-for="account in accounts"
               :key="account.name"
@@ -91,7 +95,6 @@ export default Vue.extend({
     handleSubmit() {
       this.$store.commit('clearFlash');
 
-      this.model.fromId = this.accounts.find((account: any) => account.name === this.model.from)._id;
       this.model.toId = this.accounts.find((account: any) => account.name === this.model.to)._id;
 
       this.model.debitMode = false;

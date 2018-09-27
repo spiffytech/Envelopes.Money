@@ -4,6 +4,7 @@ import Amount from './Amount';
 import BucketAmount from './BucketAmount';
 import BucketReference from './BucketReference';
 import Transaction from './Transaction';
+import {TxnData} from './Transaction';
 import {BankTxn as ClassicBankTxn} from './txns';
 import * as Txns from './txns';
 import {MoneyBucket, TxnExport} from './types';
@@ -24,10 +25,12 @@ interface BTData {
   categories?: any;
 }
 
-export default class BankTxn {
+export default class BankTxn extends Transaction<TxnData & {payee: string}> {
   public static POJO(txn: ClassicBankTxn) {
     return new BankTxn({
-      ...txn,
+      _id: txn._id,
+      memo: txn.memo,
+      payee: txn.payee,
       date: new Date(txn.date),
       to: txn.categories.map((category) =>
         BucketAmount.POJO({
@@ -50,26 +53,11 @@ export default class BankTxn {
     });
   }
 
-  public date: Date;
-  public from: BucketReference;
-  public memo: string;
-  public payee: string;
+  public payee: string = this.payee || '';
 
   protected type = 'banktxn';
 
-  private _id: string | null;
-  private _to: BucketAmount[] = [];
-
   private _debitMode = false;
-
-  protected constructor(data: BTData) {
-    this._id = data._id;
-    this.payee = data.payee;
-    this.from = data.from;
-    this.date = data.date;
-    this.memo = data.memo;
-    this._to = data.to;
-  }
 
   public toPOJO(): ClassicBankTxn {
     return {
@@ -98,60 +86,14 @@ export default class BankTxn {
     };
   }
 
-  get amount(): Amount {
-    const pennies = (
-      this._to.
-      map((category) => category.amount.pennies).
-      reduce((a, b) => a + b, 0)
-    );
-
-    return Amount.Pennies(pennies);
-  }
-
-  get dateString() {
-    return utils.formatDate(this.date);
-  }
-
-  set dateString(d: string) {
-    this.date = new Date(d);
-  }
-
-  get id() {
-    return (
-      this._id  ||
-      ['txn', utils.formatDate(this.date), 'banktxn', this.payee, shortid.generate()].join('/')
-    );
-  }
-
   public addCategory(event: BucketAmount) {
     this._to.push(event);
-  }
-
-  get to() {
-    return this._to;
   }
 
   public removeZeroCategories() {
     this._to = this._to.filter(
       ({amount}) => amount.pennies !== 0,
     );
-  }
-
-  get debitMode() {
-    return this._debitMode;
-  }
-
-  set debitMode(b: boolean) {
-    if (this._debitMode !== b) {
-      this._to.forEach((category) =>
-        category.invertAmount(),
-      );
-    }
-    this._debitMode = b;
-  }
-
-  get getFromName() {
-    return this.from.name;
   }
 
   public setFromByName(candidates: MoneyBucket[], name: string) {
@@ -179,5 +121,45 @@ export default class BankTxn {
         'All categories must have a non-zero balance',
     ].filter(utils.isString);
     return errors.length > 0 ? errors : null;
+  }
+
+  protected postConstructor(data: TxnData & {payee: string}) {
+    this.payee = data.payee;
+  }
+
+  get dateString() {
+    return utils.formatDate(this.date);
+  }
+
+  set dateString(d: string) {
+    this.date = new Date(d);
+  }
+
+  get id() {
+    return (
+      this._id  ||
+      ['txn', utils.formatDate(this.date), 'banktxn', this.payee, shortid.generate()].join('/')
+    );
+  }
+
+  get to() {
+    return this._to;
+  }
+
+  get debitMode() {
+    return this._debitMode;
+  }
+
+  set debitMode(b: boolean) {
+    if (this._debitMode !== b) {
+      this._to.forEach((category) =>
+        category.invertAmount(),
+      );
+    }
+    this._debitMode = b;
+  }
+
+  get getFromName() {
+    return this.from.name;
   }
 }

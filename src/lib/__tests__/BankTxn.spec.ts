@@ -23,6 +23,11 @@ it('Is assignable to the Txn interface', () => {
   expect(txn).not.toBe(null);  // A dummy use of txn to satisfy the linter
 });
 
+it('Sets the payee', () => {
+  const txn = BankTxn.POJO(BTPOJO);
+  expect(txn.payee).toBe('Target');
+});
+
 describe('Getters/setters', () => {
   it('Sums up items into the correct amount', () => {
     const txn = BankTxn.POJO(BTPOJO);

@@ -52,14 +52,6 @@ describe('Validation', () => {
     expect(transfer.errors()!.length).toBeGreaterThan(0);
   });
 
-  it('Rejects when "from" is zero', () => {
-    const transfer = EnvelopeTransfer.POJO({
-      ...ETPOJO,
-      from: {...ETPOJO.from, amount: 0 as Txns.Pennies},
-    });
-    expect(transfer.errors()).toContain('May not transfer $0');
-  });
-
   it('Rejects when "to" is empty', () => {
     const transfer = EnvelopeTransfer.POJO({
       ...ETPOJO,
@@ -77,13 +69,5 @@ describe('Validation', () => {
       ],
     });
     expect(transfer.errors()).toEqual(['All movement must have a non-zero amount']);
-  });
-
-  it('Rejects when "from" total doesn\'t match "to" total', () => {
-    const transfer = EnvelopeTransfer.POJO({
-      ...ETPOJO,
-      from: {...ETPOJO.from, amount: (ETPOJO.from.amount as number + (1 as number)) as Txns.Pennies},
-    });
-    expect(transfer.errors()).toEqual(['"from" and "to" amounts don\'t match']);
   });
 });

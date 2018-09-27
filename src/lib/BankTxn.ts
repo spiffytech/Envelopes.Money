@@ -1,6 +1,5 @@
 import * as shortid from 'shortid';
 
-import Amount from './Amount';
 import BucketAmount from './BucketAmount';
 import BucketReference from './BucketReference';
 import Transaction from './Transaction';

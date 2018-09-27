@@ -1,6 +1,8 @@
 import * as shortid from 'shortid';
 
 import Amount from './Amount';
+import BucketAmount from './BucketAmount';
+import BucketReference from './BucketReference';
 import {EnvelopeTransfer as ClassicEnvelopeTransfer} from './txns';
 import * as Txns from './txns';
 import {EnvelopeEvent, TxnExport} from './types';
@@ -10,7 +12,7 @@ interface ETData {
   _id: string | null;
   date: Date;
   memo: string;
-  from: EnvelopeEvent;
+  from: BucketReference;
   to: EnvelopeEvent[];
 }
 
@@ -20,7 +22,7 @@ export default class EnvelopeTransfer {
       _id: txn._id,
       date: new Date(txn.date),
       memo: txn.memo,
-      from: {...txn.from, amount: Amount.Pennies(txn.from.amount)},
+      from: BucketReference.POJO({name: txn.from.name, id: txn.from.id, type: 'category'}),
       to: txn.to.map((to) =>
         ({...to, amount: Amount.Pennies(to.amount)}),
       ),
@@ -32,14 +34,14 @@ export default class EnvelopeTransfer {
       _id: null,
       date: new Date(),
       memo: '',
-      from: {name: '', id: '', amount: Amount.Pennies(0)},
+      from: BucketReference.Empty('category'),
       to: [],
     });
   }
 
   public date: Date;
   public memo: string;
-  public from: EnvelopeEvent;
+  public from: BucketReference;
   private _id: string | null;
   private _to: EnvelopeEvent[] = [];
 
@@ -57,9 +59,9 @@ export default class EnvelopeTransfer {
     return {
       _id: this.id,
       date: this.date.toJSON(),
-      amount: this.from.amount.pennies as Txns.Pennies,
+      amount: this.amount.pennies as Txns.Pennies,
       memo: this.memo,
-      from: {...this.from, amount: this.from.amount.pennies as Txns.Pennies},
+      from: {id: this.from.id, name: this.from.name, amount: this.amount.pennies as Txns.Pennies},
       to: this._to.map((to) =>
         ({...to, amount: to.amount.pennies as Txns.Pennies}),
       ),
@@ -78,8 +80,10 @@ export default class EnvelopeTransfer {
     };
   }
 
-  get amount(): Amount {
-    return this.from.amount;
+  get amount() {
+    return Amount.Pennies(
+      this._to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0),
+    );
   }
 
   get dateString() {
@@ -95,7 +99,7 @@ export default class EnvelopeTransfer {
   }
 
   set debitMode(b: boolean) {
-    if (this._debitMode !== b) this.from.amount.pennies *= -1;
+    if (this._debitMode !== b) this.amount.pennies *= -1;
     this._debitMode = b;
   }
 
@@ -116,10 +120,10 @@ export default class EnvelopeTransfer {
 
   public errors(): string[] | null {
     const errors = [
-      this.from.amount.pennies === 0 && 'May not transfer $0',
+      this.amount.pennies === 0 && 'May not transfer $0',
       this._to.length === 0 && 'Must move money to at least one category',
       this._to.filter((to) => to.amount.pennies === 0).length > 0 && 'All movement must have a non-zero amount',
-      this.from.amount.pennies !==
+      this.amount.pennies !==
         this._to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0) &&
         '"from" and "to" amounts don\'t match',
     ].filter(utils.isString);

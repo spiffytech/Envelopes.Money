@@ -8,10 +8,17 @@
     </div>
 
     <label class="label">From</label>
-    <CategorySelector
-      :categories="categories"
-      :model="model.from"
-    />
+    <div class="field is-grouped">
+      <div class="control">
+        <div class="select">
+          <select v-model="model.from.name" required>
+            <option v-for="category in categories" :key="category.name" :value="category.name">
+              {{category.name}}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
 
     <label class="label">To</label>
     <CategorySelector
@@ -77,16 +84,6 @@ export default Vue.extend({
 
     handleSubmit(_event: any) {
       this.$store.commit('clearFlash');
-
-      if (this.model.from.amount.pennies !== this.model.to.map(
-        (to) => to.amount.pennies).reduce((x, y) => x as number + y as number, 0)
-      ) {
-        this.$store.commit('setFlash', {
-          msg: 'From/to amounts must add up',
-          type: 'error',
-        });
-        throw new Error('From/To amounts don\'t add up');
-      }
 
       this.model.debitMode = false;
       this.onSubmit(this.model);

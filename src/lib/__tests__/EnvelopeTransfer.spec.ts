@@ -40,34 +40,3 @@ describe('From an empty object', () => {
     expect(transfer.id).toMatch(/txn\/[20\d{4}-\d{2}-\d{2}\/envelopeTransfer\/[a-zA-Z0-9]+/);
   });
 });
-
-describe('Validation', () => {
-  it('Validates our sample POJO', () => {
-    const transfer = EnvelopeTransfer.POJO(ETPOJO);
-    expect(transfer.errors()).toBe(null);
-  });
-
-  it('Rejects the empty object', () => {
-    const transfer = EnvelopeTransfer.Empty();
-    expect(transfer.errors()!.length).toBeGreaterThan(0);
-  });
-
-  it('Rejects when "to" is empty', () => {
-    const transfer = EnvelopeTransfer.POJO({
-      ...ETPOJO,
-      to: [],
-    });
-    expect(transfer.errors()).toContain('Must move money to at least one category');
-  });
-
-  it('Rejects when "to" contains zero-amount items', () => {
-    const transfer = EnvelopeTransfer.POJO({
-      ...ETPOJO,
-      to: [
-        ...ETPOJO.to,
-        {name: 'stuff', id: 'stuff again', amount: 0 as Txns.Pennies},
-      ],
-    });
-    expect(transfer.errors()).toEqual(['All movement must have a non-zero amount']);
-  });
-});

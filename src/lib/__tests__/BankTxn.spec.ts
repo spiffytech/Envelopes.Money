@@ -42,34 +42,6 @@ describe('Getters/setters', () => {
   });
 });
 
-describe('Handling credit/debit numbers', () => {
-  it('Toggles numbers from negative to positive', () => {
-    const txn = BankTxn.POJO(BTPOJO);
-    txn.debitMode = true;
-    expect(txn.amount.pennies).toBe(500);
-  });
-
-  it('Toggles numbers from positive to negative', () => {
-    const pojo = {
-      ...BTPOJO,
-      categories: BTPOJO.categories.map((category) =>
-        ({...category, amount: 250 as Txns.Pennies}),
-      ),
-    };
-    const txn = BankTxn.POJO(pojo);
-    txn.debitMode = true;
-    expect(txn.amount.pennies).toBe(-500);
-  });
-
-  it('Toggling twice puts the numbers back to their original nign', () => {
-    const txn = BankTxn.POJO(BTPOJO);
-    txn.debitMode = true;
-    /* tslint:disable-next-line:no-element-overwrite */
-    txn.debitMode = false;
-    expect(txn.amount.pennies).toBe(-500);
-  });
-});
-
 describe('Serializing', () => {
   // The reduce in `amount` didn't have a default value, so this test would have
   // failed
@@ -81,61 +53,6 @@ describe('Serializing', () => {
   it('Returns the same object we put in', () => {
     const txn = BankTxn.POJO(BTPOJO);
     expect(txn.toPOJO()).toEqual(BTPOJO);
-  });
-});
-
-describe('Validation', () => {
-  it('Accepts our sample POJO', () => {
-    const txn = BankTxn.POJO(BTPOJO);
-    expect(txn.errors()).toBe(null);
-  });
-
-  it('Rejects the empty object', () => {
-    const txn = BankTxn.Empty();
-    expect(txn.errors()!.length).toBeGreaterThan(0);
-  });
-
-  it('Rejects when payee is empty', () => {
-    const txn = BankTxn.POJO({
-      ...BTPOJO,
-      payee: '',
-    });
-    expect(txn.errors()).toEqual(['Payee is missing']);
-  });
-
-  it('Rejects when account is empty', () => {
-    const txn = BankTxn.POJO({
-      ...BTPOJO,
-      account: '',
-    });
-    expect(txn.errors()).toEqual(['Account is missing']);
-  });
-
-  it('Rejects when accountId is empty', () => {
-    const txn = BankTxn.POJO({
-      ...BTPOJO,
-      accountId: '',
-    });
-    expect(txn.errors()).toEqual(['Program error: Account ID did not get set']);
-  });
-
-  it('Rejects when there are no categories', () => {
-    const txn = BankTxn.POJO({
-      ...BTPOJO,
-      categories: [],
-    });
-    expect(txn.errors()).toEqual(['You must include at least one category']);
-  });
-
-  it('Rejects when categories contain zero-amount items', () => {
-    const txn = BankTxn.POJO({
-      ...BTPOJO,
-      categories: [
-        ...BTPOJO.categories,
-        {name: 'stuff', id: 'stuff again', amount: 0 as Txns.Pennies},
-      ],
-    });
-    expect(txn.errors()).toEqual(['All categories must have a non-zero balance']);
   });
 });
 

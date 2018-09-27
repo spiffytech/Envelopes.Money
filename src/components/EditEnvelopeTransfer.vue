@@ -71,6 +71,7 @@ import * as Monet from 'monet';
 import Vue from 'vue';
 
 import Amount from '@/lib/Amount';
+import BucketAmount from '@/lib/BucketAmount';
 import EnvelopeTransfer from '@/lib/EnvelopeTransfer';
 import * as Txns from '@/lib/txns';
 import CategorySelector from './CategorySelector.vue';
@@ -86,29 +87,26 @@ export default Vue.extend({
     };
   },
 
-  beforeMount() {
-    this.model.debitMode = true;
-  },
-
   beforeDestroy() {
     this.$store.commit('clearFlash');
   },
 
   methods: {
     addCategory() {
-      this.model.addTo({
-        name: this.categories[0].name,
-        id: this.categories[0]._id,
-        amount: Amount.Pennies(0),
-      });
+      this.model.addTo(BucketAmount.POJO({
+        bucketRef: {
+          name: this.categories[0].name,
+          id: this.categories[0]._id,
+          type: 'category',
+        },
+        amount: 0,
+      }));
     },
 
     handleSubmit(_event: any) {
       this.$store.commit('clearFlash');
 
-      this.model.debitMode = false;
       this.onSubmit(this.model);
-      this.model.debitMode = true;
     },
   },
 });

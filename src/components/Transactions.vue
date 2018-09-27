@@ -74,6 +74,7 @@ import Vue from 'vue';
 
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
+import transactionFactory from '@/lib/TransactionFactory';
 import * as utils from '@/lib/utils';
 
 export default Vue.extend({
@@ -189,7 +190,7 @@ export default Vue.extend({
       const csv =
         txns.
         filter((txn) => txn).
-        map((txn) => utils.txnFromPOJO(txn!)).
+        map((txn) => transactionFactory(txn!)).
         map((txn) => txn.export()).
         map((e) => [
           utils.formatDate(e.date),

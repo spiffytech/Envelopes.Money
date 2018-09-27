@@ -109,17 +109,12 @@ export default class EditBankTxn extends Vue {
     map((txn) => BankTxn.POJO(txn)).
     orSome(BankTxn.Empty());
 
-  public constructor() {
-    super();
-    this.model.debitMode = true;
-  }
-
   public beforeDestroy() {
     this.$store.commit('clearFlash');
   }
 
   public addCategory() {
-    this.model.addCategory(BucketAmount.POJO({
+    this.model.addTo(BucketAmount.POJO({
       bucketRef: {
         name: this.categories[0].name,
         id: this.categories[0]._id,
@@ -132,11 +127,9 @@ export default class EditBankTxn extends Vue {
   public handleSubmit(_event: any) {
     this.$store.commit('clearFlash');
 
-    this.model.removeZeroCategories();
+    this.model.removeZeroTo();
 
-    this.model.debitMode = false;
     this.onSubmit(this.model);
-    this.model.debitMode = true;
   }
 }
 </script>

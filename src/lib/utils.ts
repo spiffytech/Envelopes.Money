@@ -30,13 +30,6 @@ export function activeDB(state: StoreTypes.RootState & {couch: StoreTypes.CouchS
   }
 }
 
-export function txnFromPOJO(txn: Txns.Txn): Types.Txn {
-  if (txn.type === 'accountTransfer') return AccountTransfer.POJO(txn);
-  else if (txn.type === 'banktxn') return BankTxn.POJO(txn);
-  else if (txn.type === 'envelopeTransfer') return EnvelopeTransfer.POJO(txn);
-  else throw new Error(`Invalid txn type ${(txn as any).type}`);
-}
-
 export function isString(t: string | any): t is string {
   return typeof t === 'string';
 }

@@ -87,10 +87,6 @@ export default Vue.extend({
     };
   },
 
-  beforeMount() {
-    this.model.debitMode = true;
-  },
-
   beforeDestroy() {
     this.$store.commit('clearFlash');
   },
@@ -99,9 +95,7 @@ export default Vue.extend({
     handleSubmit() {
       this.$store.commit('clearFlash');
 
-      this.model.debitMode = false;
       this.onSubmit(this.model);
-      this.model.debitMode = true;
     },
   },
 });

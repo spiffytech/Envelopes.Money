@@ -1,6 +1,5 @@
 import * as shortid from 'shortid';
 
-import Amount from './Amount';
 import BucketAmount from './BucketAmount';
 import BucketReference from './BucketReference';
 import Transaction from './Transaction';
@@ -10,24 +9,11 @@ import * as Txns from './txns';
 import {MoneyBucket, TxnExport} from './types';
 import * as utils from './utils';
 
-interface ATDATA {
-  _id: string | null;
-  amount: Amount;
-  date: Date;
-  memo: string;
-  from: BucketReference;
-  to: BucketAmount[];
-  txfrId: string;
-  type?: string;
-  fromId?: string;
-  toId?: string;
-}
-
-export default class AccountTransfer /*extends Transaction<TxnData>*/ {
+export default class AccountTransfer extends Transaction<TxnData> {
   public static POJO(txn: ClassicAccountTransfer) {
     return new AccountTransfer({
-      ...txn,
-      amount: Amount.Pennies(txn.amount),
+      _id: txn._id,
+      memo: txn.memo,
       date: new Date(txn.date),
       from: BucketReference.POJO({name: txn.from, id: txn.fromId, type: 'account'}),
       to: [BucketAmount.POJO({
@@ -40,36 +26,15 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
   public static Empty() {
     return new AccountTransfer({
       _id: null,
-      amount: Amount.Pennies(0),
       date: new Date(),
       memo: '',
       from: BucketReference.Empty('account'),
       to: [],
-      toId: '',
-      txfrId: '',
     });
   }
 
-  public amount: Amount;
-  public date: Date;
-  public memo: string;
-  public from: BucketReference;
-  public to: BucketAmount[];
-  protected _id: string | null;
-  protected txfrId: string;
-
   protected _debitMode = false;
   protected type = 'accountTransfer';
-
-  protected constructor(data: ATDATA) {
-    this._id = data._id;
-    this.amount = data.amount;
-    this.date = data.date;
-    this.memo = data.memo;
-    this.from = data.from;
-    this.to = data.to;
-    this.txfrId = data.txfrId;
-  }
 
   public toPOJO(): ClassicAccountTransfer {
     return {
@@ -78,10 +43,9 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
       amount: this.amount.pennies as Txns.Pennies,
       memo: this.memo,
       from: this.from.name,
-      to: this.to[0]!.bucketName,
+      to: this._to[0]!.bucketName,
       fromId: this.from.id,
-      toId: this.to[0].bucketId,
-      txfrId: this.txfrId,
+      toId: this._to[0].bucketId,
       type: 'accountTransfer',
     };
   }
@@ -91,7 +55,7 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
       date: this.date,
       amount: this.amount,
       from: this.from.name,
-      to: this.to[0].bucketName,
+      to: this._to[0].bucketName,
       memo: this.memo,
       type: 'accountTransfer',
     };
@@ -121,14 +85,18 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
     this._debitMode = b;
   }
 
+  get to() {
+    return this._to;
+  }
+
   public errors(): string[] | null {
-    if (this.to.length === 0) return ['You must have a "to" account'];
+    if (this._to.length === 0) return ['You must have a "to" account'];
     const errors = [
       this.amount.pennies === 0 && 'May not transfer $0',
       !this.from.name && 'Must supply a "from" category',
       !this.from.id && 'Program error: fromId did not get set',
-      !this.to[0].bucketName && 'Must supply a "to" category',
-      !this.to[0].bucketId && 'Program error: toId did not get set',
+      !this._to[0].bucketName && 'Must supply a "to" category',
+      !this._to[0].bucketId && 'Program error: toId did not get set',
     ].filter(utils.isString);
     return errors.length > 0 ? errors : null;
   }
@@ -142,8 +110,8 @@ export default class AccountTransfer /*extends Transaction<TxnData>*/ {
   public setToByName(candidates: MoneyBucket[], name: string, index: number) {
     const bucket = candidates.find((candidate) => candidate.name === name);
     if (!bucket) throw new Error(`No matching bucket form "${name}"`);
-    this.to[index] = new BucketAmount(
-      this.to[index].amount,
+    this._to[index] = new BucketAmount(
+      this._to[index].amount,
       new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type}),
     );
   }

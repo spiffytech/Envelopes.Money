@@ -12,7 +12,6 @@ const ATPOJO: Txns.AccountTransfer = {
   fromId: 'abcd',
   toId: 'defg',
   type: 'accountTransfer',
-  txfrId: 'hijk',
 };
 
 it('Is assignable to the Txn interface', () => {

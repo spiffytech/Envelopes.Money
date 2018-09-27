@@ -42,7 +42,7 @@ export interface AccountTransfer extends LedgerEvent {
   to: string;
   fromId: string;
   toId: string;
-  txfrId: string;
+  txfrId?: string;
   type: 'accountTransfer';
 }
 

@@ -28,13 +28,6 @@ export interface TxnExport {
   type: string;
 }
 
-export interface Txn {
-  amount: Amount;
-  dateString: string;
-  export(): TxnExport;  // Export as string
-  toPOJO(): Txns.Txn;
-  errors(): string[] | null;
-}
 export interface EnvelopeEvent {
   name: string;
   id: string;

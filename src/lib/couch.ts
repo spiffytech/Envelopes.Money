@@ -15,7 +15,8 @@ PouchDB.plugin(require('pouchdb-adapter-memory'));
 // PouchDB.debug.enable('*');
 PouchDB.debug.disable();
 
-import Transaction from './/Transaction';
+import Transaction from './Transaction';
+import TransactionFactory from './TransactionFactory';
 import * as Txns from './txns';
 
 interface DesignDoc {
@@ -123,9 +124,9 @@ export function upsertAccount(db: PouchDB.Database, account: Txns.Account) {
   return db.upsert(account._id, (doc: any) => ({_rev: doc['rev'], ...account}));
 }
 
-export async function upsertTxn(db: PouchDB.Database, txn: Txns.Txn) {
+export async function upsertTxn(db: PouchDB.Database, txn: Transaction<any>) {
   /* tslint:disable-next-line:no-string-literal */
-  return db.upsert(txn._id, (doc: any) => ({_rev: doc['_rev'], ...txn}));
+  return db.upsert(txn.id, (doc: any) => ({_rev: doc['_rev'], ...txn}));
 }
 
 export async function getDesignDoc(couch: PouchDB.Database, docName: string) {
@@ -171,7 +172,11 @@ export async function watchSelector<T>(
   return subscription;
 }
 
-export async function getTxns(db: PouchDB.Database, limit: number): Promise<Array<Txns.Txn | undefined>> {
+function isTxn<T>(txn: T | undefined): txn is T {
+  return txn !== undefined;
+}
+
+export async function getTxns(db: PouchDB.Database, limit: number): Promise<Array<Transaction<any>>> {
   const rows = await db.allDocs<Txns.Txn>({
     startkey: 'txn/\uffff',
     endkey: 'txn/',
@@ -179,7 +184,7 @@ export async function getTxns(db: PouchDB.Database, limit: number): Promise<Arra
     limit,
     descending: true,
   });
-  return rows.rows.map((row) => row.doc);
+  return rows.rows.map((row) => row.doc).filter(isTxn).map((txn) => TransactionFactory(txn));
 }
 
 /**

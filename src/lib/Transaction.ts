@@ -5,7 +5,7 @@ import BucketAmount from './BucketAmount';
 import {POJO as BucketAmountPOJO} from './BucketAmount';
 import BucketReference from './BucketReference';
 import {POJO as BucketReferencePOJO} from './BucketReference';
-import {EnvelopeEvent, MoneyBucket} from './types';
+import {MoneyBucket, TxnExport} from './types';
 import * as utils from './utils';
 
 export interface TxnData {
@@ -46,6 +46,8 @@ export default abstract class Transaction<T extends TxnData> {
 
     this.postConstructor(data);
   }
+
+  public abstract export(): TxnExport;
 
   public abstract toPOJO(): any;
   /*

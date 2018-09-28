@@ -14,7 +14,6 @@ import {TxnItem} from '../lib/txns';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 
-import Transaction from '../lib/Transaction';
 import TransactionFactory from '../lib/TransactionFactory';
 
 global.Promise = bluebird;

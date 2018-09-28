@@ -18,11 +18,6 @@ const BTPOJO: Txns.BankTxn = {
   type: 'banktxn',
 };
 
-it('Is assignable to the Txn interface', () => {
-  const txn: Types.Txn = BankTxn.Empty();
-  expect(txn).not.toBe(null);  // A dummy use of txn to satisfy the linter
-});
-
 it('Sets the payee', () => {
   const txn = BankTxn.POJO(BTPOJO);
   expect(txn.payee).toBe('Target');

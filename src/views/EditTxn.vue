@@ -53,6 +53,7 @@ import EditBankTxn from '@/components/EditBankTxn.vue';
 import EditEnvelopeTransfer from '@/components/EditEnvelopeTransfer.vue';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
+import Transaction from '@/lib/Transaction';
 import * as Types from '@/lib/types';
 import * as utils from '@/lib/utils';
 
@@ -97,17 +98,14 @@ export default Vue.extend({
   },
 
   methods: {
-    async onSubmit(txn: Types.Txn) {
-      const pojo = txn.toPOJO();
-      console.log(pojo);
-
+    async onSubmit(txn: Transaction<any>) {
       if (txn.errors()) {
         return this.$store.commit('setFlash', {
           msg: txn.errors()!.join(', '),
           type: 'error',
         });
       }
-      await Couch.upsertTxn(utils.activeDB(this.$store.state), pojo);
+      await Couch.upsertTxn(utils.activeDB(this.$store.state), txn);
       this.$router.push({name: 'home'});
     },
 

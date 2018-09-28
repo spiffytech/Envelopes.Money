@@ -15,11 +15,6 @@ const ETPOJO: Txns.EnvelopeTransfer = {
   type: 'envelopeTransfer',
 };
 
-it('Is assignable to the Txn interface', () => {
-  const txn: types.Txn = EnvelopeTransfer.Empty();
-  expect(txn).not.toBe(null);  // A dummy use of txn to satisfy the linter
-});
-
 describe('EnvelopeTransfers converting to/from POJO', () => {
   it('Returns an identical POJO to its constructor', () => {
     const transfer = EnvelopeTransfer.POJO(ETPOJO);

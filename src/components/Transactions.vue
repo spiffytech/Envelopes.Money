@@ -33,21 +33,21 @@
           <template v-if="txn.type === 'banktxn'">
             <p class="header">{{txn.payee}}</p>
             <small>
-              <span>{{txn.account}}</span>
+              <span>{{txn.from.name}}</span>
               •
-              <span>{{txn.categories.map(({name}) => name).join(', ')}}</span>
+              <span>{{txn.to.map((to) => to.bucketName).join(', ')}}</span>
             </small>
           </template>
 
           <template v-if="txn.type === 'accountTransfer'">
-            <small>{{txn.from}} ⇨ {{txn.to}}</small>
+            <small>{{txn.from.name}} ⇨ {{txn.to[0].bucketName}}</small>
           </template>
 
           <template v-if="txn.type === 'envelopeTransfer'">
             <small>
               {{txn.from.name}} 
               ⇨ 
-              {{txn.to.map(({name}) => name).join(', ')}}
+              {{txn.to.map((to) => to.bucketName).join(', ')}}
               </small>
           </template>
         </td>
@@ -55,7 +55,7 @@
         <td style="min-width=10em;">{{txn.memo}}</td>
 
         <td>
-          {{formatAmount(txn.amount)}}
+          {{txn.amount.human}}
         </td>
       </tr>
     </table>
@@ -74,13 +74,14 @@ import Vue from 'vue';
 
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
+import Transaction from '@/lib/Transaction';
 import transactionFactory from '@/lib/TransactionFactory';
 import * as utils from '@/lib/utils';
 
 export default Vue.extend({
   data() {
     return {
-      txns: [] as Txns.Txn[],
+      txns: [] as Array<Transaction<any>>,
       visibleTxns: 20,
       txnsSubscription: null as any | null,
       tableFields: ['date', 'type', 'payee', 'memo', 'amount'],
@@ -118,21 +119,17 @@ export default Vue.extend({
   },
 
   methods: {
-    rowClicked(txn: Txns.Txn) {
-      this.$router.push({name: 'editTxn', params: {txnId: txn._id}});
+    rowClicked(txn: Transaction<any>) {
+      this.$router.push({name: 'editTxn', params: {txnId: txn.id}});
     },
 
     addVisibleTxns(n = 30) {
-      const numTxns = Object.keys(this.txns).length;
+      const numTxns = this.txns.length;
       this.visibleTxns = Math.min(numTxns + n, this.visibleTxns as number + n);
     },
 
     async fetchNewTxns() {
-      const setTxns = (txns: Array<Txns.Txn | undefined>) => Vue.set(
-        this,
-        'txns',
-        txns.filter((txn) => txn !== undefined) as Txns.Txn[],
-      );
+      const setTxns = (txns: Array<Transaction<any>>) => Vue.set(this, 'txns', txns);
 
       const db = utils.activeDB(this.$store.state);
       const docs = await Couch.getTxns(db, this.visibleTxns);
@@ -189,8 +186,6 @@ export default Vue.extend({
       const txns = await Couch.getTxns(db, Number.MAX_SAFE_INTEGER);
       const csv =
         txns.
-        filter((txn) => txn).
-        map((txn) => transactionFactory(txn!)).
         map((txn) => txn.export()).
         map((e) => [
           utils.formatDate(e.date),

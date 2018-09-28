@@ -14,11 +14,6 @@ const ATPOJO: Txns.AccountTransfer = {
   type: 'accountTransfer',
 };
 
-it('Is assignable to the Txn interface', () => {
-  const txn: types.Txn = AccountTransfer.Empty();
-  expect(txn).not.toBe(null);  // A dummy use of txn to satisfy the linter
-});
-
 describe('AccountTransfers converting to/from POJO', () => {
   it('Returns an identical POJO to its constructor', () => {
     const transfer = AccountTransfer.POJO(ATPOJO);

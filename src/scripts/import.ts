@@ -14,6 +14,9 @@ import {TxnItem} from '../lib/txns';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 
+import Transaction from '../lib/Transaction';
+import TransactionFactory from '../lib/TransactionFactory';
+
 global.Promise = bluebird;
 (Promise as any).config({
   longStackTraces: true,
@@ -117,83 +120,6 @@ export function typeForRow(row: GoodBudgetRow) {
   } else {
     throw new Error(`No categorzation for row: ${JSON.stringify(row)}`);
   }
-}
-
-/**
- * Given a row, returns the category name for the row's Account
- */
-export function nameAccount(AssetAccounts: string[], LiabilityAccounts: string[], row: GoodBudgetRow | string): string {
-  const account = typeof row === 'string' ? row : row.Account;
-
-  if (AssetAccounts.indexOf(account) !== -1) {
-    return `Assets:${account}`;
-  } else if (LiabilityAccounts.indexOf(account) !== -1) {
-    /* tslint:disable-next-line:curly */
-    if (!account || account === '') throw new Error(`Invalid row, ${row}`);
-    return `Liabilities:${account}`;
-  } else {
-    throw new Error(`Unrecognized account: ${account}`);
-  }
-}
-
-function isIncome(IncomePayees: string[], payee: string) {
-  return IncomePayees.indexOf(payee) !== -1;
-}
-
-/** Given a row, returns the envelope name the transaction is from */
-export function nameOutboundCategory(
-  AssetAccounts: string[],
-  LiabilityAccounts: string[],
-  IncomePayees: string[],
-  row: GoodBudgetRow,
-): string {
-  if (isIncome(IncomePayees, row.Name)) {
-    return `Income:Salary`;
-  } else {
-    return nameAccount(AssetAccounts, LiabilityAccounts, row);
-  }
-}
-
-export function mkAccountItems(
-  AssetAccounts: string[],
-  LiabilityAccounts: string[],
-  IncomePayees: string[],
-  row: GoodBudgetRow,
-): TxnItem[] {
-  if (isIncome(IncomePayees, row.Name)) {
-    return [
-      {account: 'Income:Salary', amount: -amountOfStr(row.Amount) as Txns.Pennies},
-      {
-        account: nameAccount(AssetAccounts, LiabilityAccounts, row),
-        amount: amountOfStr(row.Amount),
-      },
-    ];
-  }
-
-  return [{account: nameAccount(AssetAccounts, LiabilityAccounts, row), amount: amountOfStr(row.Amount)}];
-}
-
-export function mkCategoryItems(
-  [category, amount, name]: [string, Txns.Pennies, string],
-  isFill: boolean,
-  AssetAccounts: string[],
-  LiabilityAccounts: string[],
-): TxnItem[] {
-  /* tslint:disable-next-line:curly */
-  if (isFill) {
-    return [
-      {account: `Liabilities:${category}`, amount: -amount as Txns.Pennies},
-      {account: `Expenses:${category}`, amount},
-    ];
-  }
-
-  /* tslint:disable-next-line:curly */
-  if (category === '') return [{
-    account: nameAccount(AssetAccounts, LiabilityAccounts, name),
-    amount: -amount as Txns.Pennies,
-  }];  // Probably an account transfer
-
-  return [{account: `Liabilities:${category}`, amount: -amount as Txns.Pennies}];
 }
 
 export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
@@ -307,38 +233,11 @@ async function main() {
   const txns: Txns.Txn[] =
     mergeAccountTransfers(mergedAccountTxfrs.filter((row: any) => row.Account !== '[none]'), 'envelopeTransfer').
     filter((row) => row.Account !== '[none]').  // It's a fill
-    map((row) => rowToTxn(row)).
-    filter(nullFilter);
-
-  // const groups = R.groupBy((txnItem) => txnItem.account, txnItems.filter(isMagicAccount));
-  // console.log('keys', Object.keys(groups));
-  /*c
-  console.log(
-    Object.values(groups).
-    map((items) => items.map(R.prop('amount')).reduce(R.add)).
-    map(R.divide(100))
-  );
-  */
-  /*
-  console.log(
-    Object.values(groups).
-    map((items) => items.map(R.prop('amount')).reduce(R.add)).
-    map((n) => n / 100)
-  );
-  */
-
-  const txnItems = R.flatten<TxnItem>(txns.filter(Txns.touchesBank).map(Txns.accountsForTxn));
-  console.log(
-    txnItems.filter(({account}) => account === 'SECU Checking').
-      map(({amount}) => amount).reduce((acc, i) => acc + (i as number), 0) / 100,
-    txnItems.filter(({account}) => account === 'AmEx').
-      map(({amount}) => amount).reduce((acc, i) => acc + (i as number), 0) / 100,
-  );
+    map((row) => rowToTxn(row));
 
   if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
   const remote = Couch.mkRemoteDB(process.env.COUCH_USER, process.env.COUCH_PASS);
   try {
-    console.log(remote === null);
     const accountIds = await discoverAccounts(remote, txns);
     const categoryIds = await discoverCategories(remote, txns);
     const txns_: Txns.Txn[] = txns.map((txn): Txns.Txn => {
@@ -365,7 +264,9 @@ async function main() {
       return t;
     });
 
-    const chunks = _.chunk(txns_, 500);
+    const txnsObjects = txns_.map((txn) => TransactionFactory(txn));
+
+    const chunks = _.chunk(txnsObjects, 500);
     for (const chunk of chunks) {
       await Couch.bulkImport(remote, chunk);
     }

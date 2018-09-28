@@ -47,6 +47,7 @@ export default abstract class Transaction<T extends TxnData> {
     this.postConstructor(data);
   }
 
+  public abstract toPOJO(): any;
   /*
   public toPOJO(): TxnPOJO {
     const pojo = {

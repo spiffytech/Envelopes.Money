@@ -5,7 +5,6 @@ import {TxnData} from './Transaction';
 import {AccountTransfer as ClassicAccountTransfer} from './txns';
 import * as Txns from './txns';
 import {TxnExport} from './types';
-import * as utils from './utils';
 
 export default class AccountTransfer extends Transaction<TxnData> {
   public static POJO(txn: ClassicAccountTransfer) {

@@ -1,5 +1,5 @@
 /* tslint:disable:no-console */
-import {get, map as _map} from 'lodash/fp';
+import {map as _map} from 'lodash/fp';
 import PouchDB from 'pouchdb';
 import PouchDBAuthentication from 'pouchdb-authentication';
 import PouchDBFind from 'pouchdb-find';
@@ -15,6 +15,7 @@ PouchDB.plugin(require('pouchdb-adapter-memory'));
 // PouchDB.debug.enable('*');
 PouchDB.debug.disable();
 
+import Transaction from './/Transaction';
 import * as Txns from './txns';
 
 interface DesignDoc {
@@ -107,8 +108,9 @@ export function syncDBs(
   return PouchDB.sync(local, remote, {live, retry: true, batch_size: 500});
 }
 
-export async function bulkImport(db: PouchDB.Database, txns: Txns.Txn[]) {
-  return db.bulkDocs(txns);
+export async function bulkImport(db: PouchDB.Database, txns: Array<Transaction<any>>) {
+  const docs = txns.map((txn) => txn.toPOJO());
+  return db.bulkDocs(docs);
 }
 
 export function upsertCategory(db: PouchDB.Database, category: Txns.Category) {

@@ -29,8 +29,8 @@ export default function factory(txn: TxnPOJO | TxnPOJO & {payee: string}) {
 export function Empty(objType: 'accountTransfer' | 'envelopeTransfer' | 'banktxn') {
   const fromType = ({
     accountTransfer: 'account',
+    banktxn: 'account',
     envelopeTransfer: 'category',
-    banktxn: 'category',
   } as {[key: string]: Types.BucketTypes})[objType];
 
   const txnData = {

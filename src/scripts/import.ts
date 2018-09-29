@@ -10,11 +10,13 @@ import 'source-map-support/register';
 
 // import {Category, discoverCategories} from '../lib/categories';
 import * as Couch from '../lib/couch';
-import {TxnItem} from '../lib/txns';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 
+import {POJO as BucketAmountPOJO} from '../lib/BucketAmount';
+import Transaction from '../lib/Transaction';
 import TransactionFactory from '../lib/TransactionFactory';
+import * as Types from '../lib/types';
 
 global.Promise = bluebird;
 (Promise as any).config({
@@ -88,9 +90,7 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
       const txfrId = shortid.generate();
       const from = txfrRows.find((row) => parseFloat(row.Amount) < 0);
       const to = txfrRows.find((row) => parseFloat(row.Amount) > 0);
-      console.log(txfrRows.length);
 
-      console.log(txfrRows, to, from);
       // Remove the items from the array
       txfrRows.splice(txfrRows.indexOf(from), 1);
       txfrRows.splice(txfrRows.indexOf(to), 1);
@@ -121,63 +121,34 @@ export function typeForRow(row: GoodBudgetRow) {
   }
 }
 
-export function rowToBankTxn(row: GoodBudgetRow): Txns.BankTxn {
-  const date = new Date(row.Date).toJSON();
-  return {
-    _id: ['txn', date, 'banktxn', row.Name, shortid.generate()].join('/'),
-    date,
-    amount: amountOfStr(row.Amount),
-    account: row.Account,
-    accountId: '',
-    payee: row.Name,
-    memo: row.Notes,
-    categories: parseCategories(row),
-    type: 'banktxn',
-  };
-}
-
-export function rowToAccountTxfr(row: GoodBudgetTxfr): Txns.AccountTransfer {
-  const date = new Date(row.Date).toJSON();
-  return {
-    _id: ['txn', date, 'accountTransfer', shortid.generate()].join('/'),
-    date,
-    amount: amountOfStr(row.Amount),
-    memo: row.Notes,
-    from: row.Account,
-    to: row.Name,
-    fromId: '',
-    toId: '',
-    txfrId: row.txfrId,
-    type: 'accountTransfer',
-  };
-}
-
-export function rowToEnvelopeTransfer(row: GoodBudgetRow): Txns.EnvelopeTransfer {
-  const date = new Date(row.Date).toJSON();
-  return {
-    _id: ['txn', date, 'envelopeTransfer', shortid.generate()].join('/'),
-    date,
-    amount: amountOfStr(row.Amount),
-    memo: row.Notes,
-    from: {name: row.Account, id: '', amount: amountOfStr(row.Amount)},
-    to: [{name: row.Name, id: '', amount: -amountOfStr(row.Amount) as Txns.Pennies}],
-    type: 'envelopeTransfer',
-  };
-}
-
 export function rowToTxn(
   row: GoodBudgetRow,
-): Txns.Txn {
+): Transaction<any> {
   const type = typeForRow(row);
+  const toType = ({
+    accountTransfer: 'account',
+    envelopeTransfer: 'category',
+    banktxn: 'category',
+  } as {[key: string]: Types.BucketTypes})[type];
 
-  if (type === 'accountTransfer') return rowToAccountTxfr(row as GoodBudgetTxfr);
-  if (type === 'envelopeTransfer') return rowToEnvelopeTransfer(row);
-  if (type === 'banktxn') return rowToBankTxn(row);
-  throw new Error('Did not find type for row');
-}
+  const to: BucketAmountPOJO[] =
+    type === 'banktxn' ?
+    parseCategories(row).map((category) =>
+      ({amount: category.amount as number, bucketRef: {name: category.name, id: category.id, type: toType}}),
+    ) :
+    [{amount: amountOfStr(row.Amount) as number, bucketRef: {name: row.Name, id: '', type: toType}}];
 
-function nullFilter<T>(item: T | null | undefined): item is T {
-  return Boolean(item);
+  return TransactionFactory({
+    _id: '',
+    date: new Date(row.Date).toJSON(),
+    amount: amountOfStr(row.Amount),
+    memo: row.Notes,
+    from: {name: row.Account, id: '', type: type === 'envelopeTransfer' ? 'category' : 'account'},
+    to,
+    payee: row.Name,
+    type,
+    extra: {},
+  });
 }
 
 async function discoverCategories(db: PouchDB.Database, txns: Txns.Txn[]) {
@@ -190,7 +161,6 @@ async function discoverCategories(db: PouchDB.Database, txns: Txns.Txn[]) {
       map(({account}) => account),
     );
 
-  console.log(categorieNames);
   const categories: Txns.Category[] = categorieNames.map((category) =>
     ({name: category,
       target: 0 as Txns.Pennies,
@@ -229,7 +199,7 @@ async function main() {
   const rows = await readCsv(nconf.get('file'));
   const mergedAccountTxfrs =
     mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]'), 'accountTransfer');
-  const txns: Txns.Txn[] =
+  const txns: Array<Transaction<any>> =
     mergeAccountTransfers(mergedAccountTxfrs.filter((row: any) => row.Account !== '[none]'), 'envelopeTransfer').
     filter((row) => row.Account !== '[none]').  // It's a fill
     map((row) => rowToTxn(row));
@@ -237,38 +207,16 @@ async function main() {
   if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
   const remote = Couch.mkRemoteDB(process.env.COUCH_USER, process.env.COUCH_PASS);
   try {
+    /*
     const accountIds = await discoverAccounts(remote, txns);
     const categoryIds = await discoverCategories(remote, txns);
-    const txns_: Txns.Txn[] = txns.map((txn): Txns.Txn => {
-      if (Txns.isBankTxn(txn)) {
-        return {
-          ...txn,
-          categories: txn.categories.map((category) => ({...category, id: categoryIds[category.name]})),
-          accountId: accountIds[txn.account],
-        };
-      } else if (Txns.isAccountTxfr(txn)) {
-        return {
-          ...txn,
-          fromId: accountIds[txn.from],
-          toId: accountIds[txn.to],
-        };
-      } else if (Txns.isEnvelopeTxfr(txn)) {
-        return {
-          ...txn,
-          from: {...txn.from, id: categoryIds[txn.from.name]},
-          to: txn.to.map((event) => ({...event, id: categoryIds[event.name]})),
-        };
-      }
-      const t: never = txn;
-      return t;
-    });
+    */
 
-    const txnsObjects = txns_.map((txn) => TransactionFactory(txn));
-
-    const chunks = _.chunk(txnsObjects, 500);
+    const chunks = _.chunk(txns.map((txn) => txn.toPOJO()), 500);
     for (const chunk of chunks) {
-      await Couch.bulkImport(remote, chunk);
+      // await Couch.bulkImport(remote, chunk);
     }
+    console.log(JSON.stringify(chunks[0], null, 4));
   } catch (ex) {
     console.log('error');
     console.error(ex);

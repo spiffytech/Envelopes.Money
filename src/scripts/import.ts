@@ -104,26 +104,10 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
       const from = txfrRows.find((row) => parseFloat(row.Amount) < 0);
       const to = txfrRows.find((row) => parseFloat(row.Amount) > 0);
 
-      if (to!.Amount === '5,975.55') console.log('potatoes');
-
       // Remove the items from the array
       txfrRows.splice(txfrRows.indexOf(from!), 1);
       txfrRows.splice(txfrRows.indexOf(to!), 1);
 
-      if (to!.Amount === '5,975.55') console.log({
-        ...from!,
-        Name: to!.Account || to!.Envelope,
-        Account: from!.Account || from!.Envelope,
-        // If we set Account it breaks detecting that this was an envelope transfer
-        Notes: type_ === 'envelopeTransfer' ? 'Envelope Transfer' : from!.Notes,
-      });
-      if (to!.Amount === '5,975.55') console.log(typeForRow({
-        ...from!,
-        Name: to!.Account || to!.Envelope,
-        Account: from!.Account || from!.Envelope,
-        // If we set Account it breaks detecting that this was an envelope transfer
-        Notes: type_ === 'envelopeTransfer' ? 'Envelope Transfer' : from!.Notes,
-      }));
       newRows.push({
         ...from!,
         Name: to!.Account || to!.Envelope,
@@ -213,14 +197,6 @@ export function rowToTxn(
   const errors = txn.errors();
   if (errors) console.log(JSON.stringify({errors, txn: txn.toPOJO(), row}, null, 4));
 
-  if (row.Amount === '5,975.55') {
-    console.log('This is the row')
-    console.log(typeForRow(row))
-    console.log(row);
-    console.log(txn.toPOJO());
-    console.log('------');
-  }
-
   return txn;
 }
 
@@ -292,10 +268,6 @@ async function main() {
     }
   });
 
-  console.log('=====')
-  console.log(mergedEnvelopeTxfrs.filter((row) => row.Account === 'Money Market'));
-  console.log('=====')
-
   const {accounts, accountIds} = await discoverAccounts(mergedEnvelopeTxfrs);
   const {categories, categoryIds} = await discoverCategories(mergedEnvelopeTxfrs);
   console.log(accountIds, categoryIds);
@@ -304,17 +276,6 @@ async function main() {
   mergedEnvelopeTxfrs.
     filter((row) => row.Account !== '[none]').  // It's a fill
     map((row) => rowToTxn(row, accountIds, categoryIds));
-
-  console.log('~~~~~~~~')
-  console.log(
-    txns.
-    filter(
-      (txn) => txn.from.name === 'Money Market' ||
-      txn.to.filter((to) => to.bucketName === 'Money Market').length > 0,
-    ).
-    map((txn) => txn.amount)
-  )
-  console.log('~~~~~~~~')
 
   const txnErrors = txns.map((txn) => txn.errors()).filter((errors) => errors);
   if (txnErrors.length > 0) {

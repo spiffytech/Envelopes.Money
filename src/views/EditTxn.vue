@@ -53,7 +53,7 @@ import EditBankTxn from '@/components/EditBankTxn.vue';
 import EditEnvelopeTransfer from '@/components/EditEnvelopeTransfer.vue';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
-import Transaction from '@/lib/Transaction';
+import Transaction, { TxnPOJO } from '@/lib/Transaction';
 import * as Types from '@/lib/types';
 import * as utils from '@/lib/utils';
 
@@ -63,7 +63,7 @@ export default Vue.extend({
   data() {
     return {
       txns: this.$store.state.txns.txns,
-      txn: Monet.None() as Monet.Maybe<Txns.BankTxn | Txns.EnvelopeTransfer | Txns.AccountTransfer>,
+      txn: Monet.None() as Monet.Maybe<TxnPOJO>,
       txnType: null as null | string,
     };
   },
@@ -111,7 +111,7 @@ export default Vue.extend({
 
     async loadExistingTxn(id: string) {
       const db = utils.activeDB(this.$store.state);
-      const txn = await db.get<Txns.BankTxn>(id);
+      const txn = await db.get<TxnPOJO>(id);
       this.txn = Monet.Some(txn);
       this.txnType = txn.type;
     },

@@ -225,12 +225,16 @@ export const designDocs: {[key: string]: DesignDoc} = {
         map: function(doc: any) {
           if (doc.type === 'accountTransfer' || doc.type === 'envelopeTransfer' || doc.type === 'banktxn') {
             if (doc.from.type === 'account') {
-              emit(doc.from.name, doc.amount);
+              if (doc.from.name !== '[Equity]') {
+                emit(doc.from.name, doc.amount);
+              }
             }
             for (var to in doc.to) {
               if (doc.to.hasOwnProperty(to)) {
                 if (doc.to[to].bucketRef.type === 'account') {
-                  emit(doc.to[to].bucketRef.name, doc.to[to].amount);
+                  if (doc.to[to].bucketRef.name !== '[Equity]') {
+                    emit(doc.to[to].bucketRef.name, doc.to[to].amount);
+                  }
                 }
               }
             }

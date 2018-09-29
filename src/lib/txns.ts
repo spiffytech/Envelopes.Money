@@ -6,47 +6,11 @@ import * as shortid from 'shortid';
 export type Dollars = number & {_type: 'dollars'};
 export type Pennies = number & {_type: 'pennies'};
 
-export interface TxnItem {
-  account: string;
-  amount: Pennies;
-}
-
 export interface EnvelopeEvent {
   name: string;
   id: string;
   amount: Pennies;
 }
-
-export interface LedgerEvent {
-  _id: string;
-  date: string;
-  amount: Pennies;
-  memo: string;
-}
-export interface EnvelopeTransfer extends LedgerEvent {
-  from: EnvelopeEvent;
-  to: EnvelopeEvent[];
-  type: 'envelopeTransfer';
-}
-
-export interface BankTxn extends LedgerEvent {
-  account: string;
-  accountId: string;
-  payee: string;
-  categories: EnvelopeEvent[];
-  type: 'banktxn';
-}
-
-export interface AccountTransfer extends LedgerEvent {
-  from: string;
-  to: string;
-  fromId: string;
-  toId: string;
-  txfrId?: string;
-  type: 'accountTransfer';
-}
-
-export type Txn = BankTxn | AccountTransfer | EnvelopeTransfer;
 
 export interface Balance {
   name: string;
@@ -68,104 +32,6 @@ export interface Category {
   _id: string;
 }
 
-/**
- * Returns TxnItems for each bank-touching transaction, including separate
- * TxnItems for each side of an account transfer
- */
-export function journalToLedger(txns: Txn[]): TxnItem[] {
-  return flatten(txns.filter(touchesBank).map(accountsForTxn));
-}
-
-export function accountsForTxn(txn: BankTxn | AccountTransfer): TxnItem[] {
-  if (txn.type === 'banktxn') return [{account: txn.account, amount: txn.amount}];
-
-  return [
-    {account: txn.from, amount: txn.amount},
-    {account: txn.to, amount: -txn.amount as Pennies},
-  ];
-}
-
-export function categoriesForTxn(txn: BankTxn | EnvelopeTransfer): TxnItem[] {
-  if (isBankTxn(txn)) {
-    return (
-      txn.categories.
-      map(({name, amount}): TxnItem =>
-        ({account: name, amount}),
-      )
-    );
-  } else if (isEnvelopeTxfr(txn)) {
-    return [
-      {account: txn.from.name, amount: txn.amount},
-      ...txn.to.map(({name, amount}) => ({account: name, amount})),
-    ];
-  }
-  const n: never = txn;
-  return n;
-}
-
-export function isBankTxn(txn: Txn): txn is BankTxn {
-  return txn.type === 'banktxn';
-}
-
-export function isAccountTxfr(txn: Txn): txn is AccountTransfer {
-  return txn.type === 'accountTransfer';
-}
-
-export function isEnvelopeTxfr(txn: Txn): txn is EnvelopeTransfer {
-  return txn.type === 'envelopeTransfer';
-}
-
-/**
- * Used in CouchDB views, so be careful about what goes in here
- */
-export function touchesBank(txn: Txn): txn is BankTxn | AccountTransfer {
-  switch (txn.type) {
-    case 'banktxn': return true;
-    case 'accountTransfer': return true;
-    case 'envelopeTransfer': return false;
-    default:
-      const n: never = txn;
-      return n;
-  }
-}
-
-export function hasCategories(txn: Txn): txn is BankTxn | EnvelopeTransfer {
-  switch (txn.type) {
-    case 'banktxn': return true;
-    case 'envelopeTransfer': return true;
-    case 'accountTransfer': return false;
-    default:
-      const n: never = txn;
-      return n;
-  }
-}
-
-export const touchesAccount = curry((account: string, txn: Txn): boolean => {
-  if (isEnvelopeTxfr(txn)) return false;
-  if (isBankTxn(txn)) return txn.account === account;
-  return txn.from === account || txn.to === account;
-});
-
 export function penniesToDollars(pennies: Pennies): Dollars {
   return pennies / 100 as Dollars;
-}
-
-export function dollarsToPennies(dollars: Dollars): Pennies {
-  return Math.round(dollars * 100) as Pennies;
-}
-
-export function idForCategoryName(name: string) {
-  return `category-${name}`;
-}
-
-export function idForAccountName(name: string) {
-  return `account-${name}`;
-}
-
-export function idForBankTxn(date: Date, payee: string): string {
-  return ['txn', date.toISOString(), 'banktxn', payee, shortid.generate()].join('/');
-}
-
-export function idForEnvelopeTransfer(date: Date): string {
-  return ['txn', date, 'envelopeTransfer', shortid.generate()].join('/');
 }

@@ -16,7 +16,7 @@ export interface TxnData {
   to: BucketAmount[];
 }
 
-interface TxnPOJO {
+export interface TxnPOJO {
   _id: string;
   amount: number;
   date: string;
@@ -49,12 +49,10 @@ export default abstract class Transaction<T extends TxnData> {
 
   public abstract export(): TxnExport;
 
-  public abstract toPOJO(): any;
-  /*
   public toPOJO(): TxnPOJO {
     const pojo = {
       _id: this.id,
-      amount: this.amount,
+      amount: this.amount.pennies,
       date: this.date.toJSON(),
       memo: this.memo,
       from: this.from.toPOJO(),
@@ -65,7 +63,6 @@ export default abstract class Transaction<T extends TxnData> {
 
     return this.pojoExtra(pojo);
   }
-  */
 
   public addTo(event: BucketAmount) {
     this._to.push(event);
@@ -83,6 +80,10 @@ export default abstract class Transaction<T extends TxnData> {
       ...this.errorsExtra(),
     ].filter(utils.isString);
     return errors.length > 0 ? errors : null;
+  }
+
+  get getFromName() {
+    return this.from.name;
   }
 
   public setFromByName(candidates: MoneyBucket[], name: string) {

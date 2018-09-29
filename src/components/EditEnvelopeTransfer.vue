@@ -73,6 +73,9 @@ import Vue from 'vue';
 import Amount from '@/lib/Amount';
 import BucketAmount from '@/lib/BucketAmount';
 import EnvelopeTransfer from '@/lib/EnvelopeTransfer';
+import { TxnPOJO } from '@/lib/Transaction';
+import transactionFactory from '@/lib/TransactionFactory';
+import {Empty} from '@/lib/TransactionFactory';
 import * as Txns from '@/lib/txns';
 import CategorySelector from './CategorySelector.vue';
 
@@ -81,9 +84,9 @@ export default Vue.extend({
   components: { CategorySelector },
   data() {
     return {
-      model: (this.txn as Monet.Maybe<Txns.EnvelopeTransfer>).
-        map((txn) => EnvelopeTransfer.POJO(txn)).
-        orSome(EnvelopeTransfer.Empty()),
+      model: (this.txn as Monet.Maybe<TxnPOJO>).
+        map((txn) => transactionFactory(txn)).
+        orSome(Empty('envelopeTransfer')),
     };
   },
 

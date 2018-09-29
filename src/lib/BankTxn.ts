@@ -1,29 +1,11 @@
 import BucketAmount from './BucketAmount';
 import BucketReference from './BucketReference';
 import Transaction from './Transaction';
-import {TxnData} from './Transaction';
-import {BankTxn as ClassicBankTxn} from './txns';
-import * as Txns from './txns';
+import {TxnData, TxnPOJO} from './Transaction';
 import {TxnExport} from './types';
 import * as utils from './utils';
 
 export default class BankTxn extends Transaction<TxnData & {payee: string}> {
-  public static POJO(txn: ClassicBankTxn) {
-    return new BankTxn({
-      _id: txn._id,
-      memo: txn.memo,
-      payee: txn.payee,
-      date: new Date(txn.date),
-      to: txn.categories.map((category) =>
-        BucketAmount.POJO({
-          amount: category.amount,
-          bucketRef: {id: category.id, name: category.name, type: 'category'},
-        }),
-      ),
-      from: BucketReference.POJO({name: txn.account, id: txn.accountId, type: 'account'}),
-    });
-  }
-
   public static Empty() {
     return new BankTxn({
       _id: null,
@@ -38,22 +20,6 @@ export default class BankTxn extends Transaction<TxnData & {payee: string}> {
   public payee: string = this.payee || '';
 
   protected type = 'banktxn';
-
-  public toPOJO(): ClassicBankTxn {
-    return {
-      _id: this.id,
-      date: this.date.toJSON(),
-      amount: this.amount.pennies as Txns.Pennies,
-      payee: this.payee,
-      account: this.from.name,
-      accountId: this.from.id,
-      memo: this.memo,
-      categories: this._to.map((category) =>
-        ({id: category.bucketId, name: category.bucketName, amount: category.amount.pennies as Txns.Pennies}),
-      ),
-      type: 'banktxn',
-    };
-  }
 
   public export(): TxnExport {
     return {
@@ -72,6 +38,10 @@ export default class BankTxn extends Transaction<TxnData & {payee: string}> {
 
   protected postConstructor(data: TxnData & {payee: string}) {
     this.payee = data.payee;
+  }
+
+  protected pojoExtra(pojo: TxnPOJO) {
+    return {...pojo, payee: this.payee};
   }
 
   get getFromName() {

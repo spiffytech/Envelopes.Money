@@ -72,6 +72,9 @@ import * as Monet from 'monet';
 import Vue from 'vue';
 
 import AccountTransfer from '@/lib/AccountTransfer';
+import { TxnPOJO } from '@/lib/Transaction';
+import transactionFactory from '@/lib/TransactionFactory';
+import {Empty} from '@/lib/TransactionFactory';
 import * as Txns from '@/lib/txns';
 
 import AccountSelector from './AccountSelector.vue';
@@ -81,9 +84,9 @@ export default Vue.extend({
   components: {AccountSelector},
   data() {
     return {
-      model: (this.txn as Monet.Maybe<Txns.AccountTransfer>).
-        map((txn) => AccountTransfer.POJO(txn)).
-        orSome(AccountTransfer.Empty()),
+      model: (this.txn as Monet.Maybe<TxnPOJO>).
+        map((txn) => transactionFactory(txn)).
+        orSome(Empty('accountTransfer')),
     };
   },
 

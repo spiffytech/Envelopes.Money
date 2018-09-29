@@ -87,13 +87,17 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 import Amount from '@/lib/Amount';
 import BankTxn from '@/lib/BankTxn';
 import BucketAmount from '@/lib/BucketAmount';
+import Transaction from '@/lib/Transaction';
+import { TxnData, TxnPOJO } from '@/lib/Transaction';
+import transactionFactory from '@/lib/TransactionFactory';
+import {Empty} from '@/lib/TransactionFactory';
 import * as Txns from '@/lib/txns';
 import AccountSelector from './AccountSelector.vue';
 
 @Component({ components: { AccountSelector } })
 export default class EditBankTxn extends Vue {
   @Prop({ type: Object })
-  public txn!: Monet.Maybe<Txns.BankTxn>;
+  public txn!: Monet.Maybe<TxnPOJO>;
 
   @Prop({ type: Array })
   public accounts!: Txns.Account[];
@@ -102,12 +106,12 @@ export default class EditBankTxn extends Vue {
   public categories!: Txns.Category[];
 
   @Prop({ type: Function })
-  public onSubmit!: (txn: BankTxn) => any;
+  public onSubmit!: (txn: Transaction<TxnData & {payee: string}>) => any;
 
   private model =
     this.txn.
-    map((txn) => BankTxn.POJO(txn)).
-    orSome(BankTxn.Empty());
+    map((txn) => transactionFactory(txn)).
+    orSome(Empty('banktxn'));
 
   public beforeDestroy() {
     this.$store.commit('clearFlash');

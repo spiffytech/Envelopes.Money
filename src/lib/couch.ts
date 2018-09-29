@@ -16,6 +16,7 @@ PouchDB.plugin(require('pouchdb-adapter-memory'));
 PouchDB.debug.disable();
 
 import Transaction from './Transaction';
+import {TxnPOJO} from './Transaction';
 import TransactionFactory from './TransactionFactory';
 import * as Txns from './txns';
 
@@ -177,7 +178,7 @@ function isTxn<T>(txn: T | undefined): txn is T {
 }
 
 export async function getTxns(db: PouchDB.Database, limit: number): Promise<Array<Transaction<any>>> {
-  const rows = await db.allDocs<Txns.Txn>({
+  const rows = await db.allDocs<TxnPOJO>({
     startkey: 'txn/\uffff',
     endkey: 'txn/',
     include_docs: true,

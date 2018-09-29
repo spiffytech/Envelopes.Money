@@ -75,7 +75,7 @@ export function parseCategories(row: GoodBudgetRow): Txns.EnvelopeEvent[] {
  * import double transfers (or transfers with no payees) if we imported as-is
  */
 function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow | GoodBudgetTxfr> {
-  const newRows: GoodBudgetRow[] = [];
+  const newRows: Array<GoodBudgetRow & {txfrId: string}> = [];
   const txfrs: {[key: string]: GoodBudgetRow[]} = {};
   gbRows.forEach((row: any) => {
     /* tslint:disable-next-line:curly */
@@ -87,23 +87,50 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
     return;
   });
 
-  Object.values(txfrs).forEach((txfrRows: any[]) => {
-    while (txfrRows.length > 0) {
+  Object.entries(txfrs).forEach(([k, txfrRows]: [string, GoodBudgetRow[]]) => {
+    if (txfrRows.length === 1) {  // An account transfer for setting up a new account has no corresponding Row
+      const to = txfrRows[0];
+      console.log('New account', k, txfrRows, (-amountOfStr(to!.Amount) / 100).toFixed(2));
+      const fakeRow: GoodBudgetRow = {
+        ...to!,
+        Amount: (-amountOfStr(to!.Amount) / 100).toFixed(2),
+        Account: '[Equity]',
+      };
+      txfrRows.push(fakeRow);
+    }
+
+    while (txfrRows.length > 0) {  // Covers multiple transfers in a single day
       const txfrId = shortid.generate();
       const from = txfrRows.find((row) => parseFloat(row.Amount) < 0);
       const to = txfrRows.find((row) => parseFloat(row.Amount) > 0);
 
-      // Remove the items from the array
-      txfrRows.splice(txfrRows.indexOf(from), 1);
-      txfrRows.splice(txfrRows.indexOf(to), 1);
+      if (to!.Amount === '5,975.55') console.log('potatoes');
 
+      // Remove the items from the array
+      txfrRows.splice(txfrRows.indexOf(from!), 1);
+      txfrRows.splice(txfrRows.indexOf(to!), 1);
+
+      if (to!.Amount === '5,975.55') console.log({
+        ...from!,
+        Name: to!.Account || to!.Envelope,
+        Account: from!.Account || from!.Envelope,
+        // If we set Account it breaks detecting that this was an envelope transfer
+        Notes: type_ === 'envelopeTransfer' ? 'Envelope Transfer' : from!.Notes,
+      });
+      if (to!.Amount === '5,975.55') console.log(typeForRow({
+        ...from!,
+        Name: to!.Account || to!.Envelope,
+        Account: from!.Account || from!.Envelope,
+        // If we set Account it breaks detecting that this was an envelope transfer
+        Notes: type_ === 'envelopeTransfer' ? 'Envelope Transfer' : from!.Notes,
+      }));
       newRows.push({
-        ...from,
-        Name: to.Account || to.Envelope,
-        Account: from.Account || from.Envelope,
+        ...from!,
+        Name: to!.Account || to!.Envelope,
+        Account: from!.Account || from!.Envelope,
         txfrId,
         // If we set Account it breaks detecting that this was an envelope transfer
-        Notes: type_ === 'envelopeTransfer' ? 'Envelope Transfer' : from.Notes,
+        Notes: type_ === 'envelopeTransfer' ? 'Envelope Transfer' : from!.Notes,
       });
     }
   });
@@ -114,7 +141,9 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
 function rowIsAccountTransfer(row: GoodBudgetRow) {
   return (
     row.Notes === 'Account Transfer' ||
-    (row.Details === '' && row.Envelope === '')
+    (row.Details === '' && row.Envelope === '') ||
+    (row.Name === '' && row.Envelope === '[Unallocated]') ||  // Setting up a new bank account
+    row.Account === '[Equity]'
   );
 }
 
@@ -184,6 +213,14 @@ export function rowToTxn(
   const errors = txn.errors();
   if (errors) console.log(JSON.stringify({errors, txn: txn.toPOJO(), row}, null, 4));
 
+  if (row.Amount === '5,975.55') {
+    console.log('This is the row')
+    console.log(typeForRow(row))
+    console.log(row);
+    console.log(txn.toPOJO());
+    console.log('------');
+  }
+
   return txn;
 }
 
@@ -244,7 +281,6 @@ async function main() {
 
   const rows = await readCsv(nconf.get('file'));
 
-
   const mergedAccountTxfrs =
     mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]'), 'accountTransfer');
   const mergedEnvelopeTxfrs =
@@ -254,25 +290,40 @@ async function main() {
     if (row.Envelope === '[Unallocated]' && row.Name === '') {
       console.log('Found', row);
     }
-  })
+  });
+
+  console.log('=====')
+  console.log(mergedEnvelopeTxfrs.filter((row) => row.Account === 'Money Market'));
+  console.log('=====')
 
   const {accounts, accountIds} = await discoverAccounts(mergedEnvelopeTxfrs);
   const {categories, categoryIds} = await discoverCategories(mergedEnvelopeTxfrs);
   console.log(accountIds, categoryIds);
-
-  await Promise.all(categories.map((category) => Couch.upsertCategory(remote, category.toPOJO())));
-  await Promise.all(accounts.map((account) => Couch.upsertAccount(remote, account)));
 
   const txns: Array<Transaction<any>> =
   mergedEnvelopeTxfrs.
     filter((row) => row.Account !== '[none]').  // It's a fill
     map((row) => rowToTxn(row, accountIds, categoryIds));
 
+  console.log('~~~~~~~~')
+  console.log(
+    txns.
+    filter(
+      (txn) => txn.from.name === 'Money Market' ||
+      txn.to.filter((to) => to.bucketName === 'Money Market').length > 0,
+    ).
+    map((txn) => txn.amount)
+  )
+  console.log('~~~~~~~~')
+
   const txnErrors = txns.map((txn) => txn.errors()).filter((errors) => errors);
   if (txnErrors.length > 0) {
     console.log('Txns had errors');
     process.exit(1);
   }
+
+  await Promise.all(categories.map((category) => Couch.upsertCategory(remote, category.toPOJO())));
+  await Promise.all(accounts.map((account) => Couch.upsertAccount(remote, account)));
 
   if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
   try {

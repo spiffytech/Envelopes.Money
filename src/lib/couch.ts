@@ -223,13 +223,17 @@ export const designDocs: {[key: string]: DesignDoc} = {
     views: {
       balances: {
         map: function(doc: any) {
-          if (doc.type === 'banktxn') {
-            emit(doc.account, doc.amount);
-            return;
-          } else if (doc.type === 'accountTransfer') {
-            emit(doc.from, doc.amount);
-            emit(doc.to, -doc.amount);
-            return;
+          if (doc.type === 'accountTransfer' || doc.type === 'envelopeTransfer' || doc.type === 'banktxn') {
+            if (doc.from.type === 'account') {
+              emit(doc.from.name, doc.amount);
+            }
+            for (var to in doc.to) {
+              if (doc.to.hasOwnProperty(to)) {
+                if (doc.to[to].bucketRef.type === 'account') {
+                  emit(doc.to[to].bucketRef.name, doc.to[to].amount);
+                }
+              }
+            }
           }
         }.toString(),
         reduce: '_sum',
@@ -242,21 +246,18 @@ export const designDocs: {[key: string]: DesignDoc} = {
     version: new Date().getTime(),
     views: {
       balances: {
-        map: function(doc: Txns.Txn) {
-          if (doc.type === 'banktxn') {
-            for (var category in doc.categories) {
-              if (doc.categories.hasOwnProperty(category)) {
-                emit(doc.categories[category].name, doc.categories[category].amount);
+        map: function(doc: TxnPOJO) {
+          if (doc.type === 'accountTransfer' || doc.type === 'envelopeTransfer' || doc.type === 'banktxn') {
+            if (doc.from.type === 'category') {
+              emit(doc.from.name, doc.amount);
+            }
+            for (var to in doc.to) {
+              if (doc.to.hasOwnProperty(to)) {
+                if (doc.to[to].bucketRef.type === 'category') {
+                  emit(doc.to[to].bucketRef.name, doc.to[to].amount);
+                }
               }
             }
-          } else if (doc.type === 'envelopeTransfer') {
-            emit(doc.from.name, doc.amount);
-            for (var event in doc.to) {
-              if (doc.to.hasOwnProperty(event)) {
-                emit(doc.to[event].name, doc.to[event].amount);
-              }
-            }
-            return;
           }
         }.toString(),
         reduce: '_sum',

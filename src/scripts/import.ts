@@ -13,7 +13,9 @@ import * as Couch from '../lib/couch';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 
+import Amount from '../lib/Amount';
 import {POJO as BucketAmountPOJO} from '../lib/BucketAmount';
+import Category from '../lib/Category';
 import Transaction from '../lib/Transaction';
 import TransactionFactory from '../lib/TransactionFactory';
 import * as Types from '../lib/types';
@@ -95,7 +97,14 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
       txfrRows.splice(txfrRows.indexOf(from), 1);
       txfrRows.splice(txfrRows.indexOf(to), 1);
 
-      newRows.push({...from, Name: to.Account || to.Envelope, Account: from.Account || from.Envelope, txfrId});
+      newRows.push({
+        ...from,
+        Name: to.Account || to.Envelope,
+        Account: from.Account || from.Envelope,
+        txfrId,
+        // If we set Account it breaks detecting that this was an envelope transfer
+        Notes: type_ === 'envelopeTransfer' ? 'Envelope Transfer' : from.Notes,
+      });
     }
   });
 
@@ -123,6 +132,8 @@ export function typeForRow(row: GoodBudgetRow) {
 
 export function rowToTxn(
   row: GoodBudgetRow,
+  accountIds: {[key: string]: string},
+  categoryIds: {[key: string]: string},
 ): Transaction<any> {
   const type = typeForRow(row);
   const toType = ({
@@ -131,54 +142,84 @@ export function rowToTxn(
     banktxn: 'category',
   } as {[key: string]: Types.BucketTypes})[type];
 
+  const ids = {account: accountIds, category: categoryIds};
+
   const to: BucketAmountPOJO[] =
     type === 'banktxn' ?
     parseCategories(row).map((category) =>
-      ({amount: category.amount as number, bucketRef: {name: category.name, id: category.id, type: toType}}),
+      ({
+        amount: -category.amount as number,
+        bucketRef: {name: category.name, id: ids[toType][category.name], type: toType},
+      }),
     ) :
-    [{amount: amountOfStr(row.Amount) as number, bucketRef: {name: row.Name, id: '', type: toType}}];
+    [{
+      amount: -amountOfStr(row.Amount) as number,
+      bucketRef: {name: row.Name, id: ids[toType][row.Name], type: toType},
+    }];
 
-  return TransactionFactory({
+  const fromType = type === 'envelopeTransfer' ? 'category' : 'account';
+
+  const txn = TransactionFactory({
     _id: '',
     date: new Date(row.Date).toJSON(),
     amount: amountOfStr(row.Amount),
     memo: row.Notes,
-    from: {name: row.Account, id: '', type: type === 'envelopeTransfer' ? 'category' : 'account'},
+    from: {
+      name: row.Account,
+      id: ids[fromType][row.Account],
+      type: type === 'envelopeTransfer' ? 'category' : 'account',
+    },
     to,
     payee: row.Name,
     type,
     extra: {},
   });
+
+  if (txn.amount.pennies !== amountOfStr(row.Amount)) {
+    console.log(JSON.stringify(row, null, 4));
+    console.log(JSON.stringify(txn.toPOJO(), null, 4));
+    throw new Error('Txn amonut didn\'t match row amount');
+  }
+
+  const errors = txn.errors();
+  if (errors) console.log(JSON.stringify({errors, txn: txn.toPOJO(), row}, null, 4));
+
+  return txn;
 }
 
-async function discoverCategories(db: PouchDB.Database, txns: Txns.Txn[]) {
-  const categorieNames =
-    R.uniq(
-      R.flatten<Txns.TxnItem>(
-        txns.filter(Txns.hasCategories).
-        map(Txns.categoriesForTxn),
-      ).
-      map(({account}) => account),
-    );
+async function discoverCategories(rows: GoodBudgetRow[]) {
+  const categoryNames: string[] = R.uniq(_.flatten(rows.map((row) => {
+    const type = typeForRow(row);
+    if (type === 'accountTransfer') return [];
+    if (type === 'banktxn') return parseCategories(row).map((category) => category.name);
+    if (type === 'envelopeTransfer') return [row.Account, row.Name];
+    throw new Error('Invalid row type');
+  })));
 
-  const categories: Txns.Category[] = categorieNames.map((category) =>
-    ({name: category,
+  const categories: Category[] = categoryNames.map((category) =>
+    Category.POJO({
+      name: category,
       target: 0 as Txns.Pennies,
       interval: 'weekly' as 'weekly',
       type: 'category' as 'category',
       _id: ['category', shortid.generate()].join('/'),
-    }),
+    }, Amount.Pennies(0)),
   );
 
-  await Promise.all(categories.map((category) => Couch.upsertCategory(db, category)));
-  return R.fromPairs(categories.map((category) => [category.name, category._id] as [string, string]));
+  return {
+    categories,
+    categoryIds: R.fromPairs(categories.map((category) => [category.name, category.id] as [string, string])),
+  };
 }
 
-async function discoverAccounts(db: PouchDB.Database, txns: Txns.Txn[]) {
-  const accountNames = R.uniq(
-    Txns.journalToLedger(txns).
-    map((item: Txns.TxnItem) => item.account),
-  );
+async function discoverAccounts(rows: GoodBudgetRow[]) {
+  const accountNames: string[] = R.uniq(_.flatten(rows.map((row) => {
+    const type = typeForRow(row);
+    if (type === 'accountTransfer') return [row.Name, row.Account];
+    if (type === 'banktxn') return [row.Name];
+    if (type === 'envelopeTransfer') return [];
+    throw new Error('Invalid row type');
+  })));
 
   const accounts: Txns.Account[] = accountNames.map((account) =>
     ({
@@ -188,35 +229,58 @@ async function discoverAccounts(db: PouchDB.Database, txns: Txns.Txn[]) {
     }),
   );
 
-  await Promise.all(accounts.map((account) => Couch.upsertAccount(db, account)));
-  return R.fromPairs(accounts.map((account) => [account.name, account._id] as [string, string]));
+  return {
+    accounts,
+    accountIds: R.fromPairs(accounts.map((account) => [account.name, account._id] as [string, string])),
+  };
 }
 
 async function main() {
   // Putting this here so the unit tests don't require these values
   nconf.required(['file']);
 
-  const rows = await readCsv(nconf.get('file'));
-  const mergedAccountTxfrs =
-    mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]'), 'accountTransfer');
-  const txns: Array<Transaction<any>> =
-    mergeAccountTransfers(mergedAccountTxfrs.filter((row: any) => row.Account !== '[none]'), 'envelopeTransfer').
-    filter((row) => row.Account !== '[none]').  // It's a fill
-    map((row) => rowToTxn(row));
-
   if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
   const remote = Couch.mkRemoteDB(process.env.COUCH_USER, process.env.COUCH_PASS);
-  try {
-    /*
-    const accountIds = await discoverAccounts(remote, txns);
-    const categoryIds = await discoverCategories(remote, txns);
-    */
 
-    const chunks = _.chunk(txns.map((txn) => txn.toPOJO()), 500);
-    for (const chunk of chunks) {
-      // await Couch.bulkImport(remote, chunk);
+  const rows = await readCsv(nconf.get('file'));
+
+
+  const mergedAccountTxfrs =
+    mergeAccountTransfers(rows.filter((row: any) => row.Account !== '[none]'), 'accountTransfer');
+  const mergedEnvelopeTxfrs =
+    mergeAccountTransfers(mergedAccountTxfrs.filter((row: any) => row.Account !== '[none]'), 'envelopeTransfer');
+
+  mergedEnvelopeTxfrs.forEach((row) => {
+    if (row.Envelope === '[Unallocated]' && row.Name === '') {
+      console.log('Found', row);
     }
-    console.log(JSON.stringify(chunks[0], null, 4));
+  })
+
+  const {accounts, accountIds} = await discoverAccounts(mergedEnvelopeTxfrs);
+  const {categories, categoryIds} = await discoverCategories(mergedEnvelopeTxfrs);
+  console.log(accountIds, categoryIds);
+
+  await Promise.all(categories.map((category) => Couch.upsertCategory(remote, category.toPOJO())));
+  await Promise.all(accounts.map((account) => Couch.upsertAccount(remote, account)));
+
+  const txns: Array<Transaction<any>> =
+  mergedEnvelopeTxfrs.
+    filter((row) => row.Account !== '[none]').  // It's a fill
+    map((row) => rowToTxn(row, accountIds, categoryIds));
+
+  const txnErrors = txns.map((txn) => txn.errors()).filter((errors) => errors);
+  if (txnErrors.length > 0) {
+    console.log('Txns had errors');
+    process.exit(1);
+  }
+
+  if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
+  try {
+    const chunks = _.chunk(txns, 500);
+    for (const chunk of chunks) {
+      await Couch.bulkImport(remote, chunk);
+    }
+    // console.log(JSON.stringify(chunks[0], null, 4));
   } catch (ex) {
     console.log('error');
     console.error(ex);

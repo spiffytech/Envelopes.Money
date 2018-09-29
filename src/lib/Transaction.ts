@@ -140,7 +140,7 @@ export default abstract class Transaction<T extends TxnData> {
 
   get amount() {
     return Amount.Pennies(
-      this._to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0),
+      -1 * this._to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0),
     );
   }
 }

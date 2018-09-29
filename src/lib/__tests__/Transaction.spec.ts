@@ -12,8 +12,8 @@ const POJO: TxnPOJO & {payee: string} = {
   memo: '',
   amount: -500,
   to: [
-    {amount: -200, bucketRef: {name: 'Groceries', id: 'defg', type: 'category'}},
-    {amount: -300, bucketRef: {name: 'Home Supplies', id: 'hijk', type: 'category'}},
+    {amount: 200, bucketRef: {name: 'Groceries', id: 'defg', type: 'category'}},
+    {amount: 300, bucketRef: {name: 'Home Supplies', id: 'hijk', type: 'category'}},
   ],
   type: 'banktxn',
   extra: {},
@@ -37,11 +37,11 @@ describe('Getters/setters', () => {
     expect(txn.amount.pennies).toBe(-500);
   });
 
-  it('Categories total to the same as "amount"', () => {
+  it('Total amount and "to" sum to zero', () => {
     const txn = transactionFactory(POJO);
-    expect(
-      txn.to.map((category) => category.amount.pennies).reduce((a, b) => a + b, 0),
-    ).toBe(txn.amount.pennies);
+    const amount = txn.amount.pennies;
+    const toAmount = txn.to.map((to) => to.amount.pennies).reduce((a, b) => a + b, 0);
+    expect(amount + toAmount).toBe(0);
   });
 });
 

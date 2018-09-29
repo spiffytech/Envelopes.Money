@@ -20,6 +20,7 @@ export function formatDate(date: string | Date): string {
 }
 
 export function activeDB(state: StoreTypes.RootState & {couch: StoreTypes.CouchState}) {
+  if (state.couch.couch) return state.couch.couch;
   // if (state.couch.inSync || !state.couch.canTalkToRemote || !state.isOnline || !state.couch.couch) {
   if (!state.couch.canTalkToRemote || !state.isOnline || !state.couch.couch) {
     console.log('Using local DB');

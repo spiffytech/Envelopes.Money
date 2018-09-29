@@ -8,7 +8,6 @@ import * as R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register';
 
-// import {Category, discoverCategories} from '../lib/categories';
 import * as Couch from '../lib/couch';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
@@ -229,7 +228,7 @@ async function discoverAccounts(rows: GoodBudgetRow[]) {
   const accountNames: string[] = R.uniq(_.flatten(rows.map((row) => {
     const type = typeForRow(row);
     if (type === 'accountTransfer') return [row.Name, row.Account];
-    if (type === 'banktxn') return [row.Name];
+    if (type === 'banktxn') return [row.Account];
     if (type === 'envelopeTransfer') return [];
     throw new Error('Invalid row type');
   })));
@@ -270,7 +269,8 @@ async function main() {
 
   const {accounts, accountIds} = await discoverAccounts(mergedEnvelopeTxfrs);
   const {categories, categoryIds} = await discoverCategories(mergedEnvelopeTxfrs);
-  console.log(accountIds, categoryIds);
+  console.log('accounts', accountIds);
+  console.log('categories', categoryIds);
 
   const txns: Array<Transaction<any>> =
   mergedEnvelopeTxfrs.

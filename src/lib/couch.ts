@@ -253,12 +253,12 @@ export const designDocs: {[key: string]: DesignDoc} = {
         map: function(doc: TxnPOJO) {
           if (doc.type === 'accountTransfer' || doc.type === 'envelopeTransfer' || doc.type === 'banktxn') {
             if (doc.from.type === 'category') {
-              emit(doc.from.name, doc.amount);
+              emit(doc.from.name, -doc.amount);
             }
             for (var to in doc.to) {
               if (doc.to.hasOwnProperty(to)) {
                 if (doc.to[to].bucketRef.type === 'category') {
-                  emit(doc.to[to].bucketRef.name, doc.to[to].amount);
+                  emit(doc.to[to].bucketRef.name, -doc.to[to].amount);
                 }
               }
             }

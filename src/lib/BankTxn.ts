@@ -5,18 +5,7 @@ import {TxnData, TxnPOJO} from './Transaction';
 import {TxnExport} from './types';
 import * as utils from './utils';
 
-export default class BankTxn extends Transaction<TxnData & {payee: string}> {
-  public static Empty() {
-    return new BankTxn({
-      _id: null,
-      date: new Date(),
-      memo: '',
-      payee: '',
-      from: BucketReference.Empty('account'),
-      to: [],
-    });
-  }
-
+export default class BankTxn extends Transaction<{payee: string}> {
   public payee: string = this.payee || '';
 
   protected type = 'banktxn';
@@ -36,12 +25,12 @@ export default class BankTxn extends Transaction<TxnData & {payee: string}> {
     return [!this.payee && 'Payee must be filled in'].filter(utils.isString);
   }
 
-  protected postConstructor(data: TxnData & {payee: string}) {
-    this.payee = data.payee;
+  protected postConstructor(data: TxnData<{payee: string}>) {
+    this.payee = data.extra.payee;
   }
 
-  protected pojoExtra(pojo: TxnPOJO) {
-    return {...pojo, payee: this.payee};
+  protected extraPOJO() {
+    return {payee: this.payee};
   }
 
   get getFromName() {

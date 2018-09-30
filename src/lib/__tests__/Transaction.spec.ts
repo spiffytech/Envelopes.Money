@@ -2,11 +2,11 @@ import Amount from '../Amount';
 import BankTxn from '../BankTxn';
 import {TxnPOJO} from '../Transaction';
 import transactionFactory from '../TransactionFactory';
+import {Empty} from '../TransactionFactory';
 import * as Types from '../types';
 
-const POJO: TxnPOJO & {payee: string} = {
+const POJO: TxnPOJO = {
   _id: 'aBogusTxn',
-  payee: 'Target',
   from: {id: 'abcd', name: 'Checking', type: 'account'},
   date: '2018-09-15T23:59:59.000Z',
   memo: '',
@@ -16,7 +16,7 @@ const POJO: TxnPOJO & {payee: string} = {
     {amount: 300, bucketRef: {name: 'Home Supplies', id: 'hijk', type: 'category'}},
   ],
   type: 'banktxn',
-  extra: {},
+  extra: {payee: 'Target'},
 };
 
 it('Sets the payee', () => {
@@ -82,14 +82,14 @@ describe('Validation', () => {
   });
 
   it('Rejects the empty object', () => {
-    const txn = BankTxn.Empty();
+    const txn = Empty('banktxn');
     expect(txn.errors()!.length).toBeGreaterThan(0);
   });
 
   it('Rejects when payee is empty', () => {
     const txn = transactionFactory({
       ...POJO,
-      payee: '',
+      extra: {},
     });
     expect(txn.errors()).toEqual(['Payee must be filled in']);
   });

@@ -1,10 +1,7 @@
-import BucketAmount from './BucketAmount';
-import BucketReference from './BucketReference';
 import Transaction from './Transaction';
-import {TxnData} from './Transaction';
 import {TxnExport} from './types';
 
-export default class AccountTransfer extends Transaction<TxnData> {
+export default class AccountTransfer extends Transaction<any> {
   protected type = 'accountTransfer';
 
   public export(): TxnExport {

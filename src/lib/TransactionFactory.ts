@@ -18,11 +18,14 @@ export default function factory(txn: TxnPOJO | TxnPOJO & {payee: string}) {
         bucketRef: category.bucketRef,
       }),
     ),
+    extra: {},
   };
 
   if (txn.type === 'accountTransfer') return new AccountTransfer(txnData);
-  else if (txn.type === 'banktxn') return new BankTxn({...txnData, payee: (txn as any).payee});
-  else if (txn.type === 'envelopeTransfer') return new EnvelopeTransfer(txnData);
+  else if (txn.type === 'banktxn') {
+    const extra = {payee: txn.extra.payee};
+    return new BankTxn({...txnData, extra});
+  } else if (txn.type === 'envelopeTransfer') return new EnvelopeTransfer(txnData);
   else throw new Error(`Invalid txn type ${(txn as any).type}`);
 }
 
@@ -39,10 +42,11 @@ export function Empty(objType: 'accountTransfer' | 'envelopeTransfer' | 'banktxn
     memo: '',
     from: BucketReference.POJO({name: '', id: '', type: fromType}),
     to: [],
+    extra: {},
   };
 
   if (objType === 'accountTransfer') return new AccountTransfer(txnData);
-  else if (objType === 'banktxn') return new BankTxn({...txnData, payee: ''});
+  else if (objType === 'banktxn') return new BankTxn({...txnData, extra: {payee: ''}});
   else if (objType === 'envelopeTransfer') return new EnvelopeTransfer(txnData);
   else throw new Error(`Invalid txn type ${objType}`);
 }

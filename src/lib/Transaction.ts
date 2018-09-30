@@ -8,12 +8,13 @@ import {POJO as BucketReferencePOJO} from './BucketReference';
 import {MoneyBucket, TxnExport} from './types';
 import * as utils from './utils';
 
-export interface TxnData {
+export interface TxnData<T> {
   _id: string | null;
   date: Date;
   memo: string;
   from: BucketReference;
   to: BucketAmount[];
+  extra: T;
 }
 
 export interface TxnPOJO {
@@ -27,7 +28,7 @@ export interface TxnPOJO {
   extra: {[key: string]: any};
 }
 
-export default abstract class Transaction<T extends TxnData> {
+export default abstract class Transaction<T extends {}> {
   public date: Date;
   public memo: string;
   public from: BucketReference;
@@ -37,7 +38,7 @@ export default abstract class Transaction<T extends TxnData> {
   protected _id: string | null;
   protected _to: BucketAmount[];
 
-  constructor(data: T) {
+  constructor(data: TxnData<T>) {
     this._id = data._id;
     this.date = data.date;
     this.memo = data.memo;
@@ -50,7 +51,7 @@ export default abstract class Transaction<T extends TxnData> {
   public abstract export(): TxnExport;
 
   public toPOJO(): TxnPOJO {
-    const pojo = {
+    return {
       _id: this.id,
       amount: this.amount.pennies,
       date: this.date.toJSON(),
@@ -58,10 +59,8 @@ export default abstract class Transaction<T extends TxnData> {
       from: this.from.toPOJO(),
       to: this.to.map((to) => to.toPOJO()),
       type: this.type,
-      extra: {},
+      extra: this.extraPOJO(),
     };
-
-    return this.pojoExtra(pojo);
   }
 
   public addTo(event: BucketAmount) {
@@ -130,12 +129,12 @@ export default abstract class Transaction<T extends TxnData> {
     return this._to;
   }
 
-  protected postConstructor(_data: TxnData & T) {
+  protected postConstructor(_data: TxnData<T>) {
     return;
   }
 
-  protected pojoExtra(pojo: TxnPOJO): TxnPOJO {
-    return pojo;
+  protected extraPOJO(): T {
+    return {} as T;
   }
 
   get amount() {

@@ -182,9 +182,8 @@ export function rowToTxn(
       type: type === 'envelopeTransfer' ? 'category' : 'account',
     },
     to,
-    payee: row.Name,
     type,
-    extra: {},
+    extra: type === 'banktxn' ? {payee: row.Name} : {},
   });
 
   if (txn.amount.pennies !== amountOfStr(row.Amount)) {

@@ -106,7 +106,7 @@ export default class EditBankTxn extends Vue {
   public categories!: Txns.Category[];
 
   @Prop({ type: Function })
-  public onSubmit!: (txn: Transaction<TxnData & {payee: string}>) => any;
+  public onSubmit!: (txn: Transaction<{payee: string}>) => any;
 
   private model =
     this.txn.

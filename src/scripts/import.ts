@@ -93,7 +93,7 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
       const fakeRow: GoodBudgetRow = {
         ...to!,
         Amount: (-amountOfStr(to!.Amount) / 100).toFixed(2),
-        Account: '[Equity]',
+        Name: '[Equity]',
       };
       txfrRows.push(fakeRow);
     }
@@ -124,9 +124,7 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
 function rowIsAccountTransfer(row: GoodBudgetRow) {
   return (
     row.Notes === 'Account Transfer' ||
-    (row.Details === '' && row.Envelope === '') ||
-    (row.Name === '' && row.Envelope === '[Unallocated]') ||  // Setting up a new bank account
-    row.Account === '[Equity]'
+    (row.Details === '' && row.Envelope === '')
   );
 }
 
@@ -183,7 +181,7 @@ export function rowToTxn(
     },
     to,
     type,
-    extra: type === 'banktxn' ? {payee: row.Name} : {},
+    extra: type === 'banktxn' ? {payee: row.Name || '[Equity]'} : {},
   });
 
   if (txn.amount.pennies !== amountOfStr(row.Amount)) {

@@ -1,7 +1,5 @@
-import BucketAmount from './BucketAmount';
-import BucketReference from './BucketReference';
 import Transaction from './Transaction';
-import {TxnData, TxnPOJO} from './Transaction';
+import {TxnData} from './Transaction';
 import {TxnExport} from './types';
 import * as utils from './utils';
 
@@ -23,6 +21,10 @@ export default class BankTxn extends Transaction<{payee: string}> {
 
   protected errorsExtra() {
     return [!this.payee && 'Payee must be filled in'].filter(utils.isString);
+  }
+
+  protected exportExtra(data: TxnExport) {
+    return {...data, payee: this.payee};
   }
 
   protected postConstructor(data: TxnData<{payee: string}>) {

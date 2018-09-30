@@ -194,6 +194,7 @@ export default Vue.extend({
           e.to,
           e.memo,
           e.type,
+          (e as any).payee  // TODO: Need a better way to handle this. Export as JSON instead of CSV?
         ].join(',')).
         join('\n');
 

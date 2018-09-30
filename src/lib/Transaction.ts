@@ -48,8 +48,6 @@ export default abstract class Transaction<T extends {}> {
     this.postConstructor(data);
   }
 
-  public abstract export(): TxnExport;
-
   public toPOJO(): TxnPOJO {
     return {
       _id: this.id,
@@ -81,6 +79,17 @@ export default abstract class Transaction<T extends {}> {
     return errors.length > 0 ? errors : null;
   }
 
+  public export(): TxnExport {
+    return this.exportExtra({
+      date: this.date,
+      amount: this.amount,
+      from: this.from.name,
+      to: this.to.map((to) => to.bucketName).join('||'),
+      memo: this.memo,
+      type: this.type,
+    });
+  }
+
   get getFromName() {
     return this.from.name;
   }
@@ -108,6 +117,10 @@ export default abstract class Transaction<T extends {}> {
 
   protected errorsExtra(): string[] {
     return [];
+  }
+
+  protected exportExtra(data: TxnExport): TxnExport & T {
+    return data as TxnExport & T;
   }
 
   get dateString() {

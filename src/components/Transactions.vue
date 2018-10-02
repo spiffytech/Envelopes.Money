@@ -23,9 +23,7 @@
 
         <td>
           <span class="icon">
-            <i v-if="txn.type === 'banktxn'" class="fas fa-credit-card" title="Bank Transaction" />
-            <i v-if="txn.type === 'accountTransfer'" class="fas fa-exchange-alt" title="Account Transfer" />
-            <i v-if="txn.type === 'envelopeTransfer'" class="fas fa-envelope" title="Envelope Transfer" />
+            <i :class="{fas: true, [getTxnIcon(txn)]: true}" :title="getTxnLabel(txn)" />
           </span>
         </td>
 
@@ -200,6 +198,22 @@ export default Vue.extend({
 
       const blob = new Blob([csv], {type: 'text/csv'});
       saveAs(blob, 'transactions.csv');
+    },
+
+    getTxnIcon(txn: Transaction<any>): string {
+      return txn.withType((type) => ({
+        banktxn: 'fa-credit-card',
+        accountTransfer: 'fa-exchange-alt',
+        envelopeTransfer: 'fa-envelope',
+      }[type]))
+    },
+
+    getTxnLabel(txn: Transaction<any>): string {
+      return txn.withType((type) => ({
+        banktxn: 'Bank Transaction',
+        accountTransfer: 'Account Transfer',
+        envelopeTransfer: 'Envelope Transfer',
+      }[type]))
     },
   },
 });

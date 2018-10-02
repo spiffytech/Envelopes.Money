@@ -29,7 +29,7 @@ export default function factory(txn: TxnPOJO | TxnPOJO & {payee: string}) {
   else throw new Error(`Invalid txn type ${(txn as any).type}`);
 }
 
-export function Empty(objType: 'accountTransfer' | 'envelopeTransfer' | 'banktxn') {
+export function Empty(objType: Types.txnTypes) {
   const fromType = ({
     accountTransfer: 'account',
     banktxn: 'account',

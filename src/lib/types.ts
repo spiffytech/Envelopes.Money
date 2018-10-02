@@ -17,3 +17,5 @@ export interface MoneyBucket {
   amount: Amount;
   type: BucketTypes;
 }
+
+export type txnTypes = 'banktxn' | 'envelopeTransfer' | 'accountTransfer';

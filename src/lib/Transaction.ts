@@ -5,7 +5,7 @@ import BucketAmount from './BucketAmount';
 import {POJO as BucketAmountPOJO} from './BucketAmount';
 import BucketReference from './BucketReference';
 import {POJO as BucketReferencePOJO} from './BucketReference';
-import {MoneyBucket, TxnExport} from './types';
+import {MoneyBucket, TxnExport, txnTypes} from './types';
 import * as utils from './utils';
 
 export interface TxnData<T> {
@@ -33,7 +33,7 @@ export default abstract class Transaction<T extends {}> {
   public memo: string;
   public from: BucketReference;
 
-  protected abstract type: string;
+  protected abstract type: txnTypes;
 
   protected _id: string | null;
   protected _to: BucketAmount[];
@@ -109,12 +109,27 @@ export default abstract class Transaction<T extends {}> {
     );
   }
 
+  /**
+   * Removes entries in our 'to' property with a zero amount
+   */
   public removeZeroTo() {
     this._to = this._to.filter(
       ({amount}) => amount.pennies !== 0,
     );
   }
 
+  /**
+   * Use this when you want to perform some action based on this transaction's
+   * type, but in a queryless "tell don't ask" manner
+   * @param fn Receives the object's type and does something with it
+   */
+  public withType<U>(fn: (type: txnTypes) => U): U {
+    return fn(this.type);
+  }
+
+  /**
+   * For subclasses to return additional validation errors
+   */
   protected errorsExtra(): string[] {
     return [];
   }

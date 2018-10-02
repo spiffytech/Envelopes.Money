@@ -6,7 +6,7 @@ import * as utils from './utils';
 export default class BankTxn extends Transaction<{payee: string}> {
   public payee: string = this.payee || '';
 
-  protected type = 'banktxn';
+  protected type = 'banktxn' as 'banktxn';
 
   public export(): TxnExport {
     return {

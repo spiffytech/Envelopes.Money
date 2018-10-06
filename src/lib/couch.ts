@@ -251,7 +251,7 @@ export const designDocs: {[key: string]: DesignDoc} = {
     views: {
       balances: {
         map: function(doc: TxnPOJO) {
-          if (doc.type === 'accountTransfer' || doc.type === 'envelopeTransfer' || doc.type === 'banktxn') {
+          if (doc.subtype === 'accountTransfer' || doc.subtype === 'envelopeTransfer' || doc.subtype === 'banktxn') {
             if (doc.from.type === 'category') {
               emit(doc.from.name, -doc.amount);
             }

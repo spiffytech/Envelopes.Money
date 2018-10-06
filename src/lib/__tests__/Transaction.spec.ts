@@ -15,7 +15,8 @@ const POJO: TxnPOJO = {
     {amount: 200, bucketRef: {name: 'Groceries', id: 'defg', type: 'category'}},
     {amount: 300, bucketRef: {name: 'Home Supplies', id: 'hijk', type: 'category'}},
   ],
-  type: 'banktxn',
+  type: 'transaction',
+  subtype: 'banktxn',
   extra: {payee: 'Target'},
 };
 

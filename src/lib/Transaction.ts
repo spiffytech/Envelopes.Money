@@ -24,7 +24,8 @@ export interface TxnPOJO {
   memo: string;
   from: BucketReferencePOJO;
   to: BucketAmountPOJO[];
-  type: string;
+  type: 'transaction';
+  subtype: txnTypes;
   extra: {[key: string]: any};
 }
 
@@ -56,7 +57,8 @@ export default abstract class Transaction<T extends {}> {
       memo: this.memo,
       from: this.from.toPOJO(),
       to: this.to.map((to) => to.toPOJO()),
-      type: this.type,
+      type: 'transaction',
+      subtype: this.type,
       extra: this.extraPOJO(),
     };
   }

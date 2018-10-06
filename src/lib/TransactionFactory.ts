@@ -21,11 +21,9 @@ export default function factory(txn: TxnPOJO | TxnPOJO & {payee: string}) {
     extra: {},
   };
 
-  if (txn.type === 'accountTransfer') return new AccountTransfer(txnData);
-  else if (txn.type === 'banktxn') {
-    const extra = {payee: txn.extra.payee};
-    return new BankTxn({...txnData, extra});
-  } else if (txn.type === 'envelopeTransfer') return new EnvelopeTransfer(txnData);
+  if (txn.subtype === 'accountTransfer') return new AccountTransfer(txnData);
+  else if (txn.subtype === 'banktxn') return new BankTxn({...txnData, extra: {payee: txn.extra.payee}});
+  else if (txn.subtype === 'envelopeTransfer') return new EnvelopeTransfer(txnData);
   else throw new Error(`Invalid txn type ${(txn as any).type}`);
 }
 

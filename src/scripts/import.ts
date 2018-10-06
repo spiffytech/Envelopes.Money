@@ -180,7 +180,8 @@ export function rowToTxn(
       type: type === 'envelopeTransfer' ? 'category' : 'account',
     },
     to,
-    type,
+    type: 'transaction',
+    subtype: type,
     extra: type === 'banktxn' ? {payee: row.Name || '[Equity]'} : {},
   });
 

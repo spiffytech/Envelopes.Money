@@ -131,7 +131,7 @@ export default Vue.extend({
 
       const db = utils.activeDB(this.$store.state);
       const docs = await Couch.getTxns(db, this.visibleTxns);
-      setTxns(docs.filter((e) => e !== undefined))
+      setTxns(docs);
     },
 
     async fetchTxns() {

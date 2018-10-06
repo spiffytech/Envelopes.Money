@@ -113,7 +113,7 @@ export default Vue.extend({
       const db = utils.activeDB(this.$store.state);
       const txn = await db.get<TxnPOJO>(id);
       this.txn = Monet.Some(txn);
-      this.txnType = txn.type;
+      this.txnType = txn.subtype;
     },
 
     async deleteTransaction() {

@@ -224,22 +224,18 @@ export async function upsertDesignDoc(couch: PouchDB.Database, doc: DesignDoc) {
 export const designDocs: {[key: string]: DesignDoc} = {
   accounts: {
     _id: '_design/accounts',
-    version: new Date().getTime(),
+    version: 1,
     views: {
       balances: {
-        map: function(doc: any) {
-          if (doc.type === 'accountTransfer' || doc.type === 'envelopeTransfer' || doc.type === 'banktxn') {
+        map: function(doc: TxnPOJO) {
+          if (doc.type === 'transaction') {
             if (doc.from.type === 'account') {
-              if (doc.from.name !== '[Equity]') {
-                emit(doc.from.name, doc.amount);
-              }
+              emit(doc.from.name, doc.amount);
             }
             for (var to in doc.to) {
               if (doc.to.hasOwnProperty(to)) {
                 if (doc.to[to].bucketRef.type === 'account') {
-                  if (doc.to[to].bucketRef.name !== '[Equity]') {
-                    emit(doc.to[to].bucketRef.name, doc.to[to].amount);
-                  }
+                  emit(doc.to[to].bucketRef.name, doc.to[to].amount);
                 }
               }
             }
@@ -252,11 +248,11 @@ export const designDocs: {[key: string]: DesignDoc} = {
 
   categories: {
     _id: '_design/categories',
-    version: new Date().getTime(),
+    version: 1,
     views: {
       balances: {
         map: function(doc: TxnPOJO) {
-          if (doc.subtype === 'accountTransfer' || doc.subtype === 'envelopeTransfer' || doc.subtype === 'banktxn') {
+          if (doc.type === 'transaction') {
             if (doc.from.type === 'category') {
               emit(doc.from.name, -doc.amount);
             }

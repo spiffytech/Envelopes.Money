@@ -81,7 +81,6 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
-import * as Monet from 'monet';
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import Amount from '@/lib/Amount';
@@ -97,7 +96,7 @@ import AccountSelector from './AccountSelector.vue';
 @Component({ components: { AccountSelector } })
 export default class EditBankTxn extends Vue {
   @Prop({ type: Object })
-  public txn!: Monet.Maybe<TxnPOJO>;
+  public txn!: BankTxn;
 
   @Prop({ type: Array })
   public accounts!: Txns.Account[];
@@ -108,13 +107,14 @@ export default class EditBankTxn extends Vue {
   @Prop({ type: Function })
   public onSubmit!: (txn: Transaction<{payee: string}>) => any;
 
-  private model =
-    this.txn.
-    map((txn) => transactionFactory(txn)).
-    orSome(Empty('banktxn'));
+  private model = this.txn;
 
   public beforeDestroy() {
     this.$store.commit('clearFlash');
+  }
+
+  public updated() {
+    this.model = this.txn;
   }
 
   public addCategory() {

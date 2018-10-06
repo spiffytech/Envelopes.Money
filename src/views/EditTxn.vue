@@ -7,7 +7,7 @@
     </a>
 
     <div class="select">
-      <select v-model="txnType" :disabled="!isNewTxn">
+      <select :value="txnType" @change="(e) => setTxnType(event.target.value)" :disabled="!isNewTxn">
         <option
           v-for="option in txnTypeSelect"
           :key="option.value"
@@ -45,7 +45,6 @@
 
 <script lang="ts">
 /* tslint:disable:no-console */
-import * as Monet from 'monet';
 import Vue from 'vue';
 
 import EditAccountTransfer from '@/components/EditAccountTransfer.vue';
@@ -54,6 +53,7 @@ import EditEnvelopeTransfer from '@/components/EditEnvelopeTransfer.vue';
 import * as Couch from '@/lib/couch';
 import * as Txns from '@/lib/txns';
 import Transaction, { TxnPOJO } from '@/lib/Transaction';
+import {Empty} from '@/lib/TransactionFactory';
 import * as Types from '@/lib/types';
 import * as utils from '@/lib/utils';
 
@@ -63,12 +63,15 @@ export default Vue.extend({
   data() {
     return {
       txns: this.$store.state.txns.txns,
-      txn: Monet.None() as Monet.Maybe<TxnPOJO>,
-      txnType: null as null | string,
+      txn: Empty('banktxn') as Transaction<any>,
     };
   },
 
   computed: {
+    txnType(): string {
+      return this.txn.withType((type) => type);
+    },
+
     existingTxnId(): string | undefined {
       return this.$route.params.txnId;
     },
@@ -98,6 +101,10 @@ export default Vue.extend({
   },
 
   methods: {
+    setTxnType(type: Types.txnTypes) {
+      this.txn = Empty(type);
+    },
+
     async onSubmit(txn: Transaction<any>) {
       if (txn.errors()) {
         return this.$store.commit('setFlash', {
@@ -111,24 +118,23 @@ export default Vue.extend({
 
     async loadExistingTxn(id: string) {
       const db = utils.activeDB(this.$store.state);
-      const txn = await db.get<TxnPOJO>(id);
-      this.txn = Monet.Some(txn);
-      this.txnType = txn.subtype;
+      try {
+        this.txn = await Couch.getTxn(db, id);
+      } catch (ex) {
+        console.log(ex);
+        this.txn = Empty('banktxn');
+      }
     },
 
     async deleteTransaction() {
       if (!this.txn) return;
-      this.txn.map(async (txn) => {
-        await utils.activeDB(this.$store.state).remove(txn as any);
-        this.$router.push({name: 'home'});
-      });
+      await utils.activeDB(this.$store.state).remove(this.txn.toPOJO() as any);
+      this.$router.push({name: 'home'});
     },
   },
 
-  async mounted() {
-    if (this.isNewTxn) {
-      this.txn = Monet.None();
-    } else {
+  async beforeMount() {
+    if (!this.isNewTxn) {
       await this.loadExistingTxn(this.existingTxnId!);
     }
   },

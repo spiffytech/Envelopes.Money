@@ -67,7 +67,6 @@
 </template>
 
 <script lang="ts">
-import * as Monet from 'monet';
 import Vue from 'vue';
 
 import Amount from '@/lib/Amount';
@@ -84,14 +83,16 @@ export default Vue.extend({
   components: { CategorySelector },
   data() {
     return {
-      model: (this.txn as Monet.Maybe<TxnPOJO>).
-        map((txn) => transactionFactory(txn)).
-        orSome(Empty('envelopeTransfer')),
+      model: this.txn,
     };
   },
 
   beforeDestroy() {
     this.$store.commit('clearFlash');
+  },
+
+  updated() {
+    this.model = this.txn;
   },
 
   methods: {

@@ -177,6 +177,11 @@ function isTxn<T>(txn: T | undefined): txn is T {
   return txn !== undefined;
 }
 
+export async function getTxn(db: PouchDB.Database, id: string): Promise<Transaction<any>> {
+  const txn = await db.get<TxnPOJO>(id);
+  return TransactionFactory(txn);
+}
+
 export async function getTxns(db: PouchDB.Database, limit: number): Promise<Array<Transaction<any>>> {
   const rows = await db.allDocs<TxnPOJO>({
     startkey: 'txn/\uffff',

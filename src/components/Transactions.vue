@@ -143,9 +143,7 @@ export default Vue.extend({
         live: true,
         include_docs: true,
         selector: {$or: [
-          {type: 'banktxn'},
-          {type: 'accountTransfer'},
-          {type: 'envelopeTransfer'},
+          {type: 'transaction'},
           {_deleted: true},
         ]},
       });

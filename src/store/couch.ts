@@ -127,6 +127,10 @@ const module: Module<Types.CouchState, Types.RootState> = {
           'active',
           () => commit('setReplicationActive', true),
         );
+        dbSync.on(
+          'active',
+          () => commit('setSyncing', true, {root: true}),
+        );
 
         commit('setReplicator', dbSync);
       } else {

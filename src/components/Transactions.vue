@@ -66,6 +66,7 @@
 /* tslint:disable:no-console */
 /* tslint:disable:no-var-requires */
 import debounce from 'lodash/debounce';
+import flatten from 'lodash/flatten';
 import {pipe, throttle} from 'lodash/fp';
 import {saveAs} from 'file-saver';
 import Vue from 'vue';
@@ -77,6 +78,8 @@ import transactionFactory from '@/lib/TransactionFactory';
 import * as utils from '@/lib/utils';
 
 export default Vue.extend({
+  props: ['search'],
+
   data() {
     return {
       txns: [] as Array<Transaction<any>>,
@@ -117,6 +120,43 @@ export default Vue.extend({
   },
 
   methods: {
+    _selectorForBucketRef(type: 'category' | 'account', name: string) {
+      return {
+        "$or": [
+          {"$and": [{"from.type": type}, {"from.name": name}]},
+          {
+            "to": {
+              "$elemMatch": {
+                "bucketRef.type": type,
+                "bucketRef.name": name
+              }
+            }
+          }
+        ]
+      };
+    },
+
+    searchToSelector(): Array<{[key: string]: any}> {
+      const search: string[] = (this.search || '').split();
+      return flatten(search.map((str) => {
+        const parts = str.split(':');
+        if (parts.length === 1) {
+          return [
+            this._selectorForBucketRef('category', parts[0]),
+            this._selectorForBucketRef('account', parts[0]),
+          ]
+        }
+
+        if (parts[0] === 'category' || parts[0] === 'account') {
+          return (
+            this._selectorForBucketRef(parts[0] as 'category' | 'account', parts[1])
+          )
+        }
+
+        return [];
+      }));
+    },
+
     rowClicked(txn: Transaction<any>) {
       this.$router.push({name: 'editTxn', params: {txnId: txn.id}});
     },
@@ -130,7 +170,7 @@ export default Vue.extend({
       const setTxns = (txns: Array<Transaction<any>>) => Vue.set(this, 'txns', txns);
 
       const db = utils.activeDB(this.$store.state);
-      const docs = await Couch.getTxns(db, this.visibleTxns);
+      const docs = await Couch.findTxns(db, {type: 'transaction'}, this.visibleTxns);
       setTxns(docs);
     },
 

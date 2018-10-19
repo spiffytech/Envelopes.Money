@@ -107,7 +107,7 @@ export function logOut(remote: PouchDB.Database) {
 export function syncDBs(
   local: PouchDB.Database, remote: PouchDB.Database, live = true,
 ): PouchDB.Replication.Sync<{}> {
-  return PouchDB.sync(local, remote, {live, retry: true, batch_size: 10000});
+  return PouchDB.sync(local, remote, {live, retry: true, batch_size: 1000});
 }
 
 export async function bulkImport(db: PouchDB.Database, txns: Array<Transaction<any>>) {
@@ -191,6 +191,15 @@ export async function getTxns(db: PouchDB.Database, limit: number): Promise<Arra
     descending: true,
   });
   return rows.rows.map((row) => row.doc).filter(isTxn).map((txn) => TransactionFactory(txn));
+}
+
+export async function findTxns(
+  db: PouchDB.Database,
+  selector: PouchDB.Find.Selector,
+  limit: number,
+) {
+  const results = await (db as PouchDB.Database<TxnPOJO>).find({selector, limit});
+  return results.docs.map(TransactionFactory);
 }
 
 /**

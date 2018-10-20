@@ -1,6 +1,7 @@
 /* tslint:disable:no-var-requires */
 import bluebird from 'bluebird';
 import csv from 'csv-parse';
+import gql from 'graphql-tag';
 import * as _ from 'lodash';
 import {fs} from 'mz';
 import nconf from 'nconf';
@@ -11,6 +12,8 @@ import 'source-map-support/register';
 import * as Couch from '../lib/couch';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
+
+import apollo from './apollo';
 
 import Amount from '../lib/Amount';
 import {POJO as BucketAmountPOJO} from '../lib/BucketAmount';
@@ -281,8 +284,67 @@ async function main() {
     process.exit(1);
   }
 
-  await Promise.all(categories.map((category) => Couch.upsertCategory(remote, category.toPOJO())));
-  await Promise.all(accounts.map((account) => Couch.upsertAccount(remote, account)));
+  await apollo.mutate({
+    mutation: gql`
+      mutation insertCategory($objects: [category_insert_input!]!) {
+        insert_category(objects: $objects
+        ) { affected_rows }
+      }
+    `,
+    variables: {
+      objects: categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        interval: category.interval,
+        due: category.due || null,
+        target: category.target.pennies,
+      })),
+    },
+  });
+
+  await apollo.mutate({
+    mutation: gql`
+      mutation insertAccount($objects: [account_insert_input!]!) {
+        insert_account(objects: $objects) { affected_rows }
+      }
+    `,
+    variables: {
+      objects: accounts.map((account) => ({
+        id: account._id,
+        name: account.name,
+      })),
+    },
+  });
+
+  await apollo.mutate({
+    mutation: gql`
+      mutation insert($objects: [transaction_insert_input!]!) {
+        insert_transaction(objects: $objects) { affected_rows }
+      }
+    `,
+    variables: {
+      objects: txns.map((txn) => ({
+        id: txn.id,
+        amount: txn.amount.pennies,
+        date: txn.date,
+        memo: txn.memo,
+        from_category_id: txn.from.toPOJO().type === 'category' ? txn.from.id : null,
+        from_account_id: txn.from.toPOJO().type === 'account' ? txn.from.id : null,
+        type: txn.withType((type) => type),
+        payee: (txn as any).payee || null,
+        to: {
+          data: txn.to.map((to) => ({
+            id: shortid.generate(),
+            amount: to.amount.pennies,
+            category_id: to.bucketRef.toPOJO().type === 'category' ? to.bucketRef.id : null,
+            account_id: to.bucketRef.toPOJO().type === 'account' ? to.bucketRef.id : null,
+          })),
+        },
+      })),
+    },
+  });
+
+  return;
 
   if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
   try {

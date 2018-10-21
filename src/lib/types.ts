@@ -1,6 +1,6 @@
 import Amount from './Amount';
 
-export interface TxnExport {
+export interface ITxnExport {
   date: Date;
   amount: Amount;
   to: string;
@@ -11,7 +11,7 @@ export interface TxnExport {
 
 export type BucketTypes = 'category' | 'account';
 
-export interface MoneyBucket {
+export interface IMoneyBucket {
   name: string;
   id: string;
   amount: Amount;

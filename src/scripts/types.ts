@@ -1,4 +1,4 @@
-export interface GoodBudgetRow {
+export interface IGoodBudgetRow {
   Date: string;
   Envelope: string;
   Account: string;
@@ -9,6 +9,6 @@ export interface GoodBudgetRow {
   Details: string;
 }
 
-export interface GoodBudgetTxfr extends GoodBudgetRow {
+export interface IGoodBudgetTxfr extends IGoodBudgetRow {
   txfrId: string;
 }

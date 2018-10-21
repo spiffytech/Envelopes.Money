@@ -1,6 +1,6 @@
-import BucketAmount from '@/lib/BucketAmount';
-import BucketReference from '@/lib/BucketReference';
 import Amount from '../Amount';
+import BucketAmount from '../BucketAmount';
+import BucketReference from '../BucketReference';
 
 describe('Delegation to the underlying BucketReference', () => {
   it('Has a name', () => {

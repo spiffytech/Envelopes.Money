@@ -1,13 +1,13 @@
 import * as Types from './types';
 
-export interface POJO {
+export interface IPOJO {
   id: string;
   name: string;
   type: Types.BucketTypes;
 }
 
 export default class BucketReference {
-  public static POJO({name, id, type}: POJO) {
+  public static POJO({name, id, type}: IPOJO) {
     return new BucketReference({name, id, type});
   }
 
@@ -25,7 +25,7 @@ export default class BucketReference {
     this.type = type;
   }
 
-  public toPOJO(): POJO {
+  public toPOJO(): IPOJO {
     return {
       id: this.id,
       name: this.name,

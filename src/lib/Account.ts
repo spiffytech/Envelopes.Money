@@ -1,4 +1,4 @@
-export interface AccountPOJO {
+export interface IAccountPOJO {
   id: string;
   name: string;
 }
@@ -9,7 +9,7 @@ export default class Account {
     public id: string;
     public name: string;
 
-    public constructor({id, name}: AccountPOJO) {
+    public constructor({id, name}: IAccountPOJO) {
         this.id = id;
         this.name = name;
     }

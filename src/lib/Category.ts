@@ -1,10 +1,9 @@
 import * as shortid from 'shortid';
 
 import Amount from './Amount';
-import * as Txns from './txns';
 import * as utils from './utils';
 
-interface CatData {
+interface ICatData {
   name: string;
   target: Amount;
   interval: 'weekly' | 'monthly' | 'yearly' | 'once';
@@ -13,7 +12,7 @@ interface CatData {
   id: string | null;
 }
 
-export interface CategoryPOJO {
+export interface ICategoryPOJO {
   name: string;
   target: number;
   interval: 'weekly' | 'monthly' | 'yearly' | 'once';
@@ -22,7 +21,7 @@ export interface CategoryPOJO {
 }
 
 export default class Category {
-  public static POJO(category: CategoryPOJO) {
+  public static POJO(category: ICategoryPOJO) {
     return new Category(
       {
         ...category,
@@ -51,7 +50,7 @@ export default class Category {
   public due?: Date;
   private _id: string | null;
 
-  private constructor(data: CatData) {
+  private constructor(data: ICatData) {
     this.name = data.name;
     this.target = data.target;
     this.interval = data.interval;
@@ -71,14 +70,13 @@ export default class Category {
     return this._id || ['category', shortid.generate()].join('/');
   }
 
-  public toPOJO(): Txns.Category {
+  public toPOJO(): ICategoryPOJO {
     return {
-      _id: this.id,
+      id: this.id,
       name: this.name,
-      target: this.target.pennies as Txns.Pennies,
+      target: this.target.pennies,
       interval: this.interval,
       due: this.due ? this.due.toJSON() : this.due,
-      type: 'category',
     };
   }
 }

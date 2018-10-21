@@ -1,8 +1,6 @@
 /* tslint:disable:no-console */
 
-import * as Txns from './txns';
-
-export function formatCurrency(dollars: Txns.Dollars): string {
+export function formatCurrency(dollars: number): string {
   return Intl.NumberFormat(
     navigator.language || 'en-US',
     {minimumIntegerDigits: 1, minimumFractionDigits: 2, maximumFractionDigits: 2},

@@ -1,8 +1,8 @@
 import Amount from './Amount';
 import BucketReference from './BucketReference';
-import {POJO as BucketReferencePOJO} from './BucketReference';
+import {IPOJO as BucketReferencePOJO} from './BucketReference';
 
-export interface POJO {
+export interface IPOJO {
   amount: number;
   bucketRef: BucketReferencePOJO;
 }
@@ -10,7 +10,7 @@ export interface POJO {
 export default class BucketAmount {
   public static POJO(
     {amount, bucketRef}:
-    POJO,
+    IPOJO,
   ) {
 
     return new BucketAmount(

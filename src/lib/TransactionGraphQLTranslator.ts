@@ -1,20 +1,20 @@
 import Account from './Account';
 import Amount from './Amount';
 import Category from './Category';
-import Transaction, { TxnPOJOIn, TxnPOJOOut } from './Transaction';
+import Transaction, { isBucketAmountAccount, isPOJOA, ITxnPOJOIn, ITxnPOJOOut } from './Transaction';
 import TransactionFactory from './TransactionFactory';
 
 export default class TransactionGraphQLTranslator {
-  public static fromGraphQL(transaction: TxnPOJOIn): Transaction {
+  public static fromGraphQL(transaction: ITxnPOJOIn): Transaction {
     const from =
-      transaction.from_account ?
+      isPOJOA(transaction) ?
         new Account(transaction.from_account) :
         Category.POJO(transaction.from_category);
 
     const to = transaction.to.map((t) => ({
       amount: Amount.Pennies(t.amount),
       bucket:
-        t.account ?
+        isBucketAmountAccount(t) ?
           new Account(t.account) :
           Category.POJO(t.category),
     }));
@@ -32,7 +32,7 @@ export default class TransactionGraphQLTranslator {
     );
   }
 
-  public static toGraphQL(transaction: Transaction): TxnPOJOOut {
+  public static toGraphQL(transaction: Transaction): ITxnPOJOOut {
     return {
       id: transaction.id,
       date: transaction.date.toJSON(),

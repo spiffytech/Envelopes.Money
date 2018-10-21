@@ -1,12 +1,12 @@
 import * as shortid from 'shortid';
 
-import Account, {AccountPOJO} from './Account';
+import Account, {IAccountPOJO} from './Account';
 import Amount from './Amount';
-import Category, {CategoryPOJO} from './Category';
-import {TxnExport, txnTypes} from './types';
+import Category, {ICategoryPOJO} from './Category';
+import {ITxnExport, txnTypes} from './types';
 import * as utils from './utils';
 
-export interface TxnData {
+export interface ITxnData {
   id: string | null;
   date: Date;
   payee: string | null;
@@ -15,7 +15,7 @@ export interface TxnData {
   to: Array<{amount: Amount, bucket: Category | Account}>
 }
 
-interface TxnPOJOBase {
+interface ITxnPOJOBase {
   id: string;
   amount: number;
   date: string;
@@ -24,17 +24,39 @@ interface TxnPOJOBase {
   type: txnTypes;
 }
 
-export interface TxnPOJOIn extends TxnPOJOBase {
-  from_account: AccountPOJO;
-  from_category: CategoryPOJO;
-  to: Array<{
-    amount: number;
-    account: AccountPOJO;
-    category: CategoryPOJO;
-  }>
+interface IBucketAmountAccount {
+  amount: number;
+  account: IAccountPOJO;
+  category: null;
+}
+interface IBucketAmountCategory {
+  amount: number;
+  account: null;
+  category: ICategoryPOJO;
 }
 
-export interface TxnPOJOOut extends TxnPOJOBase {
+interface ITxnPOJOInA extends ITxnPOJOBase {
+  from_account: IAccountPOJO;
+  from_category: null;
+  to: Array<IBucketAmountAccount | IBucketAmountCategory>
+}
+interface ITxnPOJOInB extends ITxnPOJOBase {
+  from_account: null;
+  from_category: ICategoryPOJO;
+  to: Array<IBucketAmountAccount | IBucketAmountCategory>
+}
+
+export type ITxnPOJOIn = ITxnPOJOInA | ITxnPOJOInB;
+
+export function isPOJOA(pojo: ITxnPOJOIn): pojo is ITxnPOJOInA {
+  return pojo.from_account !== null;
+}
+
+export function isBucketAmountAccount(pojo: IBucketAmountAccount | IBucketAmountCategory): pojo is IBucketAmountAccount {
+  return pojo.account !== null;
+}
+
+export interface ITxnPOJOOut extends ITxnPOJOBase {
   from_account_id: string | null;
   from_category_id: string | null;
   to: Array<{
@@ -55,7 +77,7 @@ export default abstract class Transaction {
   protected _id: string | null;
   protected _to: Array<{amount: Amount; bucket: Category | Account}>;
 
-  constructor(data: TxnData) {
+  constructor(data: ITxnData) {
     this._id = data.id;
     this.date = data.date;
     this.payee = data.payee;
@@ -82,7 +104,7 @@ export default abstract class Transaction {
     return errors.length > 0 ? errors : null;
   }
 
-  public export(): TxnExport {
+  public export(): ITxnExport {
     return {
       date: this.date,
       amount: this.amount,
@@ -158,7 +180,7 @@ export default abstract class Transaction {
     return this._to;
   }
 
-  protected postConstructor(_data: TxnData) {
+  protected postConstructor(_data: ITxnData) {
     return;
   }
 

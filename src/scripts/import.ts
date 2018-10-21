@@ -8,8 +8,7 @@ import * as R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register';
 
-import * as Txns from '../lib/txns';
-import {GoodBudgetRow, GoodBudgetTxfr} from './types';
+import {IGoodBudgetRow, IGoodBudgetTxfr} from './types';
 
 import apollo from '../lib/apollo';
 
@@ -31,12 +30,12 @@ function amountOfStr(str: string) {
   return parseInt(
     str.replace('.', '').replace(',', ''),
     10,
-  ) as Txns.Pennies;
+  );
 }
 
-async function readCsv(file: string): Promise<GoodBudgetRow[]> {
+async function readCsv(file: string): Promise<IGoodBudgetRow[]> {
   const contents = await fs.readFile(file);
-  return new Promise<GoodBudgetRow[]>((resolve, reject) => {
+  return new Promise<IGoodBudgetRow[]>((resolve, reject) => {
     csv(contents.toString(), {columns: true, escape: '\\'}, (err: any, data: any) => {
       /* tslint:disable-next-line:curly */
       if (err) return reject(err);
@@ -45,7 +44,13 @@ async function readCsv(file: string): Promise<GoodBudgetRow[]> {
   });
 }
 
-export function parseCategories(row: GoodBudgetRow): Txns.EnvelopeEvent[] {
+export interface IEnvelopeEvent {
+  name: string;
+  id: string;
+  amount: number;
+}
+
+export function parseCategories(row: IGoodBudgetRow): IEnvelopeEvent[] {
   /* tslint:disable-next-line:curly */
   if (row.Details === '') return [{
     name: row.Envelope,
@@ -57,7 +62,7 @@ export function parseCategories(row: GoodBudgetRow): Txns.EnvelopeEvent[] {
     row.Envelope ? [{name: row.Envelope, id: row.Envelope, amount: amountOfStr(row.Amount)}] :
     row.Details.split('||').
       map((detail: string) => detail.split('|')).
-      map(([name, amount]): Txns.EnvelopeEvent => ({
+      map(([name, amount]): IEnvelopeEvent => ({
         name,
         id: name,
         amount: amountOfStr(amount),
@@ -69,9 +74,9 @@ export function parseCategories(row: GoodBudgetRow): Txns.EnvelopeEvent[] {
  * GoodBudget's export breaks account transfers into two transactions, so we'd
  * import double transfers (or transfers with no payees) if we imported as-is
  */
-function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow | GoodBudgetTxfr> {
-  const newRows: Array<GoodBudgetRow & {txfrId: string}> = [];
-  const txfrs: {[key: string]: GoodBudgetRow[]} = {};
+function mergeAccountTransfers(gbRows: any, type_: string): Array<IGoodBudgetRow | IGoodBudgetTxfr> {
+  const newRows: Array<IGoodBudgetRow & {txfrId: string}> = [];
+  const txfrs: {[key: string]: IGoodBudgetRow[]} = {};
   gbRows.forEach((row: any) => {
     /* tslint:disable-next-line:curly */
     if (typeForRow(row) !== type_) return newRows.push(row);
@@ -82,11 +87,11 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
     return;
   });
 
-  Object.entries(txfrs).forEach(([k, txfrRows]: [string, GoodBudgetRow[]]) => {
+  Object.entries(txfrs).forEach(([k, txfrRows]: [string, IGoodBudgetRow[]]) => {
     if (txfrRows.length === 1) {  // An account transfer for setting up a new account has no corresponding Row
       const to = txfrRows[0];
       console.log('New account', k, txfrRows, (-amountOfStr(to!.Amount) / 100).toFixed(2));
-      const fakeRow: GoodBudgetRow = {
+      const fakeRow: IGoodBudgetRow = {
         ...to!,
         Amount: (-amountOfStr(to!.Amount) / 100).toFixed(2),
         Name: '[Equity]',
@@ -117,14 +122,14 @@ function mergeAccountTransfers(gbRows: any, type_: string): Array<GoodBudgetRow 
   return newRows;
 }
 
-function rowIsAccountTransfer(row: GoodBudgetRow) {
+function rowIsAccountTransfer(row: IGoodBudgetRow) {
   return (
     row.Notes === 'Account Transfer' ||
     (row.Details === '' && row.Envelope === '')
   );
 }
 
-export function typeForRow(row: GoodBudgetRow) {
+export function typeForRow(row: IGoodBudgetRow) {
   if (row.Notes === 'Envelope Transfer' || (row.Account === '' && row.Envelope !== '[Unallocated]')) {
     return 'envelopeTransfer';
   } else if (rowIsAccountTransfer(row)) {
@@ -137,7 +142,7 @@ export function typeForRow(row: GoodBudgetRow) {
 }
 
 export function rowToTxn(
-  row: GoodBudgetRow,
+  row: IGoodBudgetRow,
   accounts: {[key: string]: Account},
   categories: {[key: string]: Category},
 ): Transaction {
@@ -192,7 +197,7 @@ export function rowToTxn(
   return txn;
 }
 
-async function discoverCategories(rows: GoodBudgetRow[]) {
+async function discoverCategories(rows: IGoodBudgetRow[]) {
   const categoryNames: string[] = R.uniq(_.flatten(rows.map((row) => {
     const type = typeForRow(row);
     if (type === 'accountTransfer') return [];
@@ -204,7 +209,7 @@ async function discoverCategories(rows: GoodBudgetRow[]) {
   const categories: Category[] = categoryNames.map((category) =>
     Category.POJO({
       name: category,
-      target: 0 as Txns.Pennies,
+      target: 0,
       interval: 'weekly' as 'weekly',
       id: ['category', shortid.generate()].join('/'),
     }),
@@ -216,7 +221,7 @@ async function discoverCategories(rows: GoodBudgetRow[]) {
   };
 }
 
-async function discoverAccounts(rows: GoodBudgetRow[]) {
+async function discoverAccounts(rows: IGoodBudgetRow[]) {
   const accountNames: string[] = R.uniq(_.flatten(rows.map((row) => {
     const type = typeForRow(row);
     if (type === 'accountTransfer') return [row.Name, row.Account];

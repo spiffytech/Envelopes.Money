@@ -1,12 +1,12 @@
 import Account from './Account';
-import BankTxn from './BankTxn';
 import AccountTransfer from './AccountTransfer';
+import BankTxn from './BankTxn';
 import Category from './Category';
 import EnvelopeTransfer from './EnvelopeTransfer';
-import {TxnData} from './Transaction';
+import {ITxnData} from './Transaction';
 import * as Types from './types';
 
-export default function factory(txn: TxnData, type: Types.txnTypes) {
+export default function factory(txn: ITxnData, type: Types.txnTypes) {
   if (type === 'accountTransfer') return new AccountTransfer(txn);
   else if (type === 'banktxn') return new BankTxn(txn);
   else if (type === 'envelopeTransfer') return new EnvelopeTransfer(txn);
@@ -14,7 +14,7 @@ export default function factory(txn: TxnData, type: Types.txnTypes) {
 }
 
 export function Empty(objType: Types.txnTypes, from: Account | Category) {
-  const txnData: TxnData = {
+  const txnData: ITxnData = {
     id: '',
     date: new Date(),
     payee: null,

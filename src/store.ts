@@ -3,7 +3,7 @@ import { ApolloClient } from 'apollo-client';
 import gql from 'graphql-tag';
 import { computed, configure as mobxConfigure, observable, runInAction } from 'mobx';
 
-import Transaction, { TxnPOJOIn } from './lib/Transaction';
+import Transaction, { ITxnPOJOIn } from './lib/Transaction';
 import TransactionGraphQLTranslator from './lib/TransactionGraphQLTranslator';
 
 mobxConfigure({enforceActions: 'always'})
@@ -22,7 +22,7 @@ export default class Store {
   }
 
   public async loadTxns() {
-    const result = await this.apollo.query<{ transaction: TxnPOJOIn[] }>({
+    const result = await this.apollo.query<{ transaction: ITxnPOJOIn[] }>({
       query: gql`
         {
           transaction {

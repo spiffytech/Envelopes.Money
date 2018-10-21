@@ -10,18 +10,25 @@ interface CatData {
   interval: 'weekly' | 'monthly' | 'yearly' | 'once';
   due?: Date;
   type?: 'category';
-  _id: string | null;
+  id: string | null;
+}
+
+export interface CategoryPOJO {
+  name: string;
+  target: number;
+  interval: 'weekly' | 'monthly' | 'yearly' | 'once';
+  due?: string;
+  id: string;
 }
 
 export default class Category {
-  public static POJO(category: Txns.Category, balance: Amount) {
+  public static POJO(category: CategoryPOJO) {
     return new Category(
       {
         ...category,
         target: Amount.Pennies(category.target),
         due: category.due ? new Date(category.due) : undefined,
       },
-      balance,
     );
   }
 
@@ -31,12 +38,12 @@ export default class Category {
         name: '',
         target: Amount.Pennies(0),
         interval: 'once',
-        _id: null,
+        id: null,
       },
-
-      Amount.Pennies(0),
     );
   }
+
+  public type = 'category';
 
   public name: string;
   public target: Amount;
@@ -44,12 +51,12 @@ export default class Category {
   public due?: Date;
   private _id: string | null;
 
-  private constructor(data: CatData, public balance: Amount) {
+  private constructor(data: CatData) {
     this.name = data.name;
     this.target = data.target;
     this.interval = data.interval;
     this.due = data.due;
-    this._id = data._id;
+    this._id = data.id;
   }
 
   get dateString() {

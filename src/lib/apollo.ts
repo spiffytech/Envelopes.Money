@@ -1,7 +1,7 @@
 import 'isomorphic-fetch';
 
 /* tslint:disable:no-var-requires */
-require('dotenv').config();
+// require('dotenv').config();
 
 import {InMemoryCache} from 'apollo-cache-inmemory';
 import {ApolloClient} from 'apollo-client';
@@ -10,9 +10,9 @@ import {onError} from 'apollo-link-error';
 import {createHttpLink} from 'apollo-link-http';
 import gql from 'graphql-tag';
 
-const httpLink = createHttpLink({uri: process.env.GRAPHQL_ENDPOINT});
+const httpLink = createHttpLink({uri: process.env.REACT_APP_GRAPHQL_ENDPOINT || process.env.GRAPHQL_ENDPOINT});
 const authLink = setContext((_, {headers}) => {
-  const token = process.env.GRAPHQL_TOKEN;
+  const token = process.env.REACT_APP_GRAPHQL_TOKEN || process.env.GRAPHQL_TOKEN;
   return {
     headers: {
       ...headers,
@@ -21,6 +21,7 @@ const authLink = setContext((_, {headers}) => {
   };
 });
 
+/** Friendly error handling */
 const errorLink = onError(({graphQLErrors, networkError}) => {
   if (graphQLErrors) {
     graphQLErrors.map((error) =>
@@ -34,8 +35,8 @@ const errorLink = onError(({graphQLErrors, networkError}) => {
 });
 
 const client = new ApolloClient({
-  link: authLink.concat(errorLink).concat(httpLink),
   cache: new InMemoryCache(),
+  link: authLink.concat(errorLink).concat(httpLink),
 });
 
 export default client;
@@ -82,4 +83,4 @@ async function main() {
   });
 }
 
-// main().catch(console.error);
+if (require.main === module) main().catch(console.error);

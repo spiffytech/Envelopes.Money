@@ -1,5 +1,4 @@
 /* tslint:disable:no-var-requires */
-import bluebird from 'bluebird';
 import csv from 'csv-parse';
 import gql from 'graphql-tag';
 import * as _ from 'lodash';
@@ -9,23 +8,17 @@ import * as R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register';
 
-import * as Couch from '../lib/couch';
 import * as Txns from '../lib/txns';
 import {GoodBudgetRow, GoodBudgetTxfr} from './types';
 
-import apollo from './apollo';
+import apollo from '../lib/apollo';
 
+import Account from '../lib/Account';
 import Amount from '../lib/Amount';
-import {POJO as BucketAmountPOJO} from '../lib/BucketAmount';
 import Category from '../lib/Category';
 import Transaction from '../lib/Transaction';
 import TransactionFactory from '../lib/TransactionFactory';
 import * as Types from '../lib/types';
-
-global.Promise = bluebird;
-(Promise as any).config({
-  longStackTraces: true,
-});
 
 /* tslint:disable:no-console */
 /* tslint:disable:object-literal-sort-keys */
@@ -145,9 +138,9 @@ export function typeForRow(row: GoodBudgetRow) {
 
 export function rowToTxn(
   row: GoodBudgetRow,
-  accountIds: {[key: string]: string},
-  categoryIds: {[key: string]: string},
-): Transaction<any> {
+  accounts: {[key: string]: Account},
+  categories: {[key: string]: Category},
+): Transaction {
   const type = typeForRow(row);
   const toType = ({
     accountTransfer: 'account',
@@ -155,47 +148,46 @@ export function rowToTxn(
     banktxn: 'category',
   } as {[key: string]: Types.BucketTypes})[type];
 
-  const ids = {account: accountIds, category: categoryIds};
+  const ids = {account: accounts, category: categories};
 
-  const to: BucketAmountPOJO[] =
+  const to: Array<{amount: Amount, bucket: Category | Account}> =
     type === 'banktxn' ?
     parseCategories(row).map((category) =>
       ({
-        amount: -category.amount as number,
-        bucketRef: {name: category.name, id: ids[toType][category.name], type: toType},
+        amount: Amount.Pennies(-category.amount as number),
+        bucket: ids[toType][category.name],
       }),
     ) :
     [{
-      amount: -amountOfStr(row.Amount) as number,
-      bucketRef: {name: row.Name, id: ids[toType][row.Name], type: toType},
+      amount: Amount.Pennies(-amountOfStr(row.Amount) as number),
+      bucket: ids[toType][row.Name],
     }];
 
-  const fromType = type === 'envelopeTransfer' ? 'category' : 'account';
+  const from =
+    type === 'envelopeTransfer' ?
+    categories[row.Account] :
+    accounts[row.Account]
 
-  const txn = TransactionFactory({
-    _id: '',
-    date: new Date(row.Date).toJSON(),
-    amount: amountOfStr(row.Amount),
-    memo: row.Notes,
-    from: {
-      name: row.Account,
-      id: ids[fromType][row.Account],
-      type: type === 'envelopeTransfer' ? 'category' : 'account',
+  const txn = TransactionFactory(
+    {
+      id: '',
+      date: new Date(row.Date),
+      payee: type === 'banktxn' ? (row.Name || '[Equity]') : null,
+      memo: row.Notes,
+      from,
+      to,
     },
-    to,
-    type: 'transaction',
-    subtype: type,
-    extra: type === 'banktxn' ? {payee: row.Name || '[Equity]'} : {},
-  });
+    type,
+  );
 
   if (txn.amount.pennies !== amountOfStr(row.Amount)) {
     console.log(JSON.stringify(row, null, 4));
-    console.log(JSON.stringify(txn.toPOJO(), null, 4));
+    console.log(JSON.stringify(txn, null, 4));
     throw new Error('Txn amonut didn\'t match row amount');
   }
 
   const errors = txn.errors();
-  if (errors) console.log(JSON.stringify({errors, txn: txn.toPOJO(), row}, null, 4));
+  if (errors) console.log(JSON.stringify({errors, txn, row}, null, 4));
 
   return txn;
 }
@@ -214,14 +206,13 @@ async function discoverCategories(rows: GoodBudgetRow[]) {
       name: category,
       target: 0 as Txns.Pennies,
       interval: 'weekly' as 'weekly',
-      type: 'category' as 'category',
-      _id: ['category', shortid.generate()].join('/'),
-    }, Amount.Pennies(0)),
+      id: ['category', shortid.generate()].join('/'),
+    }),
   );
 
   return {
     categories,
-    categoryIds: R.fromPairs(categories.map((category) => [category.name, category.id] as [string, string])),
+    categoryIds: R.fromPairs(categories.map((category) => [category.name, category] as [string, Category])),
   };
 }
 
@@ -234,26 +225,22 @@ async function discoverAccounts(rows: GoodBudgetRow[]) {
     throw new Error('Invalid row type');
   })));
 
-  const accounts: Txns.Account[] = accountNames.map((account) =>
-    ({
+  const accounts: Account[] = accountNames.map((account) =>
+    new Account({
       name: account,
-      _id: ['account', shortid.generate()].join('/'),
-      type: 'account' as 'account',
-    }),
+      id: ['account', shortid.generate()].join('/'),
+    })
   );
 
   return {
     accounts,
-    accountIds: R.fromPairs(accounts.map((account) => [account.name, account._id] as [string, string])),
+    accountIds: R.fromPairs(accounts.map((account) => [account.name, account] as [string, Account])),
   };
 }
 
 async function main() {
   // Putting this here so the unit tests don't require these values
   nconf.required(['file']);
-
-  if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
-  const remote = Couch.mkRemoteDB(process.env.COUCH_USER, process.env.COUCH_PASS);
 
   const rows = await readCsv(nconf.get('file'));
 
@@ -273,7 +260,7 @@ async function main() {
   console.log('accounts', accountIds);
   console.log('categories', categoryIds);
 
-  const txns: Array<Transaction<any>> =
+  const txns: Transaction[] =
   mergedEnvelopeTxfrs.
     filter((row) => row.Account !== '[none]').  // It's a fill
     map((row) => rowToTxn(row, accountIds, categoryIds));
@@ -310,7 +297,7 @@ async function main() {
     `,
     variables: {
       objects: accounts.map((account) => ({
-        id: account._id,
+        id: account.id,
         name: account.name,
       })),
     },
@@ -328,36 +315,21 @@ async function main() {
         amount: txn.amount.pennies,
         date: txn.date,
         memo: txn.memo,
-        from_category_id: txn.from.toPOJO().type === 'category' ? txn.from.id : null,
-        from_account_id: txn.from.toPOJO().type === 'account' ? txn.from.id : null,
+        from_category_id: txn.from.type === 'category' ? txn.from.id : null,
+        from_account_id: txn.from.type === 'account' ? txn.from.id : null,
         type: txn.withType((type) => type),
         payee: (txn as any).payee || null,
         to: {
           data: txn.to.map((to) => ({
             id: shortid.generate(),
             amount: to.amount.pennies,
-            category_id: to.bucketRef.toPOJO().type === 'category' ? to.bucketRef.id : null,
-            account_id: to.bucketRef.toPOJO().type === 'account' ? to.bucketRef.id : null,
+            category_id: to.bucket.type === 'category' ? to.bucket.id : null,
+            account_id: to.bucket.type === 'account' ? to.bucket.id : null,
           })),
         },
       })),
     },
   });
-
-  return;
-
-  if (!process.env.COUCH_USER || !process.env.COUCH_PASS) throw new Error('Missing configuration');
-  try {
-    const chunks = _.chunk(txns, 500);
-    for (const chunk of chunks) {
-      await Couch.bulkImport(remote, chunk);
-    }
-    // console.log(JSON.stringify(chunks[0], null, 4));
-  } catch (ex) {
-    console.log('error');
-    console.error(ex);
-    console.error(JSON.stringify(ex));
-  }
 }
 if (nconf.get('run')) {
   /* tslint:disable-next-line:no-floating-promises */

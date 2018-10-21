@@ -1,8 +1,4 @@
 /* tslint:disable-next-line:no-var-requires */
-import curry from 'lodash/fp/curry';
-import flatten from 'lodash/fp/flatten';
-import * as shortid from 'shortid';
-
 export type Dollars = number & {_type: 'dollars'};
 export type Pennies = number & {_type: 'pennies'};
 

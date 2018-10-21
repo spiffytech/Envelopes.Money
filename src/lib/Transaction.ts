@@ -1,47 +1,64 @@
 import * as shortid from 'shortid';
 
+import Account, {AccountPOJO} from './Account';
 import Amount from './Amount';
-import BucketAmount from './BucketAmount';
-import {POJO as BucketAmountPOJO} from './BucketAmount';
-import BucketReference from './BucketReference';
-import {POJO as BucketReferencePOJO} from './BucketReference';
-import {MoneyBucket, TxnExport, txnTypes} from './types';
+import Category, {CategoryPOJO} from './Category';
+import {TxnExport, txnTypes} from './types';
 import * as utils from './utils';
 
-export interface TxnData<T> {
-  _id: string | null;
+export interface TxnData {
+  id: string | null;
   date: Date;
+  payee: string | null;
   memo: string;
-  from: BucketReference;
-  to: BucketAmount[];
-  extra: T;
+  from: Category | Account;
+  to: Array<{amount: Amount, bucket: Category | Account}>
 }
 
-export interface TxnPOJO {
-  _id: string;
+interface TxnPOJOBase {
+  id: string;
   amount: number;
   date: string;
+  payee: string | null;
   memo: string;
-  from: BucketReferencePOJO;
-  to: BucketAmountPOJO[];
-  type: 'transaction';
-  subtype: txnTypes;
-  extra: {[key: string]: any};
+  type: txnTypes;
 }
 
-export default abstract class Transaction<T extends {}> {
+export interface TxnPOJOIn extends TxnPOJOBase {
+  from_account: AccountPOJO;
+  from_category: CategoryPOJO;
+  to: Array<{
+    amount: number;
+    account: AccountPOJO;
+    category: CategoryPOJO;
+  }>
+}
+
+export interface TxnPOJOOut extends TxnPOJOBase {
+  from_account_id: string | null;
+  from_category_id: string | null;
+  to: Array<{
+    amount: number;
+    account_id: string | null;
+    category_id: string | null;
+  }>
+}
+
+export default abstract class Transaction {
   public date: Date;
+  public payee: string | null;
   public memo: string;
-  public from: BucketReference;
+  public from: Category | Account;
 
   protected abstract type: txnTypes;
 
   protected _id: string | null;
-  protected _to: BucketAmount[];
+  protected _to: Array<{amount: Amount; bucket: Category | Account}>;
 
-  constructor(data: TxnData<T>) {
-    this._id = data._id;
+  constructor(data: TxnData) {
+    this._id = data.id;
     this.date = data.date;
+    this.payee = data.payee;
     this.memo = data.memo;
     this.from = data.from;
     this._to = data.to;
@@ -49,21 +66,7 @@ export default abstract class Transaction<T extends {}> {
     this.postConstructor(data);
   }
 
-  public toPOJO(): TxnPOJO {
-    return {
-      _id: this.id,
-      amount: this.amount.pennies,
-      date: this.date.toJSON(),
-      memo: this.memo,
-      from: this.from.toPOJO(),
-      to: this.to.map((to) => to.toPOJO()),
-      type: 'transaction',
-      subtype: this.type,
-      extra: this.extraPOJO(),
-    };
-  }
-
-  public addTo(event: BucketAmount) {
+  public addTo(event: {amount: Amount, bucket: Category | Account}) {
     this._to.push(event);
   }
 
@@ -73,8 +76,6 @@ export default abstract class Transaction<T extends {}> {
       this.amount.pennies === 0 && 'May not transfer $0',
       !this.from.name && 'You must select a "from" bucket',
       !this.from.id && 'Program error: from.id did not get set',
-      !this._to[0].bucketName && 'You must supply a "to" category',
-      !this._to[0].bucketId && 'Program error: toId did not get set',
       this.to.filter((to) => to.amount.pennies === 0).length > 0 && 'All categories must have a non-zero balance',
       ...this.errorsExtra(),
     ].filter(utils.isString);
@@ -82,20 +83,21 @@ export default abstract class Transaction<T extends {}> {
   }
 
   public export(): TxnExport {
-    return this.exportExtra({
+    return {
       date: this.date,
       amount: this.amount,
       from: this.from.name,
-      to: this.to.map((to) => to.bucketName).join('||'),
+      to: this.to.map((to) => to.bucket.name).join('||'),
       memo: this.memo,
       type: this.type,
-    });
+    };
   }
 
   get getFromName() {
     return this.from.name;
   }
 
+  /*
   public setFromByName(candidates: MoneyBucket[], name: string) {
     const bucket = candidates.find((candidate) => candidate.name === name);
     if (!bucket) throw new Error(`No matching bucket form "${name}"`);
@@ -110,6 +112,7 @@ export default abstract class Transaction<T extends {}> {
       new BucketReference({name: bucket.name, id: bucket.id, type: bucket.type}),
     );
   }
+  */
 
   /**
    * Removes entries in our 'to' property with a zero amount
@@ -136,10 +139,6 @@ export default abstract class Transaction<T extends {}> {
     return [];
   }
 
-  protected exportExtra(data: TxnExport): TxnExport & T {
-    return data as TxnExport & T;
-  }
-
   get dateString() {
     return utils.formatDate(this.date);
   }
@@ -159,12 +158,8 @@ export default abstract class Transaction<T extends {}> {
     return this._to;
   }
 
-  protected postConstructor(_data: TxnData<T>) {
+  protected postConstructor(_data: TxnData) {
     return;
-  }
-
-  protected extraPOJO(): T {
-    return {} as T;
   }
 
   get amount() {

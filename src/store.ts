@@ -12,6 +12,7 @@ export default class Store {
   @observable public transactions: { [key: string]: Transaction };
 
   public constructor(public apollo: ApolloClient<NormalizedCacheObject>) {
+
     runInAction(() => {
       this.transactions = {};
     })

@@ -10,7 +10,7 @@ import 'source-map-support/register';
 
 import {IGoodBudgetRow, IGoodBudgetTxfr} from './types';
 
-import apollo from '../lib/apollo';
+import mkApollo from '../lib/apollo';
 
 import Account from '../lib/Account';
 import Amount from '../lib/Amount';
@@ -23,6 +23,9 @@ import * as Types from '../lib/types';
 /* tslint:disable:object-literal-sort-keys */
 
 require('dotenv').config();
+
+const token = process.env.REACT_APP_GRAPHQL_TOKEN || process.env.GRAPHQL_TOKEN;
+const apollo = mkApollo(token!)
 
 nconf.argv().env();
 

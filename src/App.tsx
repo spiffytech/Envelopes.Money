@@ -1,9 +1,14 @@
-import {inject, observer} from 'mobx-react';
 import * as React from 'react';
 import {BrowserRouter as Router, Redirect, Route, RouteComponentProps} from 'react-router-dom';
 import * as ReactRouterDom from 'react-router-dom';
 
-import Store from './store';
+import Auth0Callback from './views/Auth0Callback';
+import LoggedIn from './views/LoggedIn';
+import LogIn from './views/LogIn';
+
+import Auth from './lib/auth';
+
+const auth = new Auth();
 
 type RouteComponent = React.StatelessComponent<RouteComponentProps<{}>> | React.ComponentClass<any>
 function PrivateRoute(routeProps: {component?: RouteComponent, authed: boolean} & ReactRouterDom.RouteProps) {
@@ -23,39 +28,17 @@ function PrivateRoute(routeProps: {component?: RouteComponent, authed: boolean} 
   );
 }
 
-@inject('store')
-@observer
-class App extends React.Component<{store?: Store}> {
+class App extends React.Component {
   public render() {
     return (
-      <>
-        <nav className='navbar' role='navigation' aria-label='main navigation'>
-          <div className='navbar-brand'>
-            <a className='navbar-item' href='/'>HackerBudget</a>
-          </div>
-        </nav>
-        <section className='section'>
-          <Router>
-            <PrivateRoute exact={true} path='/' authed={true}>
-              <div className='container'>
-                <table>
-                  <tbody>
-                    {this.props.store!.transactionsByDate.map((txn) =>(
-                      <tr key={txn.id}>
-                        <td>{txn.date.toJSON()}</td>
-                        <td>{txn.payee}</td>
-                        <td>{txn.from.name} ⇨ {txn.to.map((to) => to.bucket.name).join(', ')}</td>
-                        <td>{txn.memo}</td>
-                        <td>{txn.amount.dollars}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </PrivateRoute>
-          </Router>
-        </section>
-      </>
+      <Router>
+        <>
+            <Route exact={true} path='/login' component={LogIn} />
+            <Route exact={true} path='/auth0Callback' component={Auth0Callback} />
+
+            <PrivateRoute exact={true} path='/' authed={auth.isAuthenticated()} component={LoggedIn} />
+        </>
+      </Router>
     );
   }
 }

@@ -55,7 +55,7 @@ export default class LoggedIn extends React.Component<{store?: Store}> {
             </div>
           </nav>
           <section className='section columns'>
-            <div className='container is-one-third'>
+            <div className='container column is-one-third'>
               <div className='tabs' style={{marginBottom: 0}}>
                 <ul>
                   {this.state.tabList.map((tab) =>
@@ -64,18 +64,18 @@ export default class LoggedIn extends React.Component<{store?: Store}> {
                       className={tab.name === this.state.activeTab ? 'is-active' : ''}
                       onClick={() => this.setState({activeTab: tab.name})}
                     >
-                      {tab.name}
+                      <a>{tab.name}</a>
                     </li>
                   )}
                 </ul>
               </div>
 
               {this.state.tabList.map((tab) => {
-                if (tab.name === this.state.activeTab) return <tab.component />;
+                if (tab.name === this.state.activeTab) return <tab.component key={tab.name} />;
                 return null;
               })}
             </div>
-            <div className='container is-two-thirds'>
+            <div className='container column is-two-thirds'>
               <Transactions />
             </div>
           </section>

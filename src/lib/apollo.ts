@@ -10,6 +10,8 @@ import {onError} from 'apollo-link-error';
 import {createHttpLink} from 'apollo-link-http';
 
 function mkClient(token: string) {
+  const uri = process.env.REACT_APP_GRAPHQL_ENDPOINT || process.env.GRAPHQL_ENDPOINT;
+  if (!uri) throw new Error('Missing Apollo GraphQL endpoint');
   const httpLink = createHttpLink({uri: process.env.REACT_APP_GRAPHQL_ENDPOINT || process.env.GRAPHQL_ENDPOINT});
   const authLink = setContext((_, {headers}) => {
     return {
@@ -24,13 +26,13 @@ function mkClient(token: string) {
   const errorLink = onError(({graphQLErrors, networkError}) => {
     if (graphQLErrors) {
       graphQLErrors.map((error) =>
-        console.log(
+        console.error(
           `[GraphQL error]: ${JSON.stringify(error, null, 4)}`,
         ),
       );
     }
 
-    if (networkError) console.log(`[Network error]: ${networkError}`);
+    if (networkError) console.error(`[Network error]: ${networkError}`);
   });
 
   const client = new ApolloClient({

@@ -13,7 +13,7 @@ export default function factory(txn: ITxnData, type: Types.txnTypes) {
   else throw new Error(`Invalid txn type ${(txn as any).type}`);
 }
 
-export function Empty(objType: Types.txnTypes, from: Account | Category) {
+export function Empty(objType: Types.txnTypes, from: Account | Category, userId: string) {
   const txnData: ITxnData = {
     id: '',
     date: new Date(),
@@ -21,6 +21,7 @@ export function Empty(objType: Types.txnTypes, from: Account | Category) {
     memo: '',
     from,
     to: [],
+    userId,
   };
 
   if (objType === 'accountTransfer') return new AccountTransfer(txnData);

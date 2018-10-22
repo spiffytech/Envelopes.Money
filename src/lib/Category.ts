@@ -10,6 +10,7 @@ interface ICatData {
   due?: Date;
   type?: 'category';
   id: string | null;
+  userId: string;
 }
 
 export interface ICategoryPOJO {
@@ -18,6 +19,11 @@ export interface ICategoryPOJO {
   interval: 'weekly' | 'monthly' | 'yearly' | 'once';
   due?: string;
   id: string;
+  user_id: string;
+}
+
+export function isCategory(bucket: any): bucket is Category {
+  return bucket.type === 'category';
 }
 
 export default class Category {
@@ -27,17 +33,19 @@ export default class Category {
         ...category,
         target: Amount.Pennies(category.target),
         due: category.due ? new Date(category.due) : undefined,
+        userId: category.user_id,
       },
     );
   }
 
-  public static Empty() {
+  public static Empty(userId: string) {
     return new Category(
       {
         name: '',
         target: Amount.Pennies(0),
         interval: 'once',
         id: null,
+        userId,
       },
     );
   }
@@ -48,6 +56,7 @@ export default class Category {
   public target: Amount;
   public interval: 'weekly' | 'monthly' | 'yearly' | 'once';
   public due?: Date;
+  protected userId: string;
   private _id: string | null;
 
   private constructor(data: ICatData) {
@@ -56,6 +65,7 @@ export default class Category {
     this.interval = data.interval;
     this.due = data.due;
     this._id = data.id;
+    this.userId = data.userId;
   }
 
   get dateString() {
@@ -77,6 +87,7 @@ export default class Category {
       target: this.target.pennies,
       interval: this.interval,
       due: this.due ? this.due.toJSON() : this.due,
+      user_id: this.userId,
     };
   }
 }

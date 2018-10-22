@@ -7,14 +7,15 @@ import {Empty} from '../TransactionFactory';
 
 const txnData: ITxnData = {
   id: 'aBogusTxn',
-  from: new Account({id: 'abcd', name: 'Checking'}),
+  from: new Account({id: 'abcd', name: 'Checking', user_id: 'bogus'}),
   date: new Date('2018-09-15T23:59:59.000Z'),
   memo: '',
   to: [
-    {amount: Amount.Pennies(200), bucket: Category.POJO({name: 'Groceries', id: 'defg', target: 500, interval: 'weekly'})},
-    {amount: Amount.Pennies(300), bucket: Category.POJO({name: 'Home Supplies', id: 'hijk', target: 500, interval: 'weekly'})},
+    {amount: Amount.Pennies(200), bucket: Category.POJO({name: 'Groceries', id: 'defg', target: 500, interval: 'weekly', user_id: 'bogus'})},
+    {amount: Amount.Pennies(300), bucket: Category.POJO({name: 'Home Supplies', id: 'hijk', target: 500, interval: 'weekly', user_id: 'bogus'})},
   ],
   payee: 'Target',
+  userId: 'bogus',
 };
 
 it('Sets the payee', () => {
@@ -50,7 +51,7 @@ describe('Validation', () => {
   });
 
   it('Rejects the empty object', () => {
-    const txn = Empty('banktxn', new Account({id: '', name: ''}));
+    const txn = Empty('banktxn', new Account({id: '', name: '', user_id: 'bogus'}), 'bogus');
     expect(txn.errors()!.length).toBeGreaterThan(0);
   });
 
@@ -75,7 +76,7 @@ describe('Validation', () => {
         ...txnData,
         to: [
           ...txnData.to,
-          {amount: Amount.Pennies(0), bucket: Category.POJO({name: 'stuff', id: 'stuff again', interval: 'weekly', target: 500})},
+          {amount: Amount.Pennies(0), bucket: Category.POJO({name: 'stuff', id: 'stuff again', interval: 'weekly', target: 500, user_id: 'bogus'})},
         ],
       },
       'banktxn'

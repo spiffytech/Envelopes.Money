@@ -12,7 +12,8 @@ export interface ITxnData {
   payee: string | null;
   memo: string;
   from: Category | Account;
-  to: Array<{amount: Amount, bucket: Category | Account}>
+  to: Array<{amount: Amount, bucket: Category | Account}>;
+  userId: string;
 }
 
 interface ITxnPOJOBase {
@@ -22,6 +23,7 @@ interface ITxnPOJOBase {
   payee: string | null;
   memo: string;
   type: txnTypes;
+  user_id: string;
 }
 
 interface IBucketAmountAccount {
@@ -59,11 +61,12 @@ export function isBucketAmountAccount(pojo: IBucketAmountAccount | IBucketAmount
 export interface ITxnPOJOOut extends ITxnPOJOBase {
   from_account_id: string | null;
   from_category_id: string | null;
-  to: Array<{
+  to: {data: Array<{
     amount: number;
     account_id: string | null;
     category_id: string | null;
-  }>
+    user_id: string;
+  }>};
 }
 
 export default abstract class Transaction {
@@ -71,6 +74,7 @@ export default abstract class Transaction {
   public payee: string | null;
   public memo: string;
   public from: Category | Account;
+  public userId: string;
 
   protected abstract type: txnTypes;
 
@@ -84,6 +88,7 @@ export default abstract class Transaction {
     this.memo = data.memo;
     this.from = data.from;
     this._to = data.to;
+    this.userId = data.userId;
 
     this.postConstructor(data);
   }

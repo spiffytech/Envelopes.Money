@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as requestClient from 'request';
+/* tslint:disable:no-var-requires */
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -25,7 +26,7 @@ app.get('/auth_hook', (request, response) => {
     return;
   }
 
-  var token = request.get('Authorization');
+  const token = request.get('Authorization');
   console.log('token', token)
 
   if (!token) {
@@ -45,10 +46,10 @@ app.get('/auth_hook', (request, response) => {
     };
 
     requestClient(options, (err, res, body) => {
-      if (!err && res.statusCode == 200) {
-        var userInfo = JSON.parse(body);
-        console.log(userInfo); //debug
-        var hasuraVariables = {
+      if (!err && res.statusCode === 200) {
+        const userInfo = JSON.parse(body);
+        console.log(userInfo);
+        const hasuraVariables = {
           'X-Hasura-User-Id': userInfo.sub,
           'X-Hasura-Role': 'user'
         };

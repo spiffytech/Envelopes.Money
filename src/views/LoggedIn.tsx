@@ -5,11 +5,23 @@ import mkApollo from '../lib/apollo';
 import Auth from '../lib/auth';
 import Store from '../store';
 
+import AccountBalances from './AccountBalances';
+import CategoryBalances from './CategoryBalances';
 import Transactions from './Transactions';
+
 
 export default class LoggedIn extends React.Component<{store?: Store}> {
   public auth: Auth;
   public store: Store;
+
+  public state = {
+    tabList: [
+      {name: 'Categories', component: CategoryBalances},
+      {name: 'Accounts', component: AccountBalances},
+    ],
+    activeTab: 'Categories',
+  };
+
   public componentWillMount() {
     this.auth = new Auth();
     const jwt = this.auth.getToken();
@@ -20,7 +32,12 @@ export default class LoggedIn extends React.Component<{store?: Store}> {
     (window as any).auth = this.auth;
     (window as any).store = this.store;
 
-    this.store.loadTxns();
+    Promise.all([
+      this.store.loadCategories(),
+      this.store.loadAccounts(),
+    ]).then(() => this.store.loadTxns());
+
+    this.logOut = this.logOut.bind(this);
   }
 
   public render() {
@@ -34,11 +51,33 @@ export default class LoggedIn extends React.Component<{store?: Store}> {
 
             <div className='navbar-start' />
             <div className='navbar-end'>
-              <button className='button' onClick={() => this.logOut()}>Log Out</button>
+              <button className='button' onClick={this.logOut}>Log Out</button>
             </div>
           </nav>
-          <section className='section'>
-            <Transactions />
+          <section className='section columns'>
+            <div className='container is-one-third'>
+              <div className='tabs' style={{marginBottom: 0}}>
+                <ul>
+                  {this.state.tabList.map((tab) =>
+                    <li 
+                      key={tab.name}
+                      className={tab.name === this.state.activeTab ? 'is-active' : ''}
+                      onClick={() => this.setState({activeTab: tab.name})}
+                    >
+                      {tab.name}
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              {this.state.tabList.map((tab) => {
+                if (tab.name === this.state.activeTab) return <tab.component />;
+                return null;
+              })}
+            </div>
+            <div className='container is-two-thirds'>
+              <Transactions />
+            </div>
           </section>
         </>
       </Provider>

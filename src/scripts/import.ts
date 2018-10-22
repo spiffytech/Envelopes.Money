@@ -1,9 +1,9 @@
 /* tslint:disable:no-var-requires */
-import csv from 'csv-parse';
+import * as csv from 'csv-parse';
 import gql from 'graphql-tag';
 import * as _ from 'lodash';
 import {fs} from 'mz';
-import nconf from 'nconf';
+import * as nconf from 'nconf';
 import * as R from 'ramda';
 import * as shortid from 'shortid';
 import 'source-map-support/register';
@@ -12,22 +12,30 @@ import {IGoodBudgetRow, IGoodBudgetTxfr} from './types';
 
 import mkApollo from '../lib/apollo';
 
-import Account from '../lib/Account';
+import Account , {IAccountPOJO} from '../lib/Account';
 import Amount from '../lib/Amount';
-import Category from '../lib/Category';
+import Category, {ICategoryPOJO} from '../lib/Category';
 import Transaction from '../lib/Transaction';
 import TransactionFactory from '../lib/TransactionFactory';
+import TransactionGraphQLTranslator from '../lib/TransactionGraphQLTranslator';
 import * as Types from '../lib/types';
+
+if (process.env.NODE_ENV !== 'production'){
+  require('longjohn');
+}
 
 /* tslint:disable:no-console */
 /* tslint:disable:object-literal-sort-keys */
 
 require('dotenv').config();
-
-const token = process.env.REACT_APP_GRAPHQL_TOKEN || process.env.GRAPHQL_TOKEN;
-const apollo = mkApollo(token!)
-
 nconf.argv().env();
+
+const token = process.env.IMPORT_ACCESS_TOKEN
+const userId = process.env.IMPORT_USER!
+if (!token) throw new Error('Missing access token');
+if (!userId) throw new Error('Missing Apollo user');
+console.log(token)
+const apollo = mkApollo(token)
 
 function amountOfStr(str: string) {
   return parseInt(
@@ -184,6 +192,7 @@ export function rowToTxn(
       memo: row.Notes,
       from,
       to,
+      userId: userId!,
     },
     type,
   );
@@ -215,6 +224,7 @@ async function discoverCategories(rows: IGoodBudgetRow[]) {
       target: 0,
       interval: 'weekly' as 'weekly',
       id: ['category', shortid.generate()].join('/'),
+      user_id: userId,
     }),
   );
 
@@ -237,6 +247,7 @@ async function discoverAccounts(rows: IGoodBudgetRow[]) {
     new Account({
       name: account,
       id: ['account', shortid.generate()].join('/'),
+      user_id: userId,
     })
   );
 
@@ -287,13 +298,17 @@ async function main() {
       }
     `,
     variables: {
-      objects: categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-        interval: category.interval,
-        due: category.due || null,
-        target: category.target.pennies,
-      })),
+      objects: categories.map((category) => {
+        const ret: ICategoryPOJO = {
+          id: category.id,
+          name: category.name,
+          interval: category.interval,
+          due: category.due ? category.due.toJSON() : undefined,
+          target: category.target.pennies,
+          user_id: userId,
+        }
+        return ret;
+      }),
     },
   });
 
@@ -304,13 +319,18 @@ async function main() {
       }
     `,
     variables: {
-      objects: accounts.map((account) => ({
-        id: account.id,
-        name: account.name,
-      })),
+      objects: accounts.map((account) => {
+        const ret: IAccountPOJO = {
+          id: account.id,
+          name: account.name,
+          user_id: userId,
+        };
+        return ret;
+      }),
     },
   });
 
+  console.log(JSON.stringify(txns.map((txn) => TransactionGraphQLTranslator.toGraphQL(txn)), null, 4));
   await apollo.mutate({
     mutation: gql`
       mutation insert($objects: [transaction_insert_input!]!) {
@@ -318,24 +338,7 @@ async function main() {
       }
     `,
     variables: {
-      objects: txns.map((txn) => ({
-        id: txn.id,
-        amount: txn.amount.pennies,
-        date: txn.date,
-        memo: txn.memo,
-        from_category_id: txn.from.type === 'category' ? txn.from.id : null,
-        from_account_id: txn.from.type === 'account' ? txn.from.id : null,
-        type: txn.withType((type) => type),
-        payee: (txn as any).payee || null,
-        to: {
-          data: txn.to.map((to) => ({
-            id: shortid.generate(),
-            amount: to.amount.pennies,
-            category_id: to.bucket.type === 'category' ? to.bucket.id : null,
-            account_id: to.bucket.type === 'account' ? to.bucket.id : null,
-          })),
-        },
-      })),
+      objects: txns.map((txn) => TransactionGraphQLTranslator.toGraphQL(txn)),
     },
   });
 }

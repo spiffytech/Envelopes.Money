@@ -1,3 +1,5 @@
+import * as shortid from 'shortid';
+
 import Account from './Account';
 import Amount from './Amount';
 import Category from './Category';
@@ -27,6 +29,7 @@ export default class TransactionGraphQLTranslator {
         memo: transaction.memo,
         from,
         to,
+        userId: transaction.user_id,
       },
       transaction.type,
     );
@@ -47,12 +50,17 @@ export default class TransactionGraphQLTranslator {
         transaction.from.type === 'category' ? 
         transaction.from.id :
         null,
-      to: transaction.to.map((to) => ({
-        amount: to.amount.pennies,
-        account_id: to.bucket.type === 'account' ? to.bucket.id : null,
-        category_id: to.bucket.type === 'category' ? to.bucket.id : null,
-      })),
+      to: {
+        data: transaction.to.map((to) => ({
+          id: shortid.generate(),
+          amount: to.amount.pennies,
+          account_id: to.bucket.type === 'account' ? to.bucket.id : null,
+          category_id: to.bucket.type === 'category' ? to.bucket.id : null,
+          user_id: transaction.userId,
+        })),
+      },
       type: transaction.withType((type) => type),
+      user_id: transaction.userId,
     };
   }
 }

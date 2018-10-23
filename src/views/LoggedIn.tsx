@@ -5,6 +5,7 @@ import mkApollo from '../lib/apollo';
 import Auth from '../lib/auth';
 import Store from '../store';
 
+import TxnSearchBox from '../components/TxnSearchBox';
 import AccountBalances from './AccountBalances';
 import CategoryBalances from './CategoryBalances';
 import Transactions from './Transactions';
@@ -31,11 +32,6 @@ export default class LoggedIn extends React.Component<{store?: Store}> {
 
     (window as any).auth = this.auth;
     (window as any).store = this.store;
-
-    Promise.all([
-      this.store.loadCategories(),
-      this.store.loadAccounts(),
-    ]).then(() => this.store.loadTxns());
 
     this.logOut = this.logOut.bind(this);
   }
@@ -76,6 +72,7 @@ export default class LoggedIn extends React.Component<{store?: Store}> {
               })}
             </div>
             <div className='container column is-two-thirds'>
+              <TxnSearchBox />
               <Transactions />
             </div>
           </section>

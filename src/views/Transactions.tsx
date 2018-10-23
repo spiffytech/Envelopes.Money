@@ -15,20 +15,20 @@ export default class Transactions extends React.Component<{ store?: Store }> {
             <tr key={txn.id}>
               <td>
                 <div className='is-flex' style={{justifyContent: 'space-between'}}>
-                  <p className='is-flex'>
-                    <p className='has-text-weight-semibold'>{txn.payee}</p>
+                  <div className='is-flex'>
+                    <div className='has-text-weight-semibold'>{txn.payee}</div>
                     {txn.payee && txn.memo ? <span>&nbsp;•&nbsp;</span> : null}
                     <div className='has-text-weight-semibold is-size-7' style={{display: 'flex', alignItems: 'center'}}>
                       {txn.memo}
                     </div>
-                  </p>
-                  <p className='is-flex is-size-7'>
-                    <p>{utils.formatDate(txn.date)}</p>
-                  </p>
+                  </div>
+                  <div className='is-flex is-size-7'>
+                    <div>{utils.formatDate(txn.date)}</div>
+                  </div>
                 </div>
                 <div className='is-flex' style={{justifyContent: 'space-between'}}>
-                  <p>{utils.formatCurrency(txn.amount.dollars)}</p>
-                  <p className='is-size-7'>{txn.from.name} ⇨ {txn.to.map((to) => to.bucket.name).join(', ')}</p>
+                  <div>{utils.formatCurrency(txn.amount.dollars)}</div>
+                  <div className='is-size-7'>{txn.from.name} ⇨ {txn.to.map((to) => to.bucket.name).join(', ')}</div>
                 </div>
               </td>
             </tr>

@@ -1,9 +1,10 @@
 import { NormalizedCacheObject } from 'apollo-cache-inmemory';
 import { ApolloClient } from 'apollo-client';
 import gql from 'graphql-tag';
+import debounce from 'lodash/debounce';
 import groupBy from 'lodash/groupBy';
 import mapValues from 'lodash/mapValues';
-import { computed, configure as mobxConfigure, observable, runInAction } from 'mobx';
+import { action, autorun, computed, configure as mobxConfigure, observable, runInAction, IObservableValue } from 'mobx';
 
 import Account, {IAccountPOJO, isAccount} from './lib/Account';
 import Amount from './lib/Amount';
@@ -17,6 +18,7 @@ export default class Store {
   @observable public transactions: { [key: string]: Transaction };
   @observable public categories: {[key: string]: Category};
   @observable public accounts: {[key: string]: Account};
+  public searchTerm: IObservableValue<string>;
 
   public constructor(public apollo: ApolloClient<NormalizedCacheObject>) {
 
@@ -24,7 +26,14 @@ export default class Store {
       this.transactions = {};
       this.categories = {};
       this.accounts = {};
+      this.searchTerm = observable.box('');
     })
+
+    const loadTxnsDebounced = debounce((term) => this.loadTxns(term), 500, {leading: true});
+    Promise.all([
+      this.loadCategories(),
+      this.loadAccounts(),
+    ]).then(() => autorun(() => loadTxnsDebounced(this.searchTerm.get())));
   }
 
   @computed get transactionsByDate() {
@@ -67,11 +76,23 @@ export default class Store {
     return Object.entries(sums).map(([accountId, sum]) => ({account: this.accounts[accountId], balance: sum}))
   }
 
-  public async loadTxns() {
+  @action
+  public setSearchTerm(term: string) {
+    this.searchTerm.set(term);
+  }
+
+  public async loadTxns(term: string) {
+    console.log('Loading txns');
     const result = await this.apollo.query<{ transaction: ITxnPOJOIn[] }>({
       query: gql`
-        {
-          transaction {
+        query loadTransactions($searchTerm: String!) {
+          transaction(where: {_or: [
+            {payee: {_ilike: $searchTerm}}
+            {from_account: {name: {_ilike: $searchTerm}}}
+            {from_category: {name: {_ilike: $searchTerm}}}
+            {to: {account: {name: {_ilike: $searchTerm}}}}
+            {to: {category: {name: {_ilike: $searchTerm}}}}
+          ]}) {
             id
             date
             amount
@@ -106,7 +127,16 @@ export default class Store {
           }
         }
       `,
+      variables: {
+        searchTerm: `%${term}%`,
+      }
     });
+
+    const idsAlreadyPosessed = new Set(Object.keys(this.transactions));
+    const newIds = new Set(result.data.transaction.map((transaction) => transaction.id));
+    newIds.forEach((id) => idsAlreadyPosessed.delete(id));  // Now we have IDs to delete
+    console.log(idsAlreadyPosessed);
+    runInAction(() => idsAlreadyPosessed.forEach((id) => delete this.transactions[id]));
 
     runInAction(() =>
       result.data.transaction.

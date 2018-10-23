@@ -8,9 +8,11 @@ import { action, autorun, computed, configure as mobxConfigure, observable, runI
 
 import Account, {IAccountPOJO, isAccount} from './lib/Account';
 import Amount from './lib/Amount';
+import {fragments} from './lib/apollo';
 import Category, { ICategoryPOJO, isCategory } from './lib/Category';
 import Transaction, { ITxnPOJOIn } from './lib/Transaction';
 import TransactionGraphQLTranslator from './lib/TransactionGraphQLTranslator';
+
 
 mobxConfigure({enforceActions: 'always'})
 
@@ -29,7 +31,7 @@ export default class Store {
       this.searchTerm = observable.box('');
     })
 
-    const loadTxnsDebounced = debounce((term) => this.loadTxns(term), 500, {leading: true});
+    const loadTxnsDebounced = debounce((term) => this.loadTxns(term), 500);
     Promise.all([
       this.loadCategories(),
       this.loadAccounts(),
@@ -83,8 +85,11 @@ export default class Store {
 
   public async loadTxns(term: string) {
     console.log('Loading txns');
+
     const result = await this.apollo.query<{ transaction: ITxnPOJOIn[] }>({
       query: gql`
+        ${fragments}
+
         query loadTransactions($searchTerm: String!) {
           transaction(where: {_or: [
             {payee: {_ilike: $searchTerm}}
@@ -93,37 +98,7 @@ export default class Store {
             {to: {account: {name: {_ilike: $searchTerm}}}}
             {to: {category: {name: {_ilike: $searchTerm}}}}
           ]}) {
-            id
-            date
-            amount
-            memo
-            type
-            payee
-            from_account {
-              id
-              name
-            }
-            from_category {
-              id
-              name
-              target
-              interval
-              due
-            }
-            to {
-              amount
-              category {
-                id
-                name
-                target
-                interval
-                due
-              }
-              account {
-                id
-                name
-              }
-            }
+            ...transaction
           }
         }
       `,
@@ -135,7 +110,6 @@ export default class Store {
     const idsAlreadyPosessed = new Set(Object.keys(this.transactions));
     const newIds = new Set(result.data.transaction.map((transaction) => transaction.id));
     newIds.forEach((id) => idsAlreadyPosessed.delete(id));  // Now we have IDs to delete
-    console.log(idsAlreadyPosessed);
     runInAction(() => idsAlreadyPosessed.forEach((id) => delete this.transactions[id]));
 
     runInAction(() =>
@@ -149,14 +123,11 @@ export default class Store {
   public async loadCategories() {
     const result = await this.apollo.query<{ category: ICategoryPOJO[] }>({
       query: gql`
-        {
+        ${fragments}
+
+        query categories {
           category {
-            name
-            id
-            target
-            interval
-            due
-            user_id
+            ...category
           }
         }
       `,
@@ -172,11 +143,11 @@ export default class Store {
   public async loadAccounts() {
     const result = await this.apollo.query<{ account: IAccountPOJO[] }>({
       query: gql`
+        ${fragments}
+
         {
           account {
-            name
-            id
-            user_id
+            ...account
           }
         }
       `,

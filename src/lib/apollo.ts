@@ -8,6 +8,7 @@ import {ApolloClient} from 'apollo-client';
 import {setContext} from 'apollo-link-context';
 import {onError} from 'apollo-link-error';
 import {createHttpLink} from 'apollo-link-http';
+import gql from 'graphql-tag';
 
 function mkClient(token: string) {
   const uri = process.env.REACT_APP_GRAPHQL_ENDPOINT || process.env.GRAPHQL_ENDPOINT;
@@ -44,3 +45,39 @@ function mkClient(token: string) {
 }
 
 export default mkClient;
+
+export const fragments = gql`
+      fragment category on category {
+        id
+        name
+        target
+        interval
+        due
+      }
+      
+      fragment account on account {
+        id
+        name
+        user_id
+      }
+      
+      fragment transaction on transaction {
+        id
+        date
+        amount
+        payee
+        memo
+        type
+        from_account {
+          ...account
+        }
+        from_category {
+          ...category
+        }
+        to {
+          category {...category}
+          account {...account}
+          amount
+        }
+      }
+    `;

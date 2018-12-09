@@ -1,18 +1,19 @@
 {
   "defaultSeverity": "warning",
-  "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier"],
+  "extends": [
+    "tslint:recommended"
+  ],
   "linterOptions": {
     "exclude": [
-      "config/**/*.js",
-      "node_modules/**/*.ts",
-      "coverage/lcov-report/*.js"
+      "node_modules/**"
     ]
   },
   "rules": {
-    "curly": [true, "ignore-same-line"],
     "quotemark": [true, "single"],
-    "object-literal-sort-keys": [false],
-    "variable-name": ["allow-leading-underscore", "allow-trailing-underscore"],
-    "no-console": [false]
+    "indent": [true, "spaces", 2],
+    "interface-name": false,
+    "ordered-imports": false,
+    "object-literal-sort-keys": false,
+    "no-consecutive-blank-lines": false
   }
 }

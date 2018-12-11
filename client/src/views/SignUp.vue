@@ -1,7 +1,7 @@
 <template>
   <v-form @submit.prevent="onSubmit">
     <v-container>
-      <v-text-field v-model="authToken" label="Auth Token" />
+      <v-alert :value="formError" type="error">{{ formError }}</v-alert>
 
       <v-text-field v-model="email" label="Email" type="email" />
       <v-text-field v-model="password" label="Password" type="password" />
@@ -20,22 +20,25 @@ import {endpoint} from '@/lib/config';
 export default Vue.extend({
   data() {
     return {
-      authToken: '',
-
       email: '',
       password: '',
+      formError: null,
     };
   },
 
   methods: {
     async onSubmit() {
-      alert(`${this.email}, ${this.password}`);
+      this.formError = null;
 
-      await axios.post(
-        `${endpoint}/signup`,
-        {email: this.email, password: this.password},
-        {headers: {'Authorization': this.authToken}},
-      );
+      try {
+        await axios.post(
+          `${endpoint}/signup`,
+          {email: this.email, password: this.password},
+        );
+      } catch (ex) {
+        console.log(ex.response.status, ex.response.data);
+        this.formError = ex.response.data.error;
+      }
     },
   },
 });

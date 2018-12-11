@@ -17,10 +17,9 @@ app.get('/', (req, res) => res.send('Hello World!'));
 
 app.post('/signup', async (req, res) => {
   try {
-    console.log(/\S+@\S+\.\S+/.test(req.body.email));
     if (!/\S+@\S+\.\S+/.test(req.body.email)) {
       console.error(`"${req.body.email}" is not a valid email address`);
-      res.statusCode = 500;
+      res.statusCode = 422;
       res.send({error: 'Email is not formatted like an email'});
       return;
     }

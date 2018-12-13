@@ -1,6 +1,7 @@
 <template>
   <v-form @submit.prevent="onSubmit">
     <v-container>
+      <v-alert :value="isSuccess" type="success">You've signed up!</v-alert>
       <v-alert :value="formError" type="error">{{ formError }}</v-alert>
 
       <v-text-field v-model="email" label="Email" type="email" />
@@ -22,7 +23,8 @@ export default Vue.extend({
     return {
       email: '',
       password: '',
-      formError: null,
+      formError: null as string | null,
+      isSuccess: false,
     };
   },
 
@@ -35,7 +37,13 @@ export default Vue.extend({
           `${endpoint}/signup`,
           {email: this.email, password: this.password},
         );
+        this.isSuccess = true;
       } catch (ex) {
+        if (!ex.response) {
+          this.formError = "Unknown error submitting form";
+          return;
+        }
+        console.log(ex.response);
         console.log(ex.response.status, ex.response.data);
         this.formError = ex.response.data.error;
       }

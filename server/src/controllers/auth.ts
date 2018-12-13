@@ -6,6 +6,11 @@ import shortid from 'shortid';
 
 import mkApollo from '../lib/apollo';
 import * as crypto from '../lib/crypto';
+import * as sessions from '../lib/sessions';
+
+function setCookie(res: express.Response, apikey: string) {
+  res.cookie('session', apikey, {maxAge: 9000000, httpOnly: true});
+}
 
 export async function signUp(req: express.Request, res: express.Response) {
   try {
@@ -51,8 +56,27 @@ export async function signUp(req: express.Request, res: express.Response) {
       },
     }));
     console.log(`Signed up ${req.body.email}`);
-    res.send();
+    setCookie(res, apikey);
+    res.send({success: true});
   } catch(ex) {
     console.error(ex);
   }
+}
+
+export async function isAuthed(req: express.Request, res: express.Response) {
+  const apikey = sessions.apikeyFromRequest(req);
+  if (!apikey) {
+    res.statusCode = 401;
+    res.send({isAuthed: false});
+    return;
+  }
+  
+  const session = sessions.lookUpSession(apikey);
+  if (session) {
+    res.send({isAuthed: true});
+    return;
+  }
+
+  res.statusCode = 401;
+  res.send({isAuthed: false});
 }

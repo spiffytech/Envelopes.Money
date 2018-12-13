@@ -40,7 +40,7 @@ export default Vue.extend({
         this.isSuccess = true;
       } catch (ex) {
         if (!ex.response) {
-          this.formError = "Unknown error submitting form";
+          this.formError = 'Unknown error submitting form';
           return;
         }
         console.log(ex.response);

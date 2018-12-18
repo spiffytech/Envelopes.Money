@@ -16,12 +16,22 @@ Vue.config.productionTip = false;
 
 axios.defaults.withCredentials = true;
 
-axios.get(`${endpoint}/isAuthed`).then((result) => {
-  console.log(result.data.isAuthed);
+async function main() {
+  try {
+    await axios.get(`${endpoint}/isAuthed`);
+    console.log('Authed');
+    const result = await axios.get(`${endpoint}/api/transactions`);
+    console.log(result.data);
+  } catch (ex) {
+    console.log('Probably not authorized');
+    console.error(ex);
+  }
 
   new Vue({
     router,
     store,
     render: (h) => h(App),
   }).$mount('#app');
-});
+}
+
+main();

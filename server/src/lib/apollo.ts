@@ -44,37 +44,30 @@ function mkClient(token: string, isAdmin=false) {
 export default mkClient;
 
 export const fragments = gql`
-      fragment category on category {
+      fragment transaction on transactions {
         id
-        name
-        target
-        interval
-        due
-      }
-      
-      fragment account on account {
-        id
-        name
         user_id
-      }
-      
-      fragment transaction on transaction {
-        id
+        memo
         date
         amount
-        payee
-        memo
+        label
         type
-        from_account {
-          ...account
-        }
-        from_category {
-          ...category
-        }
-        to {
-          category {...category}
-          account {...account}
-          amount
-        }
+      }
+      
+      fragment transaction_part on transaction_parts {
+        id
+        transaction_id
+        user_id
+        amount
+        from_id
+        to_id
+      }
+      
+      fragment bucket on buckets {
+        id
+        user_id
+        name
+        type
+        extra
       }
     `;

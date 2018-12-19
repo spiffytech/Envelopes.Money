@@ -1,14 +1,14 @@
 <template>
   <v-form @submit.prevent="onSubmit">
     <v-container>
-      <v-alert :value="isSuccess" type="success">You've signed up!</v-alert>
+      <v-alert :value="isSuccess" type="success">You've logged in!</v-alert>
       <v-alert :value="formError" type="error">{{ formError }}</v-alert>
 
       <v-text-field v-model="email" label="Email" type="email" />
       <v-text-field v-model="password" label="Password" type="password" />
     </v-container>
 
-    <v-btn type="submit">Sign Up</v-btn>
+    <v-btn type="submit">Log In</v-btn>
   </v-form>
 </template>
 
@@ -34,7 +34,7 @@ export default Vue.extend({
 
       try {
         await axios.post(
-          `${endpoint}/signup`,
+          `${endpoint}/login`,
           {email: this.email, password: this.password},
         );
         this.isSuccess = true;

@@ -63,6 +63,39 @@ export async function signUp(req: express.Request, res: express.Response) {
   }
 }
 
+export async function logIn(req: express.Request, res: express.Response) {
+  try {
+    if (!/\S+@\S+\.\S+/.test(req.body.email)) {
+      console.error(`"${req.body.email}" is not a valid email address`);
+      res.statusCode = 422;
+      res.send({error: 'Email is not formatted like an email'});
+      return;
+    }
+    const hash = await crypto.encode(req.body.password);
+
+    const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
+    const user = await sessions.lookUpUser(req.body.email);
+    if (!user) {
+      res.statusCode = 401;
+      return res.json({error: 'Invalid credentials'});
+    }
+
+    console.log('user', user);
+    const isPasswordValid = crypto.verify(user.scrypt, req.body.password);
+    if (!isPasswordValid) {
+      res.statusCode = 401;
+      return res.json({error: 'Invalid credentials'});
+    }
+
+    setCookie(res, user.apikey);
+    res.send({success: true});
+  } catch(ex) {
+    console.error(ex);
+    res.statusCode = 500;
+    res.send({error: 'unknown error'});
+  }
+}
+
 export async function isAuthed(req: express.Request, res: express.Response) {
   const apikey = sessions.apikeyFromRequest(req);
   if (!apikey) {

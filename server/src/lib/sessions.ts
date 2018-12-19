@@ -25,3 +25,21 @@ export async function lookUpSession(apikey: string) {
 
   return result.data.users[0];
 }
+
+export async function lookUpUser(email: string) {
+  const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
+  const result = await apollo.query<{users: any}>({
+    query: gql`
+      query LookUpUSer($email: String!) {
+        users(where: {email: {_eq: $email}}) {
+          id
+          scrypt
+          apikey
+        }
+      }
+    `,
+    variables: {email},
+  });
+
+  return result.data.users[0];
+}

@@ -78,7 +78,9 @@ export function parseCategories(row: IGoodBudgetRow): IEnvelopeEvent[] {
   }];
 
   return (
-    row.Envelope ? [{name: row.Envelope, id: row.Envelope, amount: amountOfStr(row.Amount)}] :
+    row.Envelope ? [
+      {name: row.Envelope, id: row.Envelope, amount: amountOfStr(row.Amount)}
+    ] :
     row.Details.split('||').
       map((detail: string) => detail.split('|')).
       map(([name, amount]): IEnvelopeEvent => ({
@@ -187,28 +189,58 @@ export function rowToTxn(
 
   const parts: CommonTypes.ITransactionPart[] =
     type === 'banktxn' ?
-    parseCategories(row).map((category) =>
-      ({
+    _.flatten(parseCategories(row).map((category) => [
+      {
         id: shortid.generate(),
         transaction_id: transaction.id,
         amount: category.amount,
-        from_id: accounts[row.Account].id,
-        to_id: ids[toType][category.name].id,
+        account_id: accounts[row.Account].id,
         user_id: userId,
-      }),
-    ) :
-    [{
-      id: shortid.generate(),
-      transaction_id: transaction.id,
-      amount: amountOfStr(row.Amount),
-      to_id: ids[toType][row.Name].id,
-      from_id: (type === 'envelopeTransfer' ? categories[row.Account] : accounts[row.Account]).id,
-      user_id: userId,
-    }];
+      },
+      {
+        id: shortid.generate(),
+        transaction_id: transaction.id,
+        amount: -category.amount,
+        account_id: null,
+        user_id: userId,
+      },
+      {
+        id: shortid.generate(),
+        transaction_id: transaction.id,
+        amount: -category.amount,
+        account_id: null,
+        user_id: userId,
+      },
+      {
+        id: shortid.generate(),
+        transaction_id: transaction.id,
+        amount: category.amount,
+        account_id: ids[toType][category.name].id,
+        user_id: userId,
+      },
+    ])) :
+    [
+      {
+        id: shortid.generate(),
+        transaction_id: transaction.id,
+        amount: -amountOfStr(row.Amount),
+        account_id: ids[toType][row.Name].id,
+        user_id: userId,
+      },
+      {
+        id: shortid.generate(),
+        transaction_id: transaction.id,
+        amount: amountOfStr(row.Amount),
+        account_id: (type === 'envelopeTransfer' ? categories[row.Account] : accounts[row.Account]).id,
+        user_id: userId,
+      },
+    ];
 
-  if (TransactionParts.sumAmounts(parts) !== amountOfStr(row.Amount)) {
-    console.log(JSON.stringify(row, null, 4));
-    console.log(JSON.stringify(transaction, null, 4));
+  // if (TransactionParts.sumAmounts(parts) !== amountOfStr(row.Amount)) {
+  if (TransactionParts.sumAmounts(parts) !== 0) {
+    console.log('gb row', JSON.stringify(row, null, 4));
+    console.log('txn', JSON.stringify(transaction, null, 4));
+    console.log('parts', JSON.stringify(parts, null, 4));
     throw new Error(`Txn amount didn\'t match row amount! ${TransactionParts.sumAmounts(parts)} / ${amountOfStr(row.Amount)}`);
   }
 
@@ -289,6 +321,11 @@ async function main() {
   mergedEnvelopeTxfrs.
     filter((row) => row.Account !== '[none]').  // It's a fill
     map((row) => rowToTxn(row, accounts, categories));
+
+  /*
+  console.log(JSON.stringify(transactions, null, 4));
+  return;
+  */
 
   await apollo.mutate({
     mutation: gql`

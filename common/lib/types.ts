@@ -12,12 +12,14 @@ export interface ITransactionPart {
   id: string;
   transaction_id: string;
   amount: number;
-  from_id: string;
-  to_id: string;
+  account_id: string | null;
   user_id: string;
 }
 
-export type TxnWithParts = {transaction: ITransaction, parts: ITransactionPart[]};
+export interface TxnWithParts {
+  transaction: ITransaction;
+  parts: ITransactionPart[];
+};
 
 interface IBucketCore {
   id: string;
@@ -40,3 +42,9 @@ interface IBucketEnvelope extends IBucketCore {
 }
 
 export type IBucket = IBucketAccount | IBucketEnvelope;
+
+export interface TxnTuple {
+  transaction: ITransaction;
+  parts: ITransactionPart[];
+  buckets: IBucket[];
+}

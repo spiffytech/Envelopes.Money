@@ -1,15 +1,15 @@
 <template>
-  <v-form @submit.prevent="onSubmit">
-    <v-container>
-      <v-alert :value="isSuccess" type="success">You've signed up!</v-alert>
-      <v-alert :value="formError" type="error">{{ formError }}</v-alert>
+  <form @submit.prevent="onSubmit">
+    <div :value="isSuccess" type="success">You've signed up!</div>
+    <div :value="formError" type="error">{{ formError }}</div>
 
-      <v-text-field v-model="email" label="Email" type="email" />
-      <v-text-field v-model="password" label="Password" type="password" />
-    </v-container>
+    <label>Email</label>
+    <input v-model="email" type="email" />
+    <label>Password</label>
+    <input v-model="password" type="password" />
 
-    <v-btn type="submit">Sign Up</v-btn>
-  </v-form>
+    <button type="submit">Sign Up</button>
+  </form>
 </template>
 
 <script lang="ts">

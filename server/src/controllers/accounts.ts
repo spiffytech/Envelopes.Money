@@ -38,3 +38,40 @@ export async function getBalances(req: express.Request, res: express.Response) {
     res.json({error: ex.message});
   }
 }
+
+export async function saveEnvelope(req: express.Request, res: express.Response) {
+  const apollo = await mkApollo(req.apikey!);
+  console.log(req.body);
+
+  try {
+    await apollo.mutate({
+      mutation: gql`
+        mutation UpsertEnvelope($objects: [buckets_insert_input!]!) {
+          insert_buckets(
+            objects: $objects,
+            on_conflict: {
+              constraint: buckets_pkey,
+              update_columns: [name, extra]
+            }
+          ) {
+            returning {
+              id
+            }
+          }
+        }
+      `,
+      variables: {objects: [{
+        id: req.body.id,
+        user_id: req.body.user_id,
+        name: req.body.name,
+        extra: req.body.extra,
+      }]}
+    });
+
+    res.json({});
+  } catch (ex) {
+    console.error(ex.message);
+    res.statusCode = 500;
+    res.json({error: ex.message});
+  }
+}

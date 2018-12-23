@@ -12,6 +12,13 @@ interface ModuleState {
 const module: Module<ModuleState, any> = {
   namespaced: true,
   getters: {
+    envelopes(state) {
+      return (
+        Object.values(state.balances).
+        filter((balance) => balance.bucket.type === 'envelope')
+      );
+    },
+
     accountBalances(state) {
       return (
         Object.values(state.balances).
@@ -46,6 +53,12 @@ const module: Module<ModuleState, any> = {
       const result = await axios.get(`${endpoint}/api/accounts/balances`);
       console.log('balances', result);
       context.commit('addBalances', result.data);
+    },
+
+    async saveEnvelope(context, envelope) {
+      console.log(envelope);
+      await axios.post(`${endpoint}/api/accounts/saveEnvelope`, envelope);
+      await context.dispatch('load');
     },
   },
 };

@@ -1,4 +1,5 @@
 import express from 'express';
+import * as accounts from '../controllers/accounts';
 import * as transactions from '../controllers/transactions';
 import * as sessions from '../lib/sessions';
 
@@ -28,4 +29,5 @@ router.use(async (req, res, next) => {
 });
 
 router.
-  get('/transactions', transactions.getTransactions);
+  get('/transactions', transactions.getTransactions).
+  get('/accounts/balances', accounts.getBalances);

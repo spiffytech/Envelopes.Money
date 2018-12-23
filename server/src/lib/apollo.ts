@@ -59,8 +59,7 @@ export const fragments = gql`
         transaction_id
         user_id
         amount
-        from_id
-        to_id
+        account_id
       }
       
       fragment bucket on buckets {
@@ -69,5 +68,14 @@ export const fragments = gql`
         name
         type
         extra
+      }
+
+      fragment account_balance on account_balances {
+        id
+        user_id
+        name
+        type
+        extra
+        sum
       }
     `;

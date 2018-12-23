@@ -20,8 +20,9 @@ async function main() {
   try {
     await axios.get(`${endpoint}/isAuthed`);
     console.log('Authed');
-    const result = await axios.get(`${endpoint}/api/transactions`);
-    console.log(result.data);
+    store.commit('setAuth', true);
+    store.dispatch('transactions/load');
+    store.dispatch('accounts/load');
   } catch (ex) {
     console.log('Probably not authorized');
     console.error(ex);

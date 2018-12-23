@@ -1,18 +1,36 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+  <div id="home">
+    <AccountBalances id="balances" />
+    <Transactions id="transactions" />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+
+import AccountBalances from '../components/AccountBalances.vue';
+import Transactions from '../components/Transactions.vue';
 
 export default Vue.extend({
   name: 'home',
   components: {
-    HelloWorld,
+    AccountBalances,
+    Transactions,
   },
 });
 </script>
+
+<style>
+#home {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+#balances {
+  flex-basis: 34%;
+}
+
+#transactions {
+  flex-basis: 66%;
+}
+</style>

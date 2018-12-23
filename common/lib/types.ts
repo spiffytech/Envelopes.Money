@@ -48,3 +48,8 @@ export interface TxnTuple {
   parts: ITransactionPart[];
   buckets: IBucket[];
 }
+
+export interface AccountBalance {
+  bucket: IBucket;
+  balance: number;
+}

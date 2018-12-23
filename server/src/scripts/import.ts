@@ -189,36 +189,38 @@ export function rowToTxn(
 
   const parts: CommonTypes.ITransactionPart[] =
     type === 'banktxn' ?
-    _.flatten(parseCategories(row).map((category) => [
+    [
       {
         id: shortid.generate(),
         transaction_id: transaction.id,
-        amount: category.amount,
+        amount: parseCategories(row).map((category) => category.amount).reduce((a, b) => a + b, 0),
         account_id: accounts[row.Account].id,
         user_id: userId,
       },
       {
         id: shortid.generate(),
         transaction_id: transaction.id,
-        amount: -category.amount,
+        amount: -parseCategories(row).map((category) => category.amount).reduce((a, b) => a + b, 0),
         account_id: null,
         user_id: userId,
       },
-      {
-        id: shortid.generate(),
-        transaction_id: transaction.id,
-        amount: -category.amount,
-        account_id: null,
-        user_id: userId,
-      },
-      {
-        id: shortid.generate(),
-        transaction_id: transaction.id,
-        amount: category.amount,
-        account_id: ids[toType][category.name].id,
-        user_id: userId,
-      },
-    ])) :
+      ..._.flatten(parseCategories(row).map((category) => [
+        {
+          id: shortid.generate(),
+          transaction_id: transaction.id,
+          amount: -category.amount,
+          account_id: null,
+          user_id: userId,
+        },
+        {
+          id: shortid.generate(),
+          transaction_id: transaction.id,
+          amount: category.amount,
+          account_id: ids[toType][category.name].id,
+          user_id: userId,
+        },
+      ]))
+    ] :
     [
       {
         id: shortid.generate(),

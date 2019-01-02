@@ -4,6 +4,7 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/signup" v-if="!$store.state.isAuthed">Sign Up</router-link> |
       <router-link to="/login" v-if="!$store.state.isAuthed">Log In</router-link>
+      <router-link to="/fill" v-if="$store.state.isAuthed">Fill Envelopes</router-link>
     </div>
     <router-view/>
   </div>

@@ -12,10 +12,18 @@ interface ModuleState {
 const module: Module<ModuleState, any> = {
   namespaced: true,
   getters: {
+    unallocated(state) {
+      return (
+        Object.values(state.balances).
+        find(({bucket}) => bucket.name === '[Unallocated]')
+      );
+    },
+
     envelopes(state) {
       return (
         Object.values(state.balances).
-        filter((balance) => balance.bucket.type === 'envelope')
+        filter((balance) => balance.bucket.type === 'envelope').
+        sort((a, b) => a.bucket.name < b.bucket.name ? -1 : 1)
       );
     },
 
@@ -57,7 +65,7 @@ const module: Module<ModuleState, any> = {
 
     async saveEnvelope(context, envelope) {
       console.log(envelope);
-      await axios.post(`${endpoint}/api/accounts/saveEnvelope`, envelope);
+      await axios.post(`${endpoint}/api/accounts/upsert`, envelope);
       await context.dispatch('load');
     },
   },

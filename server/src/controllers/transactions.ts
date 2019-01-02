@@ -54,3 +54,53 @@ export async function getTransactions(req: express.Request, res: express.Respons
     res.json({error: ex.message});
   }
 }
+
+export async function upsertTransaction(req: express.Request, res: express.Response) {
+  const apollo = await mkApollo(req.apikey!);
+
+  const {transaction, parts} = req.body;
+  console.log(req.body);
+
+  try {
+    await apollo.mutate({
+      mutation: gql`
+        mutation UpsertTransaction(
+          $transaction_id: String!,
+          $user_id: String!,
+          $transactions: [transactions_insert_input!]!,
+          $parts: [transaction_parts_insert_input!]!
+        ) {
+          delete_transaction_parts(where: {_and: [
+            {transaction_id: {_eq: $transaction_id}},
+            {user_id: {_eq: $user_id}},
+          ]}) {
+            returning {
+              id
+            }
+          }
+
+          insert_transactions(
+            objects: $transactions,
+            on_conflict: {
+              constraint: transactions_pkey,
+              update_columns: [memo, date, amount, label]
+            }
+          ) {returning {id}}
+
+          insert_transaction_parts(objects: $parts) {returning {id}}
+        }
+    `,
+    variables: {
+      transaction_id: transaction.id, user_id: req.userId,
+      transactions: [transaction],
+      parts,
+    },
+  });
+  console.log("done")
+
+  } catch (ex) {
+    console.error(ex);
+    res.statusCode = 500;
+    res.json({error: ex.message});
+  }
+}

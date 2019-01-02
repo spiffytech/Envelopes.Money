@@ -9,10 +9,15 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     isAuthed: false,
+    userId: null,
   },
   mutations: {
     setAuth(state, isAuthed: boolean) {
       state.isAuthed = isAuthed;
+    },
+
+    setUserId(state, userId: string) {
+      state.userId = userId;
     },
   },
   actions: {

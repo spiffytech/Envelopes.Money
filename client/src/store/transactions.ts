@@ -38,6 +38,13 @@ const module: Module<ModuleState, any> = {
       const result = await axios.get(`${endpoint}/api/transactions`);
       context.commit('addTransactions', result.data);
     },
+
+    async upsert(
+      context,
+      {transaction, parts}: {transaction: CommonTypes.ITransaction, parts: CommonTypes.ITransactionPart[]},
+    ) {
+      await axios.post(`${endpoint}/api/transactions/upsert`, {transaction, parts});
+    },
   },
 };
 

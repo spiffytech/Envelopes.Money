@@ -13,9 +13,10 @@ axios.defaults.withCredentials = true;
 
 async function main() {
   try {
-    await axios.get(`${endpoint}/isAuthed`);
+    const authResponse = await axios.get(`${endpoint}/isAuthed`);
     console.log('Authed');
     store.commit('setAuth', true);
+    store.commit('setUserId', authResponse.data.userId);
     store.dispatch('transactions/load');
     store.dispatch('accounts/load');
   } catch (ex) {

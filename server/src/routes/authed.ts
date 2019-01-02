@@ -30,5 +30,6 @@ router.use(async (req, res, next) => {
 
 router.
   get('/transactions', transactions.getTransactions).
+  post('/transactions/upsert', transactions.upsertTransaction).
   get('/accounts/balances', accounts.getBalances).
-  post('/accounts/saveEnvelope', accounts.saveEnvelope);
+  post('/accounts/upsert', accounts.saveEnvelope);

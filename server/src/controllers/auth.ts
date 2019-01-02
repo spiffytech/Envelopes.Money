@@ -104,9 +104,9 @@ export async function isAuthed(req: express.Request, res: express.Response) {
     return;
   }
   
-  const session = sessions.lookUpSession(apikey);
+  const session = await sessions.lookUpSession(apikey);
   if (session) {
-    res.send({isAuthed: true});
+    res.send({isAuthed: true, userId: session.id});
     return;
   }
 

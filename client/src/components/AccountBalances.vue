@@ -31,8 +31,8 @@ export default Vue.extend({
     envelopeBalances(): CommonTypes.AccountBalance {
       return this.$store.getters['accounts/envelopeBalances'];
     },
-  }
-})
+  },
+});
 </script>
 
 <style>

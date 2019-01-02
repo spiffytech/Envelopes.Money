@@ -9,7 +9,13 @@
 
     <table>
       <tr v-for="envelope in envelopes" :key="envelope.bucket.id">
-        <label>{{envelope.bucket.name}}: {{envelope.balance}}</label>
+        <label>{{envelope.bucket.name}}: {{toDollars(envelope.balance)}}</label>
+        <span>{{
+          toDollars(
+            envelope.balance +
+            parseFloat(fills[envelope.bucket.id].amount || 0) * 100
+          )
+        }}</span>
 
         <input type="radio" :id="`radio-${envelope.bucket.id}`" value="add" v-model="fills[envelope.bucket.id].type">
         <label :for="`radio-${envelope.bucket.id}`">Add</label>
@@ -19,9 +25,7 @@
         <label :for="`radio-${envelope.bucket.id}`">Set</label>
         -->
 
-        <input type="number" v-model="fills[envelope.bucket.id].amount" />
-
-        <span>{{ envelope.balance + parseInt(fills[envelope.bucket.id].amount) }}</span>
+        <input type="number" step="0.01" v-model="fills[envelope.bucket.id].amount" />
       </tr>
     </table>
     
@@ -35,6 +39,7 @@ import * as shortid from 'shortid';
 import Vue from 'vue'
 
 import * as CommonTypes from '../../../common/lib/types';
+import {toDollars} from '@/lib/currency';
 
 interface Fill {
   type: 'add' | 'set';
@@ -76,9 +81,10 @@ export default Vue.extend({
   // our ajax finishes. So then computed runs, and can't match up with data.
   data() {
     return {
+      toDollars,
       source: 'unallocated' as 'unallocated' | 'income',
       fills: {} as {[id: string]: Fill},
-    }
+    };
   },
 
   methods: {
@@ -92,7 +98,7 @@ export default Vue.extend({
         amount:
           Object.values(this.fills).
           map(({amount}) => amount).
-          reduce((a, b) => parseInt(a.toString()) + parseInt(b.toString()), 0) as number,
+          reduce((a, b) => parseFloat(a.toString()) + parseFloat(b.toString()) * 100, 0) as number,
         label: 'Fill',
         type: 'envelopeTransfer',
       };
@@ -105,7 +111,7 @@ export default Vue.extend({
         map(([bucketId, fill]): CommonTypes.ITransactionPart => ({
           id: shortid.generate(),
           transaction_id: transaction.id,
-          amount: parseInt(fill.amount.toString()),
+          amount: parseFloat(fill.amount.toString()) * 100,
           account_id: bucketId,
           user_id: this.$store.state.userId,
         }));

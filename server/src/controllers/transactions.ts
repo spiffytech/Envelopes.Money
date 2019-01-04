@@ -104,3 +104,48 @@ export async function upsertTransaction(req: express.Request, res: express.Respo
     res.json({error: ex.message});
   }
 }
+
+export async function deleteTransaction(req: express.Request, res: express.Response) {
+  const apollo = await mkApollo(req.apikey!);
+
+  const {transaction} = req.body;
+  console.log(req.body);
+
+  try {
+    await apollo.mutate({
+      mutation: gql`
+        mutation DeleteTransaction(
+          $transaction_id: String!,
+          $user_id: String!,
+        ) {
+          delete_transaction_parts(where: {_and: [
+            {transaction_id: {_eq: $transaction_id}},
+            {user_id: {_eq: $user_id}},
+          ]}) {
+            returning {
+              id
+            }
+          }
+
+          delete_transactions(
+            where: {_and: [
+              {id: {_eq: $transaction_id}},
+              {user_id: {_eq: $user_id}}
+            ]}
+          ) {returning {id}}
+        }
+    `,
+    variables: {
+      transaction_id: transaction.id,
+      user_id: req.userId,
+    },
+  });
+  console.log("done")
+  res.json({});
+
+  } catch (ex) {
+    console.error(ex);
+    res.statusCode = 500;
+    res.json({error: ex.message});
+  }
+}

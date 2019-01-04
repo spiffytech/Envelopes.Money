@@ -27,6 +27,7 @@ const module: Module<ModuleState, any> = {
 
   mutations: {
     addTransactions(state, transactions: CommonTypes.TxnBucketTuple[]) {
+      state.transactions = {};  // TODO: Make this more efficient
       transactions.forEach((txn) =>
         Vue.set(state.transactions, txn.transaction.id, txn),
       );
@@ -44,6 +45,15 @@ const module: Module<ModuleState, any> = {
       {transaction, parts}: {transaction: CommonTypes.ITransaction, parts: CommonTypes.ITransactionPart[]},
     ) {
       await axios.post(`${endpoint}/api/transactions/upsert`, {transaction, parts});
+    },
+
+    async delete(context, {transaction}: {transaction: CommonTypes.ITransaction}) {
+      try {
+        await axios.post(`${endpoint}/api/transactions/delete`, {transaction});
+        console.log('Deleted txn');
+      } catch (ex) {
+        console.error(ex)
+      }
     },
   },
 };

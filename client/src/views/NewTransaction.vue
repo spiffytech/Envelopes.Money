@@ -1,5 +1,7 @@
 <template>
   <form @submit.prevent="submit">
+    <button @click.prevent="deleteTxn" v-if="this.originalTxn">Delete</button>
+
     <select v-model="selectedFrom" required>
       <option v-for="source in sourcesFrom" :value="source.bucket.id" :key="source.bucket.id">
         {{ source.bucket.name }}
@@ -32,6 +34,7 @@ import Vue from 'vue';
 
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '@/lib/currency';
+import router from '@/router';
 
 const counterbalanceTransaction =
   mm().
@@ -149,7 +152,7 @@ export default Vue.extend({
     filter((part) => this.sourcesTo.find((source) => source.bucket.id === part.account_id)).
     forEach(({account_id, amount}) => {
       if (!account_id) return;
-      this.parts.push({account_id, amount: (-amount / 100).toString()});
+      this.parts.push({account_id, amount: toDollars(-amount)});
     });
   },
 
@@ -208,6 +211,15 @@ export default Vue.extend({
         'transactions/upsert',
         {transaction, parts: partsBalanced},
       );
+      router.push('home');
+    },
+
+    async deleteTxn() {
+      await this.$store.dispatch(
+        'transactions/delete',
+        {transaction: this.originalTxn},
+      );
+      router.push('home');
     },
   },
 });

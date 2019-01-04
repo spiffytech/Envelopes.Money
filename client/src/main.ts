@@ -17,8 +17,12 @@ async function main() {
     console.log('Authed');
     store.commit('setAuth', true);
     store.commit('setUserId', authResponse.data.userId);
-    store.dispatch('transactions/load');
-    store.dispatch('accounts/load');
+
+    // Load data before initializing the app, otherwise our entire codebase is
+    // littered with defensive coding against data not being loaded yet when
+    // components load
+    await store.dispatch('transactions/load');
+    await store.dispatch('accounts/load');
   } catch (ex) {
     console.log('Probably not authorized');
     console.error(ex);

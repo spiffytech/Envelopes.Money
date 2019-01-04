@@ -21,7 +21,7 @@ export default Vue.extend({
   computed: {
     transactions(): CommonTypes.ITransaction[] {
       return this.$store.getters['transactions/transactions'];
-    }
-  }
+    },
+  },
 });
 </script>

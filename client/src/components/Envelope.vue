@@ -55,7 +55,7 @@ export default Vue.extend({
     async saveEnvelope() {
       await this.$store.dispatch('accounts/saveEnvelope', this.balance.bucket);
       this.editing = false;
-    }
+    },
   },
 });
 </script>

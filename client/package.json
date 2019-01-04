@@ -12,6 +12,7 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "lodash": "^4.17.11",
+    "multimethod": "^0.1.0",
     "node-scrypt": "0.0.1",
     "register-service-worker": "^1.5.2",
     "shortid": "^2.2.14",

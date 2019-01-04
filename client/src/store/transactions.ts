@@ -6,7 +6,7 @@ import * as CommonTypes from '../../../common/lib/types';
 import {endpoint} from '@/lib/config';
 
 interface ModuleState {
-  transactions: {[id: string]: CommonTypes.TxnTuple};
+  transactions: {[id: string]: CommonTypes.TxnBucketTuple};
 }
 
 const module: Module<ModuleState, any> = {
@@ -26,9 +26,9 @@ const module: Module<ModuleState, any> = {
   },
 
   mutations: {
-    addTransactions(state, transactions: CommonTypes.TxnTuple[]) {
+    addTransactions(state, transactions: CommonTypes.TxnBucketTuple[]) {
       transactions.forEach((txn) =>
-        Vue.set(state.transactions, txn.transaction.id, txn)
+        Vue.set(state.transactions, txn.transaction.id, txn),
       );
     },
   },

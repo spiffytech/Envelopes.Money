@@ -36,7 +36,7 @@
 <script lang="ts">
 import axios from 'axios';
 import * as shortid from 'shortid';
-import Vue from 'vue'
+import Vue from 'vue';
 
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '@/lib/currency';
@@ -57,9 +57,9 @@ export default Vue.extend({
       // load
       accountBalances.forEach(({bucket}) => {
         if (!this.fills[bucket.id]) Vue.set(this.fills, bucket.id, {type: 'add', amount: 0});
-      })
+      });
       return accountBalances;
-    }
+    },
   },
 
   /**
@@ -71,7 +71,7 @@ export default Vue.extend({
     const {parts} = this.txnTuple as CommonTypes.TxnTuple;
     parts.forEach((part) => {
       if (!part.account_id) return;
-      if(!this.fills[part.account_id]) {
+      if (!this.fills[part.account_id]) {
         Vue.set(this.fills, part.account_id, {type: 'add', amount: part.amount});
       }
     });
@@ -138,9 +138,9 @@ export default Vue.extend({
 
       await this.$store.dispatch(
         'transactions/upsert',
-        {transaction, parts: partsBalanced}
+        {transaction, parts: partsBalanced},
       );
     },
   },
-})
+});
 </script>

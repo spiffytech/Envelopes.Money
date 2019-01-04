@@ -19,7 +19,7 @@ export interface ITransactionPart {
 export interface TxnWithParts {
   transaction: ITransaction;
   parts: ITransactionPart[];
-};
+}
 
 interface IBucketCore {
   id: string;
@@ -44,6 +44,11 @@ interface IBucketEnvelope extends IBucketCore {
 export type IBucket = IBucketAccount | IBucketEnvelope;
 
 export interface TxnTuple {
+  transaction: ITransaction;
+  parts: ITransactionPart[];
+}
+
+export interface TxnBucketTuple {
   transaction: ITransaction;
   parts: ITransactionPart[];
   buckets: IBucket[];

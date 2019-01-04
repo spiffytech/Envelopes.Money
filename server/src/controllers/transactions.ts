@@ -36,7 +36,7 @@ export async function getTransactions(req: express.Request, res: express.Respons
       variables: {user_id: req.userId},
     });
 
-    const parsed: CommonTypes.TxnTuple[] = result.data.transactions.map((transaction) => {
+    const parsed: CommonTypes.TxnBucketTuple[] = result.data.transactions.map((transaction) => {
       const parts = transaction.parts;
       const buckets = flatten(parts.map((part) => [part.account]));
       parts.forEach((part) => {

@@ -12,6 +12,10 @@ interface ModuleState {
 const module: Module<ModuleState, any> = {
   namespaced: true,
   getters: {
+    buckets(state) {
+      return Object.values(state.balances).map((balance) => balance.bucket);
+    },
+
     unallocated(state) {
       return (
         Object.values(state.balances).

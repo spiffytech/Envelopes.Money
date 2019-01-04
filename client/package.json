@@ -14,6 +14,7 @@
     "lodash": "^4.17.11",
     "multimethod": "^0.1.0",
     "node-scrypt": "0.0.1",
+    "normalize.css": "^8.0.1",
     "register-service-worker": "^1.5.2",
     "shortid": "^2.2.14",
     "vue": "^2.5.17",

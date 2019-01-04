@@ -1,3 +1,4 @@
+export type TxnTypes = 'banktxn' | 'accountTransfer' | 'envelopeTransfer' | 'fill';
 export interface ITransaction {
   id: string;
   user_id: string;
@@ -5,7 +6,7 @@ export interface ITransaction {
   date: Date;
   amount: number;
   label: string | null;
-  type: 'banktxn' | 'accountTransfer' | 'envelopeTransfer' | 'fill';
+  type: TxnTypes;
 }
 
 export interface ITransactionPart {

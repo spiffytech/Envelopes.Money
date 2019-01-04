@@ -2,6 +2,15 @@
   <form @submit.prevent="submit">
     <button @click.prevent="deleteTxn" v-if="this.originalTxn">Delete</button>
 
+    <label>Total amount</label>
+    <input type="number" step="1.00" v-model="total" @input="setTotal" />
+
+    <select v-model="transactionType" @change="typeChange">
+      <option value="banktxn">Bank Transaction</option>
+      <option value="envelopeTransfer">Envelope Transfer</option>
+      <option value="accountTransfer">Account Transfer</option>
+    </select>
+
     <select v-model="selectedFrom" required>
       <option v-for="source in sourcesFrom" :value="source.bucket.id" :key="source.bucket.id">
         {{ source.bucket.name }}
@@ -10,12 +19,16 @@
 
     <div v-for="part in parts" :key="part.account_id">
       <select v-model="part.account_id" required>
-        <option v-for="source in sourcesTo" :value="source.bucket.id" :key="source.bucket.id">
+        <option
+          v-for="source in sourcesTo"
+          :value="source.bucket.id"
+          :key="source.bucket.id"
+        >
           {{ source.bucket.name }}
         </option>
       </select>
 
-      <input type="number" step="0.01" v-model="part.amount" required />
+      <input type="number" step="0.01" v-model="part.amount" @input="() => setDirty(part)" required />
     </div>
 
 
@@ -128,6 +141,24 @@ export default Vue.extend({
       if (this.originalTxn) return this.originalTxn.date;
       return new Date();
     },
+
+    fromType(): string {
+      switch (this.transactionType) {
+        case 'banktxn': return 'account';
+        case 'envelopeTransfer': return 'envelope';
+        case 'accountTransfer': return 'account';
+        default: throw new Error(`Undefined transaction type ${this.transactionType}`);
+      }
+    },
+
+    toType(): string {
+      switch (this.transactionType) {
+        case 'banktxn': return 'envelope';
+        case 'envelopeTransfer': return 'envelope';
+        case 'accountTransfer': return 'account';
+        default: throw new Error(`Undefined transaction type ${this.transactionType}`);
+      }
+    },
   },
 
 /**
@@ -144,6 +175,8 @@ export default Vue.extend({
     if (!fromPart) throw new Error('No from part matching our transaction type');
     this.selectedFrom = fromPart.account_id;
 
+    if (this.originalTxn) this.total = toDollars(-this.originalTxn.amount);
+
     Vue.set(this, 'parts', []);
     txnTuple.parts.
     // Filter out counterbalance parts
@@ -152,18 +185,18 @@ export default Vue.extend({
     filter((part) => this.sourcesTo.find((source) => source.bucket.id === part.account_id)).
     forEach(({account_id, amount}) => {
       if (!account_id) return;
-      this.parts.push({account_id, amount: toDollars(-amount)});
+      this.parts.push({account_id, amount: toDollars(-amount), dirty: false});
     });
   },
 
   data() {
     return {
+      total: '0',
+      transactionType: 'banktxn' as CommonTypes.TxnTypes,
       accounts: this.$store.getters['accounts/accountBalances'],
       envelopes: this.$store.getters['accounts/envelopeBalances'],
       selectedFrom: null as string | null,
-      parts: [{account_id: null as string | null, amount: '0'}],
-      fromType: 'account',
-      toType: 'envelope',
+      parts: [{account_id: null as string | null, amount: '0', dirty: false}],
     };
   },
 
@@ -211,7 +244,7 @@ export default Vue.extend({
         'transactions/upsert',
         {transaction, parts: partsBalanced},
       );
-      router.push('home');
+      router.push({name: 'home'});
     },
 
     async deleteTxn() {
@@ -219,7 +252,36 @@ export default Vue.extend({
         'transactions/delete',
         {transaction: this.originalTxn},
       );
-      router.push('home');
+      await this.$store.dispatch('transactions/load');
+      router.push({name: 'home'});
+    },
+
+    /**
+     * Clear out the form when the user changes transaction types
+     */
+    typeChange() {
+      Vue.set(this, 'parts', [{account_id: null, amount: '0'}]);
+      this.selectedFrom = null;
+    },
+
+    /**
+     * Given an input event to the 'total' input field, fnd the first non-dirty
+     * part and calculate the amount it needs to make the parts equal the total
+     */
+    setTotal(e: any) {
+      const partToChange = this.parts.find((part) => part.dirty === false);
+      if (!partToChange) return;
+      const partsSum =
+        this.parts.
+        filter((part) => part.dirty).
+        map((part) => parseFloat(part.amount.toString()) || 0).
+        reduce((acc, item) => acc + item, 0);
+      partToChange.amount = (parseFloat(e.target.value) - partsSum).toString();
+
+    },
+
+    setDirty(part: any) {
+      part.dirty = true;
     },
   },
 });

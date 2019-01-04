@@ -7,6 +7,8 @@ import store from './store';
 import './registerServiceWorker';
 import {endpoint} from '@/lib/config';
 
+import 'normalize.css';
+
 Vue.config.productionTip = false;
 
 axios.defaults.withCredentials = true;

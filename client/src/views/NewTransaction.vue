@@ -31,6 +31,7 @@
       <input type="number" step="0.01" v-model="part.amount" @input="() => setDirty(part)" required />
     </div>
 
+    <button @click.prevent="addPart">Add part</button>
 
     <button type="submit">Save</button>
   </form>
@@ -185,7 +186,7 @@ export default Vue.extend({
     filter((part) => this.sourcesTo.find((source) => source.bucket.id === part.account_id)).
     forEach(({account_id, amount}) => {
       if (!account_id) return;
-      this.parts.push({account_id, amount: toDollars(-amount), dirty: false});
+      this.parts.push({account_id, amount: toDollars(-amount), dirty: true});
     });
   },
 
@@ -276,12 +277,16 @@ export default Vue.extend({
         filter((part) => part.dirty).
         map((part) => parseFloat(part.amount.toString()) || 0).
         reduce((acc, item) => acc + item, 0);
-      partToChange.amount = (parseFloat(e.target.value) - partsSum).toString();
+      partToChange.amount = (parseFloat(e.target.value) - partsSum).toFixed(2);
 
     },
 
     setDirty(part: any) {
       part.dirty = true;
+    },
+
+    addPart() {
+      this.parts.push({account_id: null, amount: '0', dirty: false});
     },
   },
 });

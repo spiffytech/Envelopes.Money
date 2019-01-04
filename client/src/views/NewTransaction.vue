@@ -98,22 +98,69 @@ const counterbalanceTransaction =
   });
 
 export default Vue.extend({
+
   computed: {
     sourcesFrom(): CommonTypes.AccountBalance[] {
-      return this.accounts;
+      if (this.fromType === 'account') return this.accounts;
+      return this.envelopes;
     },
 
     sourcesTo(): CommonTypes.AccountBalance[] {
+      if (this.toType === 'account') return this.accounts;
       return this.envelopes;
     },
+
+    originalTxn(): CommonTypes.ITransaction | null {
+      const tuple = this.$store.state.transactions.transactions[this.$route.query.txnId as string];
+      if (tuple) return tuple.transaction;
+      return null;
+    },
+
+    transactionId(): string {
+      if (this.originalTxn) return this.originalTxn.id;
+      return shortid.generate();
+    },
+
+    transactionDate(): Date {
+      if (this.originalTxn) return this.originalTxn.date;
+      return new Date();
+    },
+  },
+
+/**
+ * If we're viewing an existing transaction load it up
+ */
+  beforeMount() {
+    const txnTuple: CommonTypes.TxnBucketTuple | undefined =
+      this.$store.state.transactions.transactions[this.$route.query.txnId as string];
+    if (!txnTuple) return;
+
+    const fromPart = txnTuple.parts.find((part) =>
+      this.$store.state.accounts.balances[part.account_id || 'null'].bucket.type === this.fromType,
+    );
+    if (!fromPart) throw new Error('No from part matching our transaction type');
+    this.selectedFrom = fromPart.account_id;
+
+    Vue.set(this, 'parts', []);
+    txnTuple.parts.
+    // Filter out counterbalance parts
+    filter((part) => part.account_id).
+    // Filter out the 'from' item
+    filter((part) => this.sourcesTo.find((source) => source.bucket.id === part.account_id)).
+    forEach(({account_id, amount}) => {
+      if (!account_id) return;
+      this.parts.push({account_id, amount: (-amount / 100).toString()});
+    });
   },
 
   data() {
     return {
       accounts: this.$store.getters['accounts/accountBalances'],
       envelopes: this.$store.getters['accounts/envelopeBalances'],
-      selectedFrom: null,
-      parts: [{account_id: null, amount: '0'}],
+      selectedFrom: null as string | null,
+      parts: [{account_id: null as string | null, amount: '0'}],
+      fromType: 'account',
+      toType: 'envelope',
     };
   },
 
@@ -124,10 +171,10 @@ export default Vue.extend({
         reduce((acc, item) => acc + item, 0) * 100;
 
       const transaction: CommonTypes.ITransaction = {
-        id: shortid.generate(),
+        id: this.transactionId,
         user_id: this.$store.state.userId,
         memo: '',
-        date: new Date(),
+        date: this.transactionDate,
         amount,
         label: '',
         type: 'banktxn',

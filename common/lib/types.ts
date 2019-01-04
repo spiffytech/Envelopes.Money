@@ -5,7 +5,7 @@ export interface ITransaction {
   date: Date;
   amount: number;
   label: string | null;
-  type: 'banktxn' | 'accountTransfer' | 'envelopeTransfer';
+  type: 'banktxn' | 'accountTransfer' | 'envelopeTransfer' | 'fill';
 }
 
 export interface ITransactionPart {

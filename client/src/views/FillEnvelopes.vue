@@ -39,6 +39,7 @@ import * as shortid from 'shortid';
 import Vue from 'vue';
 
 import * as CommonTypes from '../../../common/lib/types';
+import * as TransactionPart from '../../../common/lib/TransactionPart';
 import {toDollars} from '@/lib/currency';
 
 interface Fill {
@@ -105,10 +106,10 @@ export default Vue.extend({
 
       // TODO: For both transaction and fill, convert from/to pennies in display
       // and submit()
-      const partsUnbalanced: CommonTypes.ITransactionPart[] =
+      const partsUnbalanced: TransactionPart.T[] =
         Object.entries(this.fills).
         filter(([bucketId, fill]) => fill.amount !== 0).
-        map(([bucketId, fill]): CommonTypes.ITransactionPart => ({
+        map(([bucketId, fill]): TransactionPart.T => ({
           id: shortid.generate(),
           transaction_id: transaction.id,
           amount: parseFloat(fill.amount.toString()) * 100,
@@ -116,19 +117,19 @@ export default Vue.extend({
           user_id: this.$store.state.userId,
         }));
 
-      const partsBalanced: CommonTypes.ITransactionPart[] = [
+      const partsBalanced: TransactionPart.T[] = [
         // The other side of our double entry
         {
           id: shortid.generate(),
           transaction_id: transaction.id,
-          amount: -partsUnbalanced.reduce((acc, item) => acc + item.amount, 0),
+          amount: -TransactionPart.sum(partsUnbalanced),
           account_id: this.$store.getters['accounts/unallocated'].bucket.id as string,
           user_id: this.$store.state.userId,
         },
         ...partsUnbalanced.filter((part) => part.amount !== 0),
       ];
 
-      const sum = partsBalanced.reduce((acc, item) => acc + item.amount, 0);
+      const sum = TransactionPart.sum(partsBalanced);
 
       // Sanity checking ourselves
       if (sum !== 0) throw new Error(`Amounts did not add up to 0: ${sum}`);

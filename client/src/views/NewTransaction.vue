@@ -47,6 +47,7 @@ import * as shortid from 'shortid';
 import Vue from 'vue';
 
 import * as CommonTypes from '../../../common/lib/types';
+import * as TransactionPart from '../../../common/lib/TransactionPart';
 import {toDollars} from '@/lib/currency';
 import router from '@/router';
 
@@ -86,12 +87,10 @@ const counterbalanceTransaction =
     );
 
     const sumAccounts =
-      parts.filter((part) => accounts[part.account_id || 'null']).
-      map((part) => part.amount).reduce((acc, item) => acc + item, 0);
+      TransactionPart.sum(parts.filter((part) => accounts[part.account_id || 'null']));
 
     const sumEnvelopes =
-      parts.filter((part) => envelopes[part.account_id || 'null']).
-      map((part) => part.amount).reduce((acc, item) => acc + item, 0);
+      TransactionPart.sum(parts.filter((part) => envelopes[part.account_id || 'null']));
 
     const counterbalance: CommonTypes.ITransactionPart[] = [
       ...parts,

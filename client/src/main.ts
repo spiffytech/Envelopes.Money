@@ -5,13 +5,26 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 import './registerServiceWorker';
-import {endpoint} from '@/lib/config';
+import { endpoint } from '@/lib/config';
 
 import 'normalize.css';
 
 Vue.config.productionTip = false;
 
 axios.defaults.withCredentials = true;
+
+async function detectLogOut() {
+  try {
+    await axios.get(`${endpoint}/isAuthed`);
+  } catch (ex) {
+    if (store.state.isAuthed) {
+      console.error('Logging the user out...');
+      await store.dispatch('logout');
+    }
+  } finally {
+    setTimeout(() => detectLogOut(), 5000);
+  }
+}
 
 async function main() {
   try {
@@ -28,7 +41,10 @@ async function main() {
   } catch (ex) {
     console.log('Probably not authorized');
     console.error(ex);
+    if (window.location.pathname !== '/login') window.location.href = 'login';
   }
+
+  detectLogOut();
 
   new Vue({
     router,

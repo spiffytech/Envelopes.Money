@@ -39,7 +39,7 @@ async function main() {
     await store.dispatch('transactions/load');
     await store.dispatch('accounts/load');
   } catch (ex) {
-    console.log('Probably not authorized');
+    console.log('Not authorized');
     console.error(ex);
     if (window.location.pathname !== '/login') window.location.href = 'login';
   }

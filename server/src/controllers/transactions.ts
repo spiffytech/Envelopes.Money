@@ -89,14 +89,16 @@ export async function upsertTransaction(req: express.Request, res: express.Respo
 
           insert_transaction_parts(objects: $parts) {returning {id}}
         }
-    `,
-    variables: {
-      transaction_id: transaction.id, user_id: req.userId,
-      transactions: [transaction],
-      parts,
-    },
-  });
-  console.log("done")
+      `,
+      variables: {
+        transaction_id: transaction.id, user_id: req.userId,
+        transactions: [transaction],
+        parts,
+      },
+    });
+    console.log("done")
+
+    res.json({});
 
   } catch (ex) {
     console.error(ex);

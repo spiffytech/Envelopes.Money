@@ -41,6 +41,7 @@ import Vue from 'vue';
 import * as CommonTypes from '../../../common/lib/types';
 import * as TransactionPart from '../../../common/lib/TransactionPart';
 import {toDollars} from '@/lib/currency';
+import router from '@/router';
 
 interface Fill {
   type: 'add' | 'set';
@@ -48,9 +49,13 @@ interface Fill {
 }
 
 export default Vue.extend({
-  props: ['txnTuple'],
-
   computed: {
+    originalTxn(): CommonTypes.ITransaction | null {
+      const tuple = this.$store.state.transactions.transactions[this.$route.query.txnId as string];
+      if (tuple) return tuple.transaction;
+      return null;
+    },
+
     envelopes(): CommonTypes.AccountBalance[] {
       const accountBalances: CommonTypes.AccountBalance[] = this.$store.getters['accounts/envelopes'];
       // We generate the fills in this computed so when a page loads and the
@@ -68,12 +73,14 @@ export default Vue.extend({
    * old fills
    */
   beforeMount() {
-    if (!this.txnTuple) return;
-    const {parts} = this.txnTuple as CommonTypes.TxnTuple;
+    const txnTuple =
+      this.$store.state.transactions.transactions[this.$route.query.txnId as string];
+    if (!txnTuple) return;
+    const {parts} = txnTuple as CommonTypes.TxnTuple;
     parts.forEach((part) => {
       if (!part.account_id) return;
       if (!this.fills[part.account_id]) {
-        Vue.set(this.fills, part.account_id, {type: 'add', amount: part.amount});
+        Vue.set(this.fills, part.account_id, {type: 'add', amount: part.amount / 100});
       }
     });
   },
@@ -92,10 +99,10 @@ export default Vue.extend({
     async submit() {
       if (this.source !== 'unallocated') throw new Error('Unsupported fill type');
       const transaction: CommonTypes.ITransaction = {
-        id: shortid.generate(),
+        id: this.originalTxn ? this.originalTxn.id : shortid.generate(),
         user_id: this.$store.state.userId,
         memo: '',
-        date: new Date(),
+        date: this.originalTxn ? this.originalTxn.date : new Date(),
         amount:
           Object.values(this.fills).
           map(({amount}) => amount).
@@ -141,6 +148,8 @@ export default Vue.extend({
         'transactions/upsert',
         {transaction, parts: partsBalanced},
       );
+      await this.$store.dispatch('transactions/load');
+      router.push({name: 'home'});
     },
   },
 });

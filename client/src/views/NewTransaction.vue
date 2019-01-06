@@ -202,9 +202,7 @@ export default Vue.extend({
 
   methods: {
     async submit() {
-      const amount =
-        this.parts.map((part) => parseFloat(part.amount)).
-        reduce((acc, item) => acc + item, 0) * 100;
+      const amount = TransactionPart.sum(this.parts) * 100;
 
       const transaction: CommonTypes.ITransaction = {
         id: this.transactionId,

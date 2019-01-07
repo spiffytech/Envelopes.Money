@@ -9,8 +9,8 @@ export interface T {
 }
 
 const amountAsNumber = {
-  get: (amount) => parseFloat(amount.toString()),
-  mod: (fn) => (amount) => fn(amount),
+  get: (amount: number | string) => parseFloat(amount.toString()),
+  mod: (fn: any) => (amount: number | string) => fn(amount),
 }
 
 export const getAmount = shades.get('amount');

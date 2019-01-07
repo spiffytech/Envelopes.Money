@@ -34,7 +34,6 @@
 </template>
 
 <script lang="ts">
-import axios from 'axios';
 import * as shortid from 'shortid';
 import Vue from 'vue';
 

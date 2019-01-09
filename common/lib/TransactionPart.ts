@@ -1,4 +1,5 @@
 import * as shades from 'shades';
+import {lens} from 'lens.ts';
 
 export interface T {
   id: string;
@@ -13,8 +14,7 @@ const amountAsNumber = {
   mod: (fn: any) => (amount: number | string) => fn(amount),
 }
 
-export const getAmount = shades.get('amount');
-export const setAmount = shades.set('amount');
+export const getAmount = lens<T>().amount.get
 
 export function sum(parts: Array<Pick<T, 'amount'> | {amount: string}>): number {
   return (

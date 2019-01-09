@@ -4,7 +4,13 @@
     <table>
       <router-link
         tag="tr"
-        :to="{path: txnTuple.transaction.type === 'fill' ? 'fill' : 'newTransaction', query: {txnId: txnTuple.transaction.id}}"
+        :to="{
+          name: 'EditTransaction',
+          query: {
+            txnId: txnTuple.transaction.id,
+            type: txnTuple.transaction.type === 'fill' ? 'fill' : 'txn',
+          }
+        }"
         v-for="txnTuple in transactions"
         :key="txnTuple.transaction.id"
       >

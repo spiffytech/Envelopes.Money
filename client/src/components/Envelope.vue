@@ -25,8 +25,8 @@
   <div class="envelope" v-else>
     <td>{{balance.bucket.name}}</td>
     <td class="number">
-      {{balance.balance}} <br>
-      {{balance.bucket.extra.target}}
+      {{balanceDollars}} <br>
+      {{targetBalanceDollars}}
     </td>
     <td>{{balance.bucket.extra.interval}}</td>
 
@@ -34,12 +34,23 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
+
+import {toDollars} from '@/lib/currency';
 import * as CommonTypes from '../../../common/lib/types';
 
 export default Vue.extend({
-  props: ['balance'],
+  props: {balance: {type: Object}},
+
+  computed: {
+    balanceDollars(): string {
+      return toDollars(this.balance.balance);
+    },
+    targetBalanceDollars(): string {
+      return toDollars(this.balance.bucket.extra.target);
+    },
+  },
 
   data() {
     return {

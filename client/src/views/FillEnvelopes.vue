@@ -48,21 +48,14 @@ interface Fill {
 }
 
 export default Vue.extend({
-  computed: {
-    originalTxn(): CommonTypes.ITransaction | null {
-      const tuple = this.$store.state.transactions.transactions[this.$route.query.txnId as string];
-      if (tuple) return tuple.transaction;
-      return null;
-    },
+  props: ['originalTxn', 'envelopeBalances'],
 
+  computed: {
     envelopes(): CommonTypes.AccountBalance[] {
       const accountBalances: CommonTypes.AccountBalance[] = this.$store.getters['accounts/envelopes'];
       // We generate the fills in this computed so when a page loads and the
       // envelopes aren't around yet we still get the fills after the envelopes
       // load
-      accountBalances.forEach(({bucket}) => {
-        if (!this.fills[bucket.id]) Vue.set(this.fills, bucket.id, {type: 'add', amount: 0});
-      });
       return accountBalances;
     },
   },
@@ -72,6 +65,10 @@ export default Vue.extend({
    * old fills
    */
   beforeMount() {
+    this.envelopeBalances.forEach(({bucket}: CommonTypes.AccountBalance) => {
+      if (!this.fills[bucket.id]) Vue.set(this.fills, bucket.id, {type: 'add', amount: 0});
+    });
+
     const txnTuple =
       this.$store.state.transactions.transactions[this.$route.query.txnId as string];
     if (!txnTuple) return;

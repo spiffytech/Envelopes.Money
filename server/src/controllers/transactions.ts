@@ -1,6 +1,9 @@
 import express from 'express';
 import flatten from 'lodash/flatten';
+import fromPairs from 'lodash/fromPairs';
+import groupBy from 'lodash/groupBy';
 import gql from 'graphql-tag';
+import uniq from 'lodash/uniq';
 
 import * as CommonTypes from '../../../common/lib/types';
 import mkApollo from '../lib/apollo';
@@ -9,43 +12,40 @@ import {fragments} from '../lib/apollo';
 export async function getTransactions(req: express.Request, res: express.Response) {
   const apollo = await mkApollo(req.apikey!);
 
-  interface QueryResult extends CommonTypes.ITransaction {
-    parts: Array<CommonTypes.ITransactionPart & {
-      account: CommonTypes.IBucket;
-    }>;
+  interface QueryResult {
+    transactions: CommonTypes.ITransaction[];
+    transaction_parts: CommonTypes.ITransactionPart[];
+    buckets: CommonTypes.IBucket[];
   }
 
   try {
-    const result = await apollo.query<{transactions: QueryResult[]}>({
+    const result = await apollo.query<QueryResult>({
       query: gql`
         ${fragments}
 
-        query GetTransactions($user_id: String!) {
+        query GetTransactions2($user_id: String!) {
           transactions(where: {user_id: {_eq: $user_id}}) {
-            id
             ...transaction
-            parts {
-              ...transaction_part
-              account {
-                ...bucket
-              }
-            }
+          }
+          transaction_parts(where: {user_id: {_eq: $user_id}}) {
+            ...transaction_part
+          }
+          buckets(where: {user_id: {_eq: $user_id}}) {
+            ...bucket
           }
         }
       `,
       variables: {user_id: req.userId},
     });
 
-    const parsed: CommonTypes.TxnBucketTuple[] = result.data.transactions.map((transaction) => {
-      const parts = transaction.parts;
-      const buckets = flatten(parts.map((part) => [part.account]));
-      parts.forEach((part) => {
-        delete part['account'];
-      });
-      delete transaction['parts'];
+    const partsGrouped = groupBy(result.data.transaction_parts, 'transaction_id');
+    const bucketsById = fromPairs(result.data.buckets.map((bucket) => [bucket.id, bucket]));
 
-      return {transaction, parts, buckets};
-    })
+    const parsed: CommonTypes.TxnBucketTuple[] = result.data.transactions.map((transaction) => ({
+      transaction,
+      parts: partsGrouped[transaction.id],
+      buckets: uniq(partsGrouped[transaction.id].map((part) => bucketsById[part.account_id || 'null'])),
+    }));
 
     res.json(parsed);
   } catch (ex) {

@@ -1,16 +1,16 @@
 import express from 'express';
-import flatten from 'lodash/flatten';
 import fromPairs from 'lodash/fromPairs';
-import groupBy from 'lodash/groupBy';
 import gql from 'graphql-tag';
+import groupBy from 'lodash/groupBy';
+import {Parser as json2csv} from 'json2csv';
 import uniq from 'lodash/uniq';
 
 import * as CommonTypes from '../../../common/lib/types';
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 
-export async function getTransactions(req: express.Request, res: express.Response) {
-  const apollo = await mkApollo(req.apikey!);
+async function getAllTransactions(apikey: string, userId: string) {
+  const apollo = await mkApollo(apikey);
 
   interface QueryResult {
     transactions: CommonTypes.ITransaction[];
@@ -18,36 +18,41 @@ export async function getTransactions(req: express.Request, res: express.Respons
     buckets: CommonTypes.IBucket[];
   }
 
-  try {
-    const result = await apollo.query<QueryResult>({
-      query: gql`
-        ${fragments}
+  const result = await apollo.query<QueryResult>({
+    query: gql`
+      ${fragments}
 
-        query GetTransactions2($user_id: String!) {
-          transactions(where: {user_id: {_eq: $user_id}}) {
-            ...transaction
-          }
-          transaction_parts(where: {user_id: {_eq: $user_id}}) {
-            ...transaction_part
-          }
-          buckets(where: {user_id: {_eq: $user_id}}) {
-            ...bucket
-          }
+      query GetTransactions2($user_id: String!) {
+        transactions(where: {user_id: {_eq: $user_id}}) {
+          ...transaction
         }
-      `,
-      variables: {user_id: req.userId},
-    });
+        transaction_parts(where: {user_id: {_eq: $user_id}}) {
+          ...transaction_part
+        }
+        buckets(where: {user_id: {_eq: $user_id}}) {
+          ...bucket
+        }
+      }
+    `,
+    variables: {user_id: userId},
+  });
 
-    const partsGrouped = groupBy(result.data.transaction_parts, 'transaction_id');
-    const bucketsById = fromPairs(result.data.buckets.map((bucket) => [bucket.id, bucket]));
+  const partsGrouped = groupBy(result.data.transaction_parts, 'transaction_id');
+  const bucketsById = fromPairs(result.data.buckets.map((bucket) => [bucket.id, bucket]));
 
-    const parsed: CommonTypes.TxnBucketTuple[] = result.data.transactions.map((transaction) => ({
-      transaction,
-      parts: partsGrouped[transaction.id],
-      buckets: uniq(partsGrouped[transaction.id].map((part) => bucketsById[part.account_id || 'null'])),
-    }));
+  const parsed: CommonTypes.TxnBucketTuple[] = result.data.transactions.map((transaction) => ({
+    transaction,
+    parts: partsGrouped[transaction.id],
+    buckets: uniq(partsGrouped[transaction.id].map((part) => bucketsById[part.account_id || 'null'])),
+  }));
 
-    res.json(parsed);
+  return parsed;
+}
+
+export async function getTransactions(req: express.Request, res: express.Response) {
+  try {
+    const transactions = await getAllTransactions(req.apikey, req.userId);
+    res.json(transactions);
   } catch (ex) {
     console.error(ex);
     res.statusCode = 500;
@@ -145,6 +150,29 @@ export async function deleteTransaction(req: express.Request, res: express.Respo
   console.log("done")
   res.json({});
 
+  } catch (ex) {
+    console.error(ex);
+    res.statusCode = 500;
+    res.json({error: ex.message});
+  }
+}
+
+export async function exportTransactions(req: express.Request, res: express.Response) {
+  try {
+    const tuples = await getAllTransactions(req.apikey, req.userId);
+    const rows = tuples.map((tuple) => {
+      const parts = tuple.parts.filter((part) => part.account_id !== null);
+      return {
+        Date: tuple.transaction.date,
+        Account: '',
+        Name: tuple.transaction.label,
+        Notes: tuple.transaction.memo,
+        Amount: tuple.transaction.amount,
+        Status: '',
+        Details: '',
+      };
+    });
+    res.send(tuples.join('\n'));
   } catch (ex) {
     console.error(ex);
     res.statusCode = 500;

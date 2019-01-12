@@ -5,7 +5,11 @@ import mkApollo from '../lib/apollo';
 
 export function apikeyFromRequest(req: express.Request) {
   if (!req.cookies.session) {
-    return null;
+    if (!req.query.apikey) {
+      return null;
+    }
+
+    return req.query.apikey;
   }
   return req.cookies.session;
 }

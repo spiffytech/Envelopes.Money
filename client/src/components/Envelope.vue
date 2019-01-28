@@ -1,5 +1,5 @@
 <template>
-  <div v-if="editing">
+  <div v-if="editing" class="envelope envelope-editing">
     <form @submit.prevent="saveEnvelope">
       <label>Envelope name</label>
       <input v-model="balance.bucket.name" />
@@ -22,15 +22,14 @@
     </form>
   </div>
 
-  <div class="envelope" v-else>
-    <td>{{balance.bucket.name}}</td>
-    <td class="number">
-      {{balanceDollars}} <br>
-      {{targetBalanceDollars}}
-    </td>
-    <td>{{balance.bucket.extra.interval}}</td>
+  <div class="envelope envelope-normal" v-else>
+    <div class="envelope-name">{{balance.bucket.name}}</div>
+    <div class="envelope-numbers">
+      <div>{{balanceDollars}}</div>
+      <div class="balance-target">{{balance.bucket.extra.interval}} {{targetBalanceDollars}}</div>
+    </div>
 
-    <td class="edit" @click="edit">Edit</td>
+    <div class="edit" @click="edit">Edit</div>
   </div>
 </template>
 
@@ -77,5 +76,35 @@ export default Vue.extend({
   }
   .envelope:hover .edit {
     display: inherit;
+  }
+
+  .envelope {
+    background-color: var(--list-item-background-color);
+    margin-bottom: var(--list-item-margin-bottom);
+    padding: var(--list-item-padding);
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .envelope-normal {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .envelope-name {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    font-size: 20px;
+  }
+
+  .envelope-numbers {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+  }
+
+  .balance-target {
+    font-size: 14px;
+    font-style: italic;
   }
 </style>

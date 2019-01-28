@@ -35,6 +35,7 @@ export default Vue.extend({
 
   --component-bg: white;
   --component-padding: 24px;
+  --component-margin: 12px;
 
   --list-item-margin-bottom: 12px;
   --list-item-padding: 12px;
@@ -46,10 +47,10 @@ export default Vue.extend({
 
 h1, h2, h3, h4, h5, h6 {
   text-align: left;
-  margin-top: 12px;
-  margin-bottom: 12px;
-  padding-top: 24px;
+  padding-top: 0;
   padding-bottom: 24px;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 #app {
@@ -58,9 +59,12 @@ h1, h2, h3, h4, h5, h6 {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
 
+html {
   background-color: var(--page-bg);
 }
+
 #nav {
   padding: 30px;
 }

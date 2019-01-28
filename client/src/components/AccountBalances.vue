@@ -1,19 +1,17 @@
 <template>
-  <div style="background-color: var(--component-bg); padding: var(--component-padding)">
+  <div style="background-color: var(--component-bg); padding: var(--component-padding); border-radius: var(--border-radius-medium); margin: var(--component-margin)">
     <h1>Balances</h1>
 
-    <h2>Account Balances</h2>
+    <h2>Accounts</h2>
     <div v-for="balance in accountBalances" :key="balance.bucket.id" class="account-balance">
-      <div>{{balance.bucket.name}}</div>
-      <div>{{balance.balance}}</div>
+      <div class="account-name">{{balance.bucket.name}}</div>
+      <div>💵{{balance.balance}}</div>
     </div>
 
-    <table>
-      <tr>Envelopes</tr>
-      <tr v-for="balance in envelopeBalances" :key="balance.bucket.id">
-        <Envelope :balance="balance" />
-      </tr>
-    </table>
+    <h2>Envelopes</h2>
+    <div v-for="balance in envelopeBalances" :key="balance.bucket.id">
+      <Envelope :balance="balance" />
+    </div>
   </div>
 </template>
 
@@ -54,5 +52,9 @@ export default Vue.extend({
   margin-bottom: var(--list-item-margin-bottom);
   padding: var(--list-item-padding);
   border-bottom: 2px solid var(--border-color);
+}
+
+.account-name {
+  font-size: 20px;
 }
 </style>

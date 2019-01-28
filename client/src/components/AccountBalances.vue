@@ -22,6 +22,7 @@ import Vue from 'vue';
 import {toDollars} from '@/lib/currency';
 import * as CommonTypes from '../../../common/lib/types';
 import * as AccountBalance from '../../../common/lib/AccountBalance';
+import * as currency from '@/lib/currency';
 import Envelope from './Envelope.vue';
 
 export default Vue.extend({
@@ -31,10 +32,7 @@ export default Vue.extend({
     accountBalances(): CommonTypes.AccountBalance[] {
 
       return shades.mod(shades.all(), 'balance')
-        ((amount: number) =>
-          (amount / 100).
-          toLocaleString([], {minimumFractionDigits: 2, maximumFractionDigits: 2}) as any as number
-        )
+        ((amount: number) => currency.toDollars(amount) as any as number)
         (this.$store.getters['accounts/accountBalances']);
     },
     envelopeBalances(): CommonTypes.AccountBalance[] {

@@ -12,7 +12,7 @@ import authed from './src/routes/authed';
 
 const app = express();
 app.use(morgan('combined'));
-app.use(cors({origin: [/https?:\/\/localhost:.*/], credentials: true}));
+app.use(cors({origin: [/https?:\/\/localhost:.*/, /https?:\/\/penguin.linux.test:.*/], credentials: true}));
 app.use(express.json());
 app.use(cookieParser());
 

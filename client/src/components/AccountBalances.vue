@@ -1,12 +1,14 @@
 <template>
-  <div>
+  <div style="background-color: var(--component-bg); padding: var(--component-padding)">
     <h1>Balances</h1>
+
+    <h2>Account Balances</h2>
+    <div v-for="balance in accountBalances" :key="balance.bucket.id" class="account-balance">
+      <div>{{balance.bucket.name}}</div>
+      <div>{{balance.balance}}</div>
+    </div>
+
     <table>
-      <tr>Account Balances</tr>
-      <tr v-for="balance in accountBalances" :key="balance.bucket.id">
-        <td>{{balance.bucket.name}}</td>
-        <td class="number">{{balance.balance}}</td>
-      </tr>
       <tr>Envelopes</tr>
       <tr v-for="balance in envelopeBalances" :key="balance.bucket.id">
         <Envelope :balance="balance" />
@@ -44,8 +46,13 @@ export default Vue.extend({
 });
 </script>
 
-<style>
-.number {
-  text-align: right;
+<style scoped>
+.account-balance {
+  background-color: var(--list-item-background-color);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--list-item-margin-bottom);
+  padding: var(--list-item-padding);
+  border-bottom: 2px solid var(--border-color);
 }
 </style>

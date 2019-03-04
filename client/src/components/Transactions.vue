@@ -16,7 +16,7 @@
         :key="txnTuple.transaction.id"
       >
         <td style="white-space: nowrap;">{{ txnTuple.transaction.date }}</td>
-        <td>{{ txnTuple.transaction.amount }}</td>
+        <td class="amount">{{ txnTuple.transaction.amount }}</td>
         <td class="ellipsis label">{{ txnTuple.transaction.label }}</td>
         <td class="ellipsis memo">{{ txnTuple.transaction.memo }}</td>
         <td class="ellipsis buckets">{{ Array.from(new Set(txnTuple.buckets.filter(Boolean).map((bucket) => bucket.name))).join(', ') }}</td>
@@ -60,9 +60,15 @@ tr td {
 
 .label, .memo {
   max-width: 250px;
+  text-align: left;
+}
+
+.amount {
+  text-align: right;
 }
 
 .buckets {
   max-width: 250px;
+  text-align: left;
 }
 </style>

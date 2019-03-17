@@ -5,12 +5,14 @@ import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '../lib/pennies';
+import { AuthStore } from '../store';
 
 export default function Balances() {
   const [balances, setBalances] = useState<CommonTypes.Balance[]>([]);
 
   useEffect(() => {
-    const apollo = mkApollo(process.env.REACT_APP_HASURA_ADMIN_TOKEN!, true);
+    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+    const apollo = mkApollo(AuthStore.apiKey);
     apollo.query<{balances: CommonTypes.Balance[]}>({
       query: gql`
         ${fragments}
@@ -20,18 +22,20 @@ export default function Balances() {
           }
         }
       `,
-      variables: {user_id: 'TOLLMuRjq'},
+      variables: {user_id: AuthStore.userId},
     }).then(({data}) => setBalances(data.balances));
   }, []);
 
   return (
     <table>
-      {balances.map((balance) =>
-        <tr key={balance.id}>
-          <td>{balance.name}</td>
-          <td style={{textAlign: 'right'}}>{toDollars(balance.balance)}</td>
-        </tr>
-      )}
+      <tbody>
+        {balances.map((balance) =>
+          <tr key={balance.id}>
+            <td>{balance.name}</td>
+            <td style={{textAlign: 'right'}}>{toDollars(balance.balance)}</td>
+          </tr>
+        )}
+      </tbody>
     </table>
   );
 }

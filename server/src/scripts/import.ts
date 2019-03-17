@@ -9,8 +9,6 @@ import 'source-map-support/register';
 
 import mkApollo from '../lib/apollo';
 
-import * as TransactionParts from '../lib/TransactionParts';
-
 import * as CommonTypes from '../../../common/lib/types';
 
 export interface IGoodBudgetRow {

@@ -1,6 +1,4 @@
 import express from 'express';
-import * as accounts from '../controllers/accounts';
-import * as transactions from '../controllers/transactions';
 import * as sessions from '../lib/sessions';
 
 const router = express.Router();
@@ -28,9 +26,11 @@ router.use(async (req, res, next) => {
   return next();
 });
 
+/*
 router.
   get('/transactions', transactions.getTransactions).
   post('/transactions/upsert', transactions.upsertTransaction).
   post('/transactions/delete', transactions.deleteTransaction).
   get('/accounts/balances', accounts.getBalances).
   post('/accounts/upsert', accounts.saveEnvelope);
+  */

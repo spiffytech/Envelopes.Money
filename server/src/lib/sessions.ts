@@ -14,9 +14,13 @@ export function apikeyFromRequest(req: express.Request) {
   return req.cookies.session;
 }
 
+interface User {
+  id: string; emai: string; scrypt: string, apikey: string;
+}
+
 export async function lookUpSession(apikey: string) {
   const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
-  const result = await apollo.query<{users: any}>({
+  const result = await apollo.query<{users: User[]}>({
     query: gql`
       query LookUpSession($apikey: String!) {
         users(where: {apikey: {_eq: $apikey}}) {

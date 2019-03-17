@@ -64,6 +64,7 @@ export async function signUp(req: express.Request, res: express.Response) {
 }
 
 export async function logIn(req: express.Request, res: express.Response) {
+  console.log('here')
   try {
     if (!/\S+@\S+\.\S+/.test(req.body.email)) {
       console.error(`"${req.body.email}" is not a valid email address`);
@@ -88,7 +89,7 @@ export async function logIn(req: express.Request, res: express.Response) {
     }
 
     setCookie(res, user.apikey);
-    res.send({success: true});
+    res.send({success: true, userId: user.id, apikey: user.apikey});
   } catch(ex) {
     console.error(ex);
     res.statusCode = 500;
@@ -97,16 +98,16 @@ export async function logIn(req: express.Request, res: express.Response) {
 }
 
 export async function isAuthed(req: express.Request, res: express.Response) {
-  const apikey = sessions.apikeyFromRequest(req);
-  if (!apikey) {
+  const apiKey = sessions.apikeyFromRequest(req);
+  if (!apiKey) {
     res.statusCode = 401;
     res.send({isAuthed: false});
     return;
   }
   
-  const session = await sessions.lookUpSession(apikey);
+  const session = await sessions.lookUpSession(apiKey);
   if (session) {
-    res.send({isAuthed: true, userId: session.id});
+    res.send({isAuthed: true, userId: session.id, apiKey});
     return;
   }
 

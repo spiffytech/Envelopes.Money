@@ -7,6 +7,7 @@
     "@types/node": "11.10.5",
     "@types/react": "16.8.7",
     "@types/react-dom": "16.8.2",
+    "mobx": "^5.9.0",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
     "react-scripts": "2.1.8",
@@ -28,12 +29,17 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@reach/router": "^1.2.1",
+    "@types/reach__router": "^1.2.3",
     "apollo-cache-inmemory": "^1.5.1",
     "apollo-client": "^2.5.1",
     "apollo-link-context": "^1.0.17",
     "apollo-link-error": "^1.1.10",
     "apollo-link-http": "^1.5.14",
+    "axios": "^0.18.0",
     "graphql": "^14.1.1",
-    "graphql-tag": "^2.10.1"
+    "graphql-tag": "^2.10.1",
+    "mobx-react": "^5.4.3",
+    "mobx-react-lite": "^1.1.1"
   }
 }

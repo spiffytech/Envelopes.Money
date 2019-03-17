@@ -5,11 +5,13 @@ import TxnGrouped from './TxnGrouped';
 import mkClient from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 import * as CommonTypes from '../../../common/lib/types';
+import {AuthStore} from '../store';
 
 function App() {
   const [txns, setTxns] = useState<CommonTypes.TxnGrouped[]>([]);
   useEffect(() => {
-    const apollo = mkClient(process.env.REACT_APP_HASURA_ADMIN_TOKEN!, true);
+    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+    const apollo = mkClient(AuthStore.apiKey);
     apollo.query<{txns_grouped: CommonTypes.TxnGrouped[]}>({
       query: gql`
         ${fragments}
@@ -19,7 +21,7 @@ function App() {
           }
         }
       `,
-      variables: {user_id: 'TOLLMuRjq'},
+      variables: {user_id: AuthStore.userId},
     }).then(({data}) => {
       setTxns(data.txns_grouped);
     });

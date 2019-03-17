@@ -3,7 +3,7 @@ import React from 'react';
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '../lib/pennies';
 
-export default function({txn}: {txn: CommonTypes.TxnGrouped}) {
+export default function({txn, onClick}: {txn: CommonTypes.TxnGrouped, onClick: () => any}) {
   const ellipsisStyle: React.CSSProperties = {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -12,7 +12,7 @@ export default function({txn}: {txn: CommonTypes.TxnGrouped}) {
   const textAlignStyle: React.CSSProperties = {textAlign: 'left'};
 
   return (
-    <tr>
+    <tr onClick={onClick}>
       <td style={{whiteSpace: 'nowrap', ...textAlignStyle}}>{txn.date}</td>
       <td style={{textAlign: 'right'}}>{toDollars(txn.amount)}</td>
       <td style={{...ellipsisStyle, maxWidth: '250px', ...textAlignStyle}}>{txn.label}</td>

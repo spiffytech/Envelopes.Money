@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import {Link} from '@reach/router';
+import {Link, navigate} from '@reach/router';
 import React, { useEffect, useState } from 'react';
 
 import TxnGrouped from './TxnGrouped';
@@ -33,9 +33,11 @@ function App() {
       <table>
         <tbody>
           {txns.map((txn) =>
-            <Link to={`/editTxn/${txn.txn_id}`}>
-              <TxnGrouped key={txn.txn_id} txn={txn} />
-            </Link>
+            <TxnGrouped
+              key={txn.txn_id}
+              txn={txn}
+              onClick={() => navigate(`/editTxn/${txn.txn_id}`)}
+            />
           )}
         </tbody>
       </table>

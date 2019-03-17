@@ -35,6 +35,6 @@ export function saveTransactions(userId: string, apiKey: string, txns: ITransact
         }
       }
     `,
-    variables: {user_id: userId, txns},
+    variables: {txns},
   });
 }

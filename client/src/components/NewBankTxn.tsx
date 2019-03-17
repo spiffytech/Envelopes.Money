@@ -93,6 +93,18 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
     navigate('/');
   }
 
+  async function deleteTransaction(event: React.MouseEvent<any>) {
+    event.preventDefault();
+    if (!props.txnId) {
+      throw new Error('Shouldn\'t be inside delete handler without a txn to delete');
+    }
+    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+    await ITransactions.deleteTransactions(
+      AuthStore.userId, AuthStore.apiKey, props.txnId
+    );
+    navigate('/');
+  }
+
   function setTxnsProp(props: Partial<CommonTypes.ITransaction>) {
     setTxns((txns.map((t) => {
       return {...t, ...props};
@@ -150,6 +162,8 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
         <button onClick={() => addEmptyTxn()}>New Split</button>
 
         <button type='submit'>Save Transaction</button>
+
+        {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
       </form>
     </>
   );

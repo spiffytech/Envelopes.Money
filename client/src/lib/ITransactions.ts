@@ -38,3 +38,18 @@ export function saveTransactions(userId: string, apiKey: string, txns: ITransact
     variables: {txns},
   });
 }
+
+export function deleteTransactions(userId: string, apiKey: string, txnId: string) {
+  const apollo = mkApollo(apiKey);
+  return apollo.mutate({
+    mutation: gql`
+      ${fragments}
+      mutation DeleteTransactions($txnId: String!) {
+        delete_transactions(where: {txn_id: {_eq: $txnId}}) {
+          returning {id}
+        }
+      }
+    `,
+    variables: {txnId},
+  });
+}

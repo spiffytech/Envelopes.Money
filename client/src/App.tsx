@@ -18,7 +18,7 @@ function App() {
     return (
       <>
         <div>
-          <Link to='/newTxn'>New Transaction</Link>
+          <Link to='/editTxn'>New Transaction</Link>
         </div>
 
         <Router>

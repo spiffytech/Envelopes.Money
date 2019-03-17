@@ -33,3 +33,12 @@ export interface TxnGrouped {
   from_id: string;
   from_name: string;
 }
+
+export interface Balance {
+  id: string;
+  user_id: string;
+  name: string;
+  type: string;
+  extra: string;
+  balance: number;
+}

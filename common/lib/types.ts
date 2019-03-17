@@ -7,55 +7,29 @@ export interface ITransaction {
   amount: number;
   label: string | null;
   type: TxnTypes;
+  txn_id: string;
+  from_id: string;
+  to_id: string;
 }
 
-export interface ITransactionPart {
-  id: string;
-  transaction_id: string;
-  amount: number;
-  account_id: string | null;
-  user_id: string;
-}
-
-export interface TxnWithParts {
-  transaction: ITransaction;
-  parts: ITransactionPart[];
-}
-
-interface IBucketCore {
+export interface IAccount {
   id: string;
   user_id: string;
   name: string;
+  type: string;
+  extra: any;
 }
 
-interface IBucketAccount extends IBucketCore {
-  type: 'account';
-  extra: {};
-}
-
-interface IBucketEnvelope extends IBucketCore {
-  type: 'envelope';
-  extra: {
-    target: number;
-    interval: 'weekly' | 'semimonthly' | 'twoweeks' | 'monthly' | 'yearly' | 'total';
-    due: Date | null;
-  };
-}
-
-export type IBucket = IBucketAccount | IBucketEnvelope;
-
-export interface TxnTuple {
-  transaction: ITransaction;
-  parts: ITransactionPart[];
-}
-
-export interface TxnBucketTuple {
-  transaction: ITransaction;
-  parts: ITransactionPart[];
-  buckets: IBucket[];
-}
-
-export interface AccountBalance {
-  bucket: IBucket;
-  balance: number;
+export interface TxnGrouped {
+  to_names: string;
+  to_ids: string;
+  amount: number;
+  txn_id: string;
+  user_id: string;
+  label: string;
+  date: string;
+  memo: string;
+  type: string;
+  from_id: string;
+  from_name: string;
 }

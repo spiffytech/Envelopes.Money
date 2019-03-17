@@ -164,92 +164,54 @@ export function typeForRow(row: IGoodBudgetRow) {
 
 export function rowToTxn(
   row: IGoodBudgetRow,
-  accounts: {[key: string]: CommonTypes.IBucket},
-  categories: {[key: string]: CommonTypes.IBucket},
-): CommonTypes.TxnWithParts {
+  accounts: {[key: string]: CommonTypes.IAccount},
+  categories: {[key: string]: CommonTypes.IAccount},
+): CommonTypes.ITransaction[] {
   const type = typeForRow(row);
 
-  const transaction: CommonTypes.ITransaction = {
-    id: shortid.generate(),
-    user_id: userId,
-    memo: row.Notes,
-    date: new Date(row.Date),
-    amount: amountOfStr(row.Amount),
-    label: type === 'banktxn' ? (row.Name || '[Equity]') : null,
-    type,
-  };
-
   const ids = {account: accounts, category: categories};
-
   const toType = ({
     accountTransfer: 'account',
     envelopeTransfer: 'category',
     banktxn: 'category',
   } as {[key: string]: 'account' | 'category'})[type];
 
-  const parts: CommonTypes.ITransactionPart[] =
+  const txnId = shortid.generate();
+  const transactionsPartial: Pick<CommonTypes.ITransaction, 'user_id' | 'memo' | 'date' | 'label' | 'type' | 'txn_id'> =
+    {
+      user_id: userId!,
+      memo: row.Notes,
+      date: new Date(row.Date),
+      label: type === 'banktxn' ? (row.Name || '[Equity]') : null,
+      type,
+      txn_id: txnId,
+    };
+
+  const parts: CommonTypes.ITransaction[] =
     type === 'banktxn' ?
+    _.flatten(parseCategories(row).map((category): CommonTypes.ITransaction[] => [
+      {
+        ...transactionsPartial,
+        id: shortid.generate(),
+        amount: -category.amount,
+        from_id: accounts[row.Account].id,
+        to_id: ids[toType][category.name].id,
+      },
+    ])) :
     [
       {
+        ...transactionsPartial,
         id: shortid.generate(),
-        transaction_id: transaction.id,
-        amount: parseCategories(row).map((category) => category.amount).reduce((a, b) => a + b, 0),
-        account_id: accounts[row.Account].id,
-        user_id: userId,
-      },
-      {
-        id: shortid.generate(),
-        transaction_id: transaction.id,
-        amount: -parseCategories(row).map((category) => category.amount).reduce((a, b) => a + b, 0),
-        account_id: null,
-        user_id: userId,
-      },
-      ..._.flatten(parseCategories(row).map((category) => [
-        {
-          id: shortid.generate(),
-          transaction_id: transaction.id,
-          amount: -category.amount,
-          account_id: null,
-          user_id: userId,
-        },
-        {
-          id: shortid.generate(),
-          transaction_id: transaction.id,
-          amount: category.amount,
-          account_id: ids[toType][category.name].id,
-          user_id: userId,
-        },
-      ]))
-    ] :
-    [
-      {
-        id: shortid.generate(),
-        transaction_id: transaction.id,
         amount: -amountOfStr(row.Amount),
-        account_id: ids[toType][row.Name].id,
-        user_id: userId,
-      },
-      {
-        id: shortid.generate(),
-        transaction_id: transaction.id,
-        amount: amountOfStr(row.Amount),
-        account_id: (type === 'envelopeTransfer' ? categories[row.Account] : accounts[row.Account]).id,
-        user_id: userId,
+        to_id: ids[toType][row.Name].id,
+        from_id: (type === 'envelopeTransfer' ? categories[row.Account] : accounts[row.Account]).id,
       },
     ];
 
-  // if (TransactionParts.sumAmounts(parts) !== amountOfStr(row.Amount)) {
-  if (TransactionParts.sumAmounts(parts) !== 0) {
-    console.log('gb row', JSON.stringify(row, null, 4));
-    console.log('txn', JSON.stringify(transaction, null, 4));
-    console.log('parts', JSON.stringify(parts, null, 4));
-    throw new Error(`Txn amount didn\'t match row amount! ${TransactionParts.sumAmounts(parts)} / ${amountOfStr(row.Amount)}`);
-  }
-
-  return {transaction, parts};
+  return parts;
 }
 
-function discoverCategories(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes.IBucket} {
+function discoverCategories(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes.IAccount} {
   const categoryNames: string[] = _.uniq(_.flatten(rows.map((row) => {
     const type = typeForRow(row);
     if (type === 'accountTransfer') return [];
@@ -258,7 +220,7 @@ function discoverCategories(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes
     throw new Error('Invalid row type');
   })));
 
-  const categories: CommonTypes.IBucket[] = categoryNames.map((category) =>
+  const categories: CommonTypes.IAccount[] = categoryNames.map((category) =>
     ({
       id: ['category', shortid.generate()].join('/'),
       user_id: userId,
@@ -275,7 +237,7 @@ function discoverCategories(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes
   return _.fromPairs(categories.map((category) => [category.name, category]));
 }
 
-function discoverAccounts(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes.IBucket} {
+function discoverAccounts(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes.IAccount} {
   const accountNames: string[] = _.uniq(_.flatten(rows.map((row) => {
     const type = typeForRow(row);
     if (type === 'accountTransfer') return [row.Name, row.Account];
@@ -284,7 +246,7 @@ function discoverAccounts(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes.I
     throw new Error('Invalid row type');
   })));
 
-  const accounts: CommonTypes.IBucket[] = accountNames.map((account) =>
+  const accounts: CommonTypes.IAccount[] = accountNames.map((account) =>
     ({
       id: ['account', shortid.generate()].join('/'),
       user_id: userId,
@@ -319,10 +281,10 @@ async function main() {
 
   const buckets = [...Object.values(accounts), ...Object.values(categories)];
 
-  const transactions: CommonTypes.TxnWithParts[] =
-  mergedEnvelopeTxfrs.
+  const transactions: CommonTypes.ITransaction[] =
+  _.flatten(mergedEnvelopeTxfrs.
     filter((row) => row.Account !== '[none]').  // It's a fill
-    map((row) => rowToTxn(row, accounts, categories));
+    map((row) => rowToTxn(row, accounts, categories)));
 
   /*
   console.log(JSON.stringify(transactions, null, 4));
@@ -331,8 +293,8 @@ async function main() {
 
   await apollo.mutate({
     mutation: gql`
-      mutation InsertBuckets($objects: [buckets_insert_input!]!) {
-        insert_buckets(objects: $objects) {returning {id}}
+      mutation InsertAccounts($objects: [accounts_insert_input!]!) {
+        insert_accounts(objects: $objects) {returning {id}}
       }
     `,
     variables: {
@@ -347,18 +309,7 @@ async function main() {
       }
     `,
     variables: {
-      objects: transactions.map(({transaction}) => transaction),
-    },
-  });
-
-  await apollo.mutate({
-    mutation: gql`
-      mutation InsertTransactionParts($objects: [transaction_parts_insert_input!]!) {
-        insert_transaction_parts(objects: $objects) {returning {id}}
-      }
-    `,
-    variables: {
-      objects: _.flatten(transactions.map(({parts}) => parts)),
+      objects: transactions,
     },
   });
 }

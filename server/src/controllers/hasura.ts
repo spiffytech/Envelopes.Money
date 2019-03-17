@@ -24,11 +24,11 @@ export async function authHook(req: express.Request, res: express.Response) {
   }
 
   console.log({
-    'x-hasura-role': 'owner',
+    'x-hasura-role': 'user',
     'x-hasura-user-id': user.id,
   });
   res.json({
-    'x-hasura-role': 'owner',
+    'x-hasura-role': 'user',
     'x-hasura-user-id': user.id,
   });
 }

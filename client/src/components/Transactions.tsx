@@ -1,5 +1,6 @@
 import gql from 'graphql-tag';
-import React, { Component, useEffect, useState } from 'react';
+import {Link} from '@reach/router';
+import React, { useEffect, useState } from 'react';
 
 import TxnGrouped from './TxnGrouped';
 import mkClient from '../lib/apollo';
@@ -32,7 +33,9 @@ function App() {
       <table>
         <tbody>
           {txns.map((txn) =>
-            <TxnGrouped key={txn.txn_id} txn={txn} />
+            <Link to={`/editTxn/${txn.txn_id}`}>
+              <TxnGrouped key={txn.txn_id} txn={txn} />
+            </Link>
           )}
         </tbody>
       </table>

@@ -17,7 +17,7 @@ export default function({txn, onClick}: {txn: CommonTypes.TxnGrouped, onClick: (
       <td style={{textAlign: 'right'}}>{toDollars(txn.amount)}</td>
       <td style={{...ellipsisStyle, maxWidth: '250px', ...textAlignStyle}}>{txn.label}</td>
       <td style={{...textAlignStyle}}>{txn.from_name}</td>
-      <td style={{...ellipsisStyle, ...textAlignStyle}}>{txn.to_names}</td>
+      <td style={{...ellipsisStyle, ...textAlignStyle, maxWidth: '250px'}}>{txn.to_names}</td>
       <td style={{maxWidth: '250px', ...textAlignStyle}}>{txn.memo}</td>
     </tr>
   );

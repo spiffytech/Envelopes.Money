@@ -19,6 +19,7 @@ function App() {
     return (
       <>
         <div>
+          <Link to='/'>Home</Link>
           <Link to='/editTxn'>New Transaction</Link>
           <Link to='/fill'>Fill Envelopes</Link>
         </div>

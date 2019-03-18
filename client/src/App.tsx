@@ -6,6 +6,7 @@ import React from 'react';
 import './App.css';
 import Home from './components/Home';
 import NewTxn from './components/NewBankTxn';
+import FillEnvelopes from './components/FillEnvelopes';
 import LogIn from './components/LogIn';
 import {AuthStore} from './store';
 
@@ -19,12 +20,15 @@ function App() {
       <>
         <div>
           <Link to='/editTxn'>New Transaction</Link>
+          <Link to='/fill'>Fill Envelopes</Link>
         </div>
 
         <Router>
           <Home path='/' />
           <NewTxn path='/editTxn' />
           <NewTxn path='/editTxn/:txnId' />
+          <FillEnvelopes path='/fill' />
+          <FillEnvelopes path='/fill/:txnId' />
           <Route404 default />
         </Router>
       </>

@@ -4,6 +4,8 @@ import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 import {ITransaction} from '../../../common/lib/types';
 
+export type T = ITransaction;
+
 export function loadTransaction(userId: string, apiKey: string, transactionId: string) {
   const apollo = mkApollo(apiKey);
   return apollo.query<{transactions: ITransaction[]}>({

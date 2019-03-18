@@ -35,7 +35,12 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
         navigate('/404');
         return;  // 404
       }
+
+      if (data.transactions[0].type === 'fill') {
+        return navigate(`/fill/${props.txnId}`);
+      }
       setTxns(data.transactions);
+      setType(data.transactions[0].type);
     });
   }, [props.txnId]);
 

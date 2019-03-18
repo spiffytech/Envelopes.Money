@@ -2,7 +2,9 @@ import gql from 'graphql-tag';
 
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
-import {Balance, ITransaction} from '../../../common/lib/types';
+import {Balance} from '../../../common/lib/types';
+
+export type T = Balance;
 
 export function loadTransaction(userId: string, apiKey: string) {
   const apollo = mkApollo(apiKey);

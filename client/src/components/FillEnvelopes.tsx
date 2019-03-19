@@ -116,9 +116,13 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
     };
   }
 
+  function sumOfFills() {
+    return fills.map((fill) => fill.amount).reduce((acc, item) => acc + item, 0);
+  }
+
   return (
     <>
-      <p>Unallocated: {toDollars(unallocated.envelope.balance)}</p>
+      <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills())}</p>
       <form onSubmit={handleSubmit}>
         <table>
           <tbody>

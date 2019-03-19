@@ -2,9 +2,15 @@ import gql from 'graphql-tag';
 
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
-import {IAccount} from '../../../common/lib/types';
+import {IAccount, BankAccount, Envelope} from './types';
 
 export type T = IAccount;
+export type Envelope = Envelope;
+export type BankAccount = BankAccount;
+
+export function isEnvelope(account: T): account is Envelope {
+  return account.type === 'envelope';
+}
 
 export function loadAccounts(userId: string, apiKey: string) {
   const apollo = mkApollo(apiKey);

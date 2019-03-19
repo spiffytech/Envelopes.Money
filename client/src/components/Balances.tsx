@@ -31,7 +31,12 @@ export default function Balances() {
     <table>
       <tbody>
         {balances.map((balance) =>
-          <tr key={balance.id} onClick={() => navigate(`/editAccount/${encodeURIComponent(balance.id)}`)}>
+          <tr
+            key={balance.id}
+            onClick={() =>
+              navigate(`/editAccount/${encodeURIComponent(balance.id)}`)
+            }
+          >
             <td>{balance.name}</td>
             <td style={{textAlign: 'right'}}>{toDollars(balance.balance)}</td>
           </tr>

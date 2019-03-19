@@ -17,6 +17,6 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
-      HASURA_GRAPHQL_AUTH_HOOK: https://hackerbudget4.localhost.run/hasura_auth
+      HASURA_GRAPHQL_AUTH_HOOK: https://hackerbudget0.localhost.run/hasura_auth
 volumes:
   db_data:

@@ -6,7 +6,6 @@ import {AuthStore} from '../store';
 import * as Balances from '../lib/Balances';
 import * as ITransactions from '../lib/ITransactions';
 import {toDollars} from '../lib/pennies';
-import TxnGrouped from './TxnGrouped';
 
 export default function FillEnvelopes(props: RouteComponentProps & {txnId?: string}) {
   interface Fill {envelopeId: string; amount: number; envelope: Balances.T}

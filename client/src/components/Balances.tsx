@@ -1,5 +1,6 @@
 import gql from 'graphql-tag';
-import React, { Component, useEffect, useState } from 'react';
+import {navigate} from '@reach/router';
+import React, { useEffect, useState } from 'react';
 
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
@@ -30,7 +31,7 @@ export default function Balances() {
     <table>
       <tbody>
         {balances.map((balance) =>
-          <tr key={balance.id}>
+          <tr key={balance.id} onClick={() => navigate(`/editAccount/${encodeURIComponent(balance.id)}`)}>
             <td>{balance.name}</td>
             <td style={{textAlign: 'right'}}>{toDollars(balance.balance)}</td>
           </tr>

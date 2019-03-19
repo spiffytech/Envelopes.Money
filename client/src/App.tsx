@@ -5,6 +5,7 @@ import React from 'react';
 
 import './App.css';
 import Home from './components/Home';
+import EditAccount from './components/EditAccount';
 import EditTxn from './components/EditTxn';
 import FillEnvelopes from './components/FillEnvelopes';
 import LogIn from './components/LogIn';
@@ -20,12 +21,15 @@ function App() {
       <>
         <div>
           <Link to='/'>Home</Link>
+          <Link to='/editAccount'>New Account</Link>
           <Link to='/editTxn'>New Transaction</Link>
           <Link to='/fill'>Fill Envelopes</Link>
         </div>
 
         <Router>
           <Home path='/' />
+          <EditAccount path='/editAccount' />
+          <EditAccount path='/editAccount/:accountId' />
           <EditTxn path='/editTxn' />
           <EditTxn path='/editTxn/:txnId' />
           <FillEnvelopes path='/fill' />

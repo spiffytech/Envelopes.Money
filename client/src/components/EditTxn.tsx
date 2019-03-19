@@ -13,7 +13,7 @@ import {toDollars} from '../lib/pennies';
 
 export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}) {
   const [type, setType] = useState('banktxn');
-  const [balances, setBalances] = useState<CommonTypes.Balance[]>([]);
+  const [balances, setBalances] = useState<Balances.T[]>([]);
   type PartialTransaction = Pick<
     ITransaction,
     'id' | 'user_id' | 'memo' | 'date' | 'amount' | 'label' | 'from_id' | 'to_id'

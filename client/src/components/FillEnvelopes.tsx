@@ -8,7 +8,7 @@ import * as ITransactions from '../lib/ITransactions';
 import {toDollars} from '../lib/pennies';
 
 export default function FillEnvelopes(props: RouteComponentProps & {txnId?: string}) {
-  interface Fill {envelopeId: string; amount: number; envelope: Balances.T}
+  interface Fill {envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope}
   const [fills, setFills] = useState<Fill[]>([]);
 
   function setError(msg: string) {
@@ -22,11 +22,11 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
     then(({data}) => {
       const newFills =
         data.balances.
-        filter((balance) => balance.type === 'envelope').
+        filter((balance) => Balances.isBalanceEnvelope(balance)).
         map((balance) => ({
           envelopeId: balance.id,
           amount: 0,
-          envelope: balance,
+          envelope: balance as Balances.BalanceEnvelope, // We can cast this becasue of the filter
         }));
       setFills(newFills);
 
@@ -96,6 +96,26 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
     navigate('/');
   }
 
+  function fillFixedAmount(fill: Fill) {
+    return (event: React.FormEvent<any>) => {
+      event.preventDefault();
+      setFills(fills.map((f) => {
+        if (fill === f) return {...f, amount: fill.envelope.extra.target};
+        return f;
+      }))
+    };
+  }
+
+  function setToZero(fill: Fill) {
+    return (event: React.FormEvent<any>) => {
+      event.preventDefault();
+      setFills(fills.map((f) => {
+        if (fill === f) return {...f, amount: -fill.envelope.balance};
+        return f;
+      }))
+    };
+  }
+
   return (
     <>
       <p>Unallocated: {toDollars(unallocated.envelope.balance)}</p>
@@ -108,6 +128,8 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
                 <td style={{textAlign: 'right'}}>{toDollars(fill.envelope.balance)}</td>
                 <td>
                   + &nbsp;
+                  <button onClick={fillFixedAmount(fill)}>Fill {fill.envelope.extra.target}</button>
+                  <button onClick={setToZero(fill)}>Set to 0</button>
                   <input
                     type='number'
                     step='0.01'

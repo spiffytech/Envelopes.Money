@@ -100,8 +100,9 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
             {fills.map((fill) =>
               <tr key={fill.envelope.id}>
                 <td>{fill.envelope.name}</td>
-                <td>{toDollars(fill.envelope.balance)}</td>
+                <td style={{textAlign: 'right'}}>{toDollars(fill.envelope.balance)}</td>
                 <td>
+                  + &nbsp;
                   <input
                     type='number'
                     step='0.01'
@@ -109,6 +110,8 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
                     onChange={(event) => setFillAmount(fill, parseFloat(event.target.value) * 100 || 0)}
                   />
                 </td>
+
+                <td> = {toDollars(fill.envelope.balance + fill.amount)}</td>
               </tr>
             )}
           </tbody>

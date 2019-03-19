@@ -2,7 +2,7 @@ import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
-import {AuthStore} from '../store';
+import {AuthStore, FlashStore} from '../store';
 import * as Balances from '../lib/Balances';
 import * as ITransactions from '../lib/ITransactions';
 import {toDollars} from '../lib/pennies';
@@ -10,6 +10,11 @@ import {toDollars} from '../lib/pennies';
 export default function FillEnvelopes(props: RouteComponentProps & {txnId?: string}) {
   interface Fill {envelopeId: string; amount: number; envelope: Balances.T}
   const [fills, setFills] = useState<Fill[]>([]);
+
+  function setError(msg: string) {
+    FlashStore.flash = msg;
+    FlashStore.type === 'error';
+  }
 
   useEffect(() => {
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
@@ -48,9 +53,9 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
             }
             return fill;
           }));
-        })
+        }).catch((ex) => setError(ex.message))
       );
-    });
+    }).catch((ex) => setError(ex.message));
   }, [props.txnId]);
 
   if (fills.length === 0) return <p>Loading...</p>;

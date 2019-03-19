@@ -9,3 +9,13 @@ export const AuthStore: Credentials = observable({
   userId: null,
   apiKey: null,
 });
+
+interface IFlashStore {
+  flash: string | null;
+  type: 'default' | 'error';
+}
+
+export const FlashStore: IFlashStore = observable({
+  flash: null,
+  type: 'default' as 'default',
+});

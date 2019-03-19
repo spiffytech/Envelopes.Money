@@ -6,7 +6,7 @@ import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '../lib/pennies';
-import { AuthStore } from '../store';
+import { AuthStore, FlashStore } from '../store';
 
 export default function Balances() {
   const [balances, setBalances] = useState<CommonTypes.Balance[]>([]);
@@ -24,7 +24,11 @@ export default function Balances() {
         }
       `,
       variables: {user_id: AuthStore.userId},
-    }).then(({data}) => setBalances(data.balances));
+    }).then(({data}) => setBalances(data.balances)).
+    catch((ex) => {
+      FlashStore.flash = ex.message
+      FlashStore.type = 'error';
+    });
   }, []);
 
   return (

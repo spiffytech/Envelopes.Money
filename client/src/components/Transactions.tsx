@@ -6,7 +6,12 @@ import TxnGrouped from './TxnGrouped';
 import mkClient from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 import * as CommonTypes from '../../../common/lib/types';
-import {AuthStore} from '../store';
+import {AuthStore, FlashStore} from '../store';
+
+function setError(msg: string) {
+  FlashStore.flash = msg;
+  FlashStore.type = 'error';
+}
 
 function App() {
   const [txns, setTxns] = useState<CommonTypes.TxnGrouped[]>([]);
@@ -25,7 +30,7 @@ function App() {
       variables: {user_id: AuthStore.userId},
     }).then(({data}) => {
       setTxns(data.txns_grouped);
-    });
+    }).catch((ex) => setError(ex.message));
   }, []);
 
   return (

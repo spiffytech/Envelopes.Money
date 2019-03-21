@@ -1,11 +1,8 @@
-import gql from 'graphql-tag';
-import {Link, navigate} from '@reach/router';
+import {navigate} from '@reach/router';
 import React, { useEffect, useState } from 'react';
 
 import TxnGrouped from './TxnGrouped';
-import mkClient from '../lib/apollo';
-import {fragments} from '../lib/apollo';
-import * as CommonTypes from '../../../common/lib/types';
+import * as ITxnGrouped from '../lib/TxnGrouped';
 import {AuthStore, FlashStore} from '../store';
 
 function setError(msg: string) {
@@ -14,21 +11,11 @@ function setError(msg: string) {
 }
 
 function App() {
-  const [txns, setTxns] = useState<CommonTypes.TxnGrouped[]>([]);
+  const [txns, setTxns] = useState<ITxnGrouped.T[]>([]);
   useEffect(() => {
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    const apollo = mkClient(AuthStore.apiKey);
-    apollo.query<{txns_grouped: CommonTypes.TxnGrouped[]}>({
-      query: gql`
-        ${fragments}
-        query GetTxnsGrouped($user_id: String!) {
-          txns_grouped(where: {user_id: {_eq: $user_id}}) {
-            ...txn_grouped
-          }
-        }
-      `,
-      variables: {user_id: AuthStore.userId},
-    }).then(({data}) => {
+    ITxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey).
+    then(({data}) => {
       setTxns(data.txns_grouped);
     }).catch((ex) => setError(ex.message));
   }, []);

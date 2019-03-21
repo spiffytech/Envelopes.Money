@@ -2,7 +2,6 @@ import gql from 'graphql-tag';
 
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
-import {Balance} from '../../../common/lib/types';
 import {BankAccount, Envelope} from './Accounts';
 
 export interface BalanceEnvelope extends Envelope {

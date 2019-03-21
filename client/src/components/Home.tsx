@@ -5,7 +5,42 @@ import React from 'react';
 import '../App.css';
 import Balances from './Balances';
 import Transactions from './Transactions';
-import {FlashStore} from '../store';
+import * as TxnGrouped from '../lib/TxnGrouped';
+import {AuthStore, FlashStore} from '../store';
+import { toDollars } from '../lib/pennies';
+
+function triggerDownload(data: string) {
+  var a = document.createElement("a");
+  document.body.appendChild(a);
+  (a as any).style = "display: none";
+  const blob = new Blob([data], {type: "octet/stream"});
+  const url = window.URL.createObjectURL(blob);
+  a.href = url;
+  a.download = 'export.csv';
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+async function exportTxns(event: React.FormEvent<any>) {
+  event.preventDefault();
+  if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+  const txnsGrouped =
+    await TxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey).
+      then(({data}) => data.txns_grouped);
+
+  const dataStr =
+    JSON.stringify(txnsGrouped.map((t) => ({
+      date: t.date,
+      amount: toDollars(t.amount),
+      from: t.from_name,
+      to: t.to_names,
+      memo: t.memo,
+      type: t.type,
+      label: t.label
+    })));
+
+  triggerDownload(dataStr);
+}
 
 export default observer(function Home(props: RouteComponentProps) {
   return (
@@ -13,6 +48,7 @@ export default observer(function Home(props: RouteComponentProps) {
       null
       :
       <div style={{display: 'flex'}}>
+        <button onClick={exportTxns}>Export Transactions</button>
         <h1>Balances</h1>
         <Balances />
         <h1>Transactions</h1>

@@ -1,4 +1,6 @@
+const fuzzysort = require('fuzzysort');
 import {format} from 'date-fns';
+import fromPairs from 'lodash/fromPairs';
 import groupBy from 'lodash/groupBy';
 import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
@@ -8,6 +10,7 @@ import {AuthStore} from '../store';
 import {ITransaction} from '../../../common/lib/types';
 import * as Balances from '../lib/Balances';
 import * as ITransactions from '../lib/ITransactions';
+import * as TopLabels from '../lib/TopLabels';
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '../lib/pennies';
 
@@ -43,6 +46,18 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
       setType(data.transactions[0].type);
     });
   }, [props.txnId]);
+
+  const [topLabels, setTopLabels] = useState<{[label: string]: TopLabels.T}>({});
+
+  useEffect(() => {
+    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+    TopLabels.loadTopLabels(AuthStore.userId, AuthStore.apiKey).
+    then(({data}) => {
+      setTopLabels(fromPairs(
+        data.top_labels.map((topLabel) => [topLabel.label, topLabel])
+      ));
+    })
+  }, [])
 
   if (balances.length === 0) return <p>Loading...</p>;
 
@@ -80,6 +95,11 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
     addEmptyTxn();
     return <p>Loading...</p>
   }
+
+  const suggestedLabels: string[] =
+    fuzzysort.go(txns[0].label || '', Object.values(topLabels).map((l) => l.label)).
+    map((result: {target: string}) => result.target).
+    slice(0, 5);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -123,6 +143,15 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
     })))
   }
 
+  function setSuggestion(event: React.FormEvent, suggestion: string) {
+    event.preventDefault();
+    setTxnsProp({label: suggestion});
+    setTxns(txns.map((txn, i) => ({
+      ...txn,
+      to_id: i === 0 ? topLabels[suggestion].to_id : txn.to_id,
+    })));
+  }
+
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -139,6 +168,12 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
           <option value="envelopeTransfer">Envelope Transfer</option>
           <option value="accountTransfer">Account Transfer</option>
         </select>
+
+        <input value={txns[0].label || ''} onChange={(event) => setTxnsProp({label: event.target.value})} />
+
+        {suggestedLabels.map((suggestion) =>
+          <button key={suggestion} onClick={(event) => setSuggestion(event, suggestion)}>{suggestion}</button>
+        )}
 
         <select value={txns[0].from_id} onChange={(event) => setTxnsProp({from_id: event.target.value})}>
           {from.map((f) => <option value={f.id} key={f.id}>{f.name} - {toDollars(f.balance)}</option>)}

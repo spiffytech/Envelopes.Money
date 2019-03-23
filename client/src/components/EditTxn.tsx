@@ -193,7 +193,7 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
             <input
               type="number"
               step="0.01"
-              value={(txn.amount || 0) / 100 || 0}
+              value={Number((txn.amount || 0) / 100 || 0).toString()}
               onChange={(event) => setTxnProp(txn, {amount: Math.round(parseFloat(event.target.value) * 100)})}
             />
           </div>

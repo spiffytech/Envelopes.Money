@@ -53,6 +53,6 @@ export interface Balance {
   user_id: string;
   name: string;
   type: string;
-  extra: string;
+  extra: {[key: string]: any};
   balance: number;
 }

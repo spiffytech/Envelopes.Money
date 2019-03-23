@@ -4,12 +4,14 @@ import * as shortid from 'shortid';
 
 import {AuthStore, FlashStore} from '../store';
 import * as Balances from '../lib/Balances';
+import {Intervals} from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
 import {toDollars} from '../lib/pennies';
 
 export default function FillEnvelopes(props: RouteComponentProps & {txnId?: string}) {
   interface Fill {envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope}
   const [fills, setFills] = useState<Fill[]>([]);
+  const [interval, setInterval] = useState<Intervals>('weekly');
 
   function setError(msg: string) {
     FlashStore.flash = msg;
@@ -100,8 +102,11 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
     return (event: React.FormEvent<any>) => {
       event.preventDefault();
       setFills(fills.map((f) => {
-        if (fill === f) return {...f, amount: fill.envelope.extra.target};
-        return f;
+        if (fill !== f) return f;
+        return {
+          ...f,
+          amount: Balances.calcAmountForPeriod(fill.envelope)[interval]
+        };
       }))
     };
   }
@@ -136,6 +141,16 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
     <>
       <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills())}</p>
       <form onSubmit={handleSubmit}>
+        <select
+          value={interval}
+          onChange={(event) => setInterval(event.target.value as Intervals)}
+        >
+          <option value='weekly'>Weekly</option>
+          <option value='biweekly'>Biweekly</option>
+          <option value='monthly'>Monthly</option>
+          <option value='annually'>Annually</option>
+        </select>
+
         <table>
           <tbody>
             {fills.map((fill) =>
@@ -144,7 +159,9 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
                 <td style={{textAlign: 'right'}}>{toDollars(fill.envelope.balance)}</td>
                 <td>
                   + &nbsp;
-                  <button onClick={fillFixedAmount(fill)}>Fill {fill.envelope.extra.target}</button>
+                  <button onClick={fillFixedAmount(fill)}>
+                    Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                  </button>
                   <button onClick={setToZero(fill)}>Set to 0</button>
                   <input
                     type='number'

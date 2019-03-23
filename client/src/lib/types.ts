@@ -12,6 +12,8 @@ export interface ITransaction {
   to_id: string;
 }
 
+export type Intervals = 'total' | 'weekly' | 'biweekly' | 'monthly' | 'annually';
+
 export interface Envelope {
   id: string;
   user_id: string;
@@ -20,7 +22,7 @@ export interface Envelope {
   extra: {
     due: Date | null;
     target: number;
-    interval: 'total' | 'weekly' | 'monthly' | 'annually'
+    interval: Intervals;
   }
 }
 

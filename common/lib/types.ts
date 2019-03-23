@@ -20,7 +20,7 @@ export interface Envelope {
   extra: {
     due: Date | null;
     target: number;
-    interval: 'total' | 'weekly' | 'monthly' | 'annually'
+    interval: 'total' | 'weekly' | 'biweekly' | 'monthly' | 'annually'
   }
 }
 

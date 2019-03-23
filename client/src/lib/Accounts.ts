@@ -1,7 +1,7 @@
 import gql from 'graphql-tag';
 
-import mkApollo from '../lib/apollo';
-import {fragments} from '../lib/apollo';
+import mkApollo from './apollo';
+import {fragments} from './apollo';
 import {IAccount, BankAccount, Envelope} from './types';
 
 export type T = IAccount;

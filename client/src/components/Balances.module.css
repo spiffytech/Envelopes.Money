@@ -1,10 +1,23 @@
+.header {
+    font-size: 20px;
+    font-weight: bold;
+}
+
 .Balance {
     display: flex;
     justify-content: space-between;
     padding: 12px;
     border: 1px solid black;
+    border-top: 0;
     border-radius: 5px;
-    margin-bottom: 4px;
+}
+
+.Balance:first-of-type {
+    border-top: 1px solid black;
+}
+
+.BalanceLabel {
+    font-weight: bold;
 }
 
 .BalanceAmount {
@@ -16,8 +29,16 @@
 }
 
 @media screen and (max-width: 700px) {
+    .header {
+        font-size: 16px;
+    }
+
     .Balance {
         flex-direction: column;
+    }
+
+    .BalanceLabel {
+        word-wrap: break-word;
     }
 
     .BalanceAmount {

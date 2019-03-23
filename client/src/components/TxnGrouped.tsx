@@ -11,7 +11,7 @@ export default function({txn, onClick}: {txn: CommonTypes.TxnGrouped, onClick: (
       <div className={styles.txnGroupedDate}>{format(txn.date, 'MM/DD')}</div>
       <div className={styles.txnGroupedCenter}>
         <div className={styles.txnGroupedLabel}>
-          {txn.label} {txn.memo ? <span title={txn.memo}>memo</span> : null}
+          {txn.label} {txn.memo ? <span title={txn.memo}>📄</span> : null}
         </div>
 
         <div className={styles.txnGroupedAccounts}>

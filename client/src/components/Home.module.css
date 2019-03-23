@@ -1,0 +1,29 @@
+.header {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.Balances {
+    min-width: 0;
+    flex: 1 1 0;
+    margin-right: 12px;
+    padding: 12px;
+    border-radius: 5px;
+}
+
+.Transactions {
+    min-width: 0;
+    flex: 3 2 0;
+    padding: 12px;
+    border-radius: 5px;
+}
+
+.Balances, .Transactions {
+    background-color: white;
+}
+
+@media screen and (max-width: 400px) {
+    .header {
+        font-size: 18px;
+    }
+}

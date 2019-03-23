@@ -16,7 +16,7 @@ function Balance({balance}: {balance: Balances2.T}) {
   };
 
   return <>
-    <span style={{fontWeight: 'bold'}}>{balance.name}</span>
+    <span className={styles.BalanceLabel}>{balance.name}</span>
     <div>
       <div className={styles.BalanceAmount}>{toDollars(balance.balance)}</div>
       {Balances2.isBalanceEnvelope(balance) ?
@@ -59,28 +59,28 @@ export default function Balances() {
       navigate(`/editAccount/${encodeURIComponent(balance.id)}`)
 
   return (
-    <div>
+    <div className={styles.Balances}>
       {groups['account'] ?
-        <>
-          <h2>Accounts</h2>
+        <div>
+          <header className={styles.header}>Accounts</header>
           {groups['account'].map((balance) =>
             <div className={styles.Balance} onClick={onClick(balance)}>
               <Balance balance={balance} />
             </div>
           )}
-        </>
+        </div>
         : null
       }
 
       {groups['envelope'] ?
-        <>
-          <h2>Envelopes</h2>
+        <div>
+          <header className={styles.header}>Envelopes</header>
           {groups['envelope'].map((balance) =>
             <div className={styles.Balance} onClick={onClick(balance)}>
               <Balance balance={balance} />
             </div>
           )}
-        </>
+        </div>
         : null
       }
     </div>

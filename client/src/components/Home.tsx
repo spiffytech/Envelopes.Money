@@ -2,7 +2,7 @@ import {observer} from 'mobx-react-lite';
 import {RouteComponentProps} from '@reach/router';
 import React from 'react';
 
-import '../App.css';
+import styles from './Home.module.css';
 import Balances from './Balances';
 import Transactions from './Transactions';
 import * as TxnGrouped from '../lib/TxnGrouped';
@@ -51,13 +51,13 @@ export default observer(function Home(props: RouteComponentProps) {
         <button onClick={exportTxns}>Export Transactions</button>
         <div style={{display: 'flex'}}>
 
-          <div style={{minWidth: 0, flex: '1 1 0'}}>
-            <h1>Balances</h1>
+          <div className={styles.Balances}>
+            <header className={styles.header}>Balances</header>
             <Balances />
           </div>
 
-          <div style={{minWidth: 0, flex: '3 2 0'}}>
-            <h1>Transactions</h1>
+          <div className={styles.Transactions}>
+            <header className={styles.header}>Transactions</header>
             <Transactions />
           </div>
         </div>

@@ -120,6 +120,18 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
     return fills.map((fill) => fill.amount).reduce((acc, item) => acc + item, 0);
   }
 
+  async function deleteTransaction(event: React.MouseEvent<any>) {
+    event.preventDefault();
+    if (!props.txnId) {
+      throw new Error('Shouldn\'t be inside delete handler without a txn to delete');
+    }
+    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+    await ITransactions.deleteTransactions(
+      AuthStore.userId, AuthStore.apiKey, props.txnId
+    );
+    navigate('/');
+  }
+
   return (
     <>
       <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills())}</p>
@@ -147,6 +159,8 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
             )}
           </tbody>
         </table>
+
+        {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
 
         <input type='submit' value='Fill!' />
       </form>

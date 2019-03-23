@@ -3,9 +3,9 @@ import groupBy from 'lodash/groupBy';
 import {navigate} from '@reach/router';
 import React, { useEffect, useState } from 'react';
 
+import styles from './Balances.module.css';
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
-import * as CommonTypes from '../../../common/lib/types';
 import * as Balances2 from '../lib/Balances';
 import {toDollars} from '../lib/pennies';
 import { AuthStore, FlashStore } from '../store';
@@ -18,9 +18,9 @@ function Balance({balance}: {balance: Balances2.T}) {
   return <>
     <span style={{fontWeight: 'bold'}}>{balance.name}</span>
     <div>
-      <div style={{textAlign: 'right'}}>{toDollars(balance.balance)}</div>
+      <div className={styles.BalanceAmount}>{toDollars(balance.balance)}</div>
       {Balances2.isBalanceEnvelope(balance) ?
-        <div style={{textAlign: 'right', ...targetStyle, fontStyle: 'italic'}}>
+        <div className={styles.BalanceTarget} style={{...targetStyle, fontStyle: 'italic'}}>
           {toDollars(balance.extra.target)} / {balance.extra.interval}
         </div> :
         null
@@ -54,15 +54,6 @@ export default function Balances() {
     });
   }, []);
 
-  const trStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '12px',
-    border: '1px solid black',
-    borderRadius: '5px',
-    marginBottom: '4px',
-  };
-
   const onClick = (balance: Balances2.T) =>
     () =>
       navigate(`/editAccount/${encodeURIComponent(balance.id)}`)
@@ -73,7 +64,7 @@ export default function Balances() {
         <>
           <h2>Accounts</h2>
           {groups['account'].map((balance) =>
-            <div style={trStyle} onClick={onClick(balance)}>
+            <div className={styles.Balance} onClick={onClick(balance)}>
               <Balance balance={balance} />
             </div>
           )}
@@ -85,7 +76,7 @@ export default function Balances() {
         <>
           <h2>Envelopes</h2>
           {groups['envelope'].map((balance) =>
-            <div style={trStyle} onClick={onClick(balance)}>
+            <div className={styles.Balance} onClick={onClick(balance)}>
               <Balance balance={balance} />
             </div>
           )}

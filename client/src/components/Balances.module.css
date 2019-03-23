@@ -1,0 +1,30 @@
+.Balance {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-bottom: 4px;
+}
+
+.BalanceAmount {
+    text-align: right;
+}
+
+.BalanceTarget {
+    text-align: right;
+}
+
+@media screen and (max-width: 700px) {
+    .Balance {
+        flex-direction: column;
+    }
+
+    .BalanceAmount {
+        text-align: left;
+    }
+
+    .BalanceTarget {
+        text-align: left;
+    }
+}

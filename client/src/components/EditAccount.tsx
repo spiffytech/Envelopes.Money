@@ -1,5 +1,4 @@
 import {format} from 'date-fns';
-import {toDollars} from '../lib/pennies';
 import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';

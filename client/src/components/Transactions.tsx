@@ -26,7 +26,7 @@ function App() {
         <TxnGrouped
           key={txn.txn_id}
           txn={txn}
-          onClick={() => navigate(`/editTxn/${txn.txn_id}`)}
+          onClick={() => navigate(`/${txn.type === 'fill' ? 'fill' : 'editTxn'}/${txn.txn_id}`)}
         />
       )}
     </div>

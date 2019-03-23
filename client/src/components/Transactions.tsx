@@ -22,17 +22,13 @@ function App() {
 
   return (
     <div className="App">
-      <table>
-        <tbody>
-          {txns.map((txn) =>
-            <TxnGrouped
-              key={txn.txn_id}
-              txn={txn}
-              onClick={() => navigate(`/editTxn/${txn.txn_id}`)}
-            />
-          )}
-        </tbody>
-      </table>
+      {txns.map((txn) =>
+        <TxnGrouped
+          key={txn.txn_id}
+          txn={txn}
+          onClick={() => navigate(`/editTxn/${txn.txn_id}`)}
+        />
+      )}
     </div>
   );
 }

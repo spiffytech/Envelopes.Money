@@ -16,11 +16,11 @@ function Balance({balance}: {balance: Balances2.T}) {
   };
 
   return <>
-    <span>{balance.name}</span>
+    <span style={{fontWeight: 'bold'}}>{balance.name}</span>
     <div>
       <div style={{textAlign: 'right'}}>{toDollars(balance.balance)}</div>
       {Balances2.isBalanceEnvelope(balance) ?
-        <div style={{textAlign: 'right', ...targetStyle}}>
+        <div style={{textAlign: 'right', ...targetStyle, fontStyle: 'italic'}}>
           {toDollars(balance.extra.target)} / {balance.extra.interval}
         </div> :
         null

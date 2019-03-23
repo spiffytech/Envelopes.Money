@@ -1,0 +1,41 @@
+.txnGroupedOuter {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  margin: 4px;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
+.txnGroupedDate {
+  margin-right: 8px;
+}
+
+.txnGroupedCenter {
+  text-align: left;
+  flex: 1 1 100%;
+  min-width: 0;
+  margin-right: 8px;
+}
+
+.txnGroupedLabel {
+  text-align: left;
+  font-weight: bold;
+}
+
+.txnGroupedAccounts {
+  display: flex;
+  flex: 1;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.txnGroupedAmount {
+  text-align: right;
+}
+
+.collapsable {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

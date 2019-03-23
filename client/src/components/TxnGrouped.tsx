@@ -1,24 +1,26 @@
+import {format} from 'date-fns';
 import React from 'react';
 
+import styles from './TxnGrouped.module.css';
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '../lib/pennies';
 
 export default function({txn, onClick}: {txn: CommonTypes.TxnGrouped, onClick: () => any}) {
-  const ellipsisStyle: React.CSSProperties = {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  };
-  const textAlignStyle: React.CSSProperties = {textAlign: 'left'};
-
   return (
-    <tr onClick={onClick}>
-      <td style={{whiteSpace: 'nowrap', ...textAlignStyle}}>{txn.date}</td>
-      <td style={{textAlign: 'right'}}>{toDollars(txn.amount)}</td>
-      <td style={{...ellipsisStyle, maxWidth: '250px', ...textAlignStyle}}>{txn.label}</td>
-      <td style={{...textAlignStyle}}>{txn.from_name}</td>
-      <td style={{...ellipsisStyle, ...textAlignStyle, maxWidth: '250px'}}>{txn.to_names}</td>
-      <td style={{maxWidth: '250px', ...textAlignStyle}}>{txn.memo}</td>
-    </tr>
+    <div onClick={onClick} className={styles.txnGroupedOuter}>
+      <div className={styles.txnGroupedDate}>{format(txn.date, 'MM/DD')}</div>
+      <div className={styles.txnGroupedCenter}>
+        <div className={styles.txnGroupedLabel}>
+          {txn.label} {txn.memo ? <span title={txn.memo}>memo</span> : null}
+        </div>
+
+        <div className={styles.txnGroupedAccounts}>
+          <span style={{whiteSpace: "nowrap"}}>{txn.from_name}</span>
+          &nbsp;→&nbsp;
+          <span className={styles.collapsable}>{txn.to_names}</span>
+        </div>
+      </div>
+      <div className={styles.txnGroupedAmount}>{toDollars(txn.amount)}</div>
+    </div>
   );
 }

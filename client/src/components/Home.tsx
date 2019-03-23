@@ -50,12 +50,12 @@ export default observer(function Home(props: RouteComponentProps) {
       <div style={{display: 'flex'}}>
         <button onClick={exportTxns}>Export Transactions</button>
 
-        <div>
+        <div style={{minWidth: 0, flex: '1 1 0'}}>
           <h1>Balances</h1>
           <Balances />
         </div>
 
-        <div>
+        <div style={{minWidth: 0, flex: '3 2 0'}}>
           <h1>Transactions</h1>
           <Transactions />
         </div>

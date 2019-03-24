@@ -35,7 +35,7 @@ export function calcAmountForPeriod(balance: BalanceEnvelope): {[key in Interval
       Object.entries(intervalsLeft).
       map(([period, interval]) => [
         period,
-        Math.round(balance.extra.target - baseline) / interval,
+        Math.max(0, Math.round(balance.extra.target - baseline) / interval),
       ])
     ) as {[key in Intervals]: number};
   }
@@ -60,7 +60,7 @@ export function calcAmountForPeriod(balance: BalanceEnvelope): {[key in Interval
     Object.entries(periods).
     map(([period, interval]) => [
       period,
-      Math.round(balance.extra.target / interval)
+      Math.max(0, Math.round(balance.extra.target / interval))
     ])
   ) as {[key in Intervals]: number};
 }

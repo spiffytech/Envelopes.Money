@@ -74,7 +74,7 @@ export default function Balances() {
         <div>
           <header className={styles.header}>Accounts</header>
           {groups['account'].map((balance) =>
-            <div className={styles.Balance} onClick={onClick(balance)}>
+            <div className={styles.Balance} key={balance.id} onClick={onClick(balance)}>
               <Balance balance={balance} />
             </div>
           )}
@@ -86,7 +86,7 @@ export default function Balances() {
         <div>
           <header className={styles.header}>Envelopes</header>
           {groups['envelope'].map((balance) =>
-            <div className={styles.Balance} onClick={onClick(balance)}>
+            <div className={styles.Balance} key={balance.id} onClick={onClick(balance)}>
               <Balance balance={balance} />
             </div>
           )}

@@ -6,7 +6,7 @@ import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
-import {AuthStore} from '../store';
+import {AuthStore, FlashStore} from '../store';
 import {ITransaction} from '../../../common/lib/types';
 import * as Balances from '../lib/Balances';
 import * as ITransactions from '../lib/ITransactions';
@@ -105,18 +105,33 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
     event.preventDefault();
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
     const txnId = props.txnId || shortid.generate();
-    await ITransactions.saveTransactions(
-      AuthStore.userId, AuthStore.apiKey,
-      txns.map((txn) => ({
-        type: type as CommonTypes.TxnTypes,
-        txn_id: txnId,
-        ...txn,
-      })).map((txn) => {
-        const {__typename, ...rest} = txn as ITransaction & {__typename: any};
-        return rest;
-      }),
-    );
-    navigate('/');
+    try {
+      const toSubmit =
+        txns.map((txn) => ({
+          type: type as CommonTypes.TxnTypes,
+          txn_id: txnId,
+          ...txn,
+        })).
+        filter((txn) => txn.amount !== 0).
+        map((txn) => {
+          const {__typename, ...rest} = txn as ITransaction & {__typename: any};
+          return rest;
+        });
+
+      if (toSubmit.length === 0) {
+        FlashStore.flash = 'You must have at least one non-zero split';
+        FlashStore.type = 'error';
+        return;
+      }
+
+      await ITransactions.saveTransactions(AuthStore.userId, AuthStore.apiKey, toSubmit);
+      FlashStore.flash = null;
+      FlashStore.type = 'default';
+      navigate('/');
+    } catch (ex) {
+      FlashStore.flash = ex.message;
+      FlashStore.type = 'error';
+    }
   }
 
   async function deleteTransaction(event: React.MouseEvent<any>) {

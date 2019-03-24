@@ -26,7 +26,11 @@ export function saveTransactions(userId: string, apiKey: string, txns: ITransact
   return apollo.mutate({
     mutation: gql`
       ${fragments}
-      mutation UpsertTransactions($txns: [transactions_insert_input!]!) {
+      mutation UpsertTransactions($txnId: String!, $txns: [transactions_insert_input!]!) {
+        delete_transactions(where: {txn_id: {_eq: $txnId}}) {
+          returning {id}
+        }
+
         insert_transactions(
           objects: $txns,
           on_conflict: {
@@ -37,7 +41,7 @@ export function saveTransactions(userId: string, apiKey: string, txns: ITransact
         }
       }
     `,
-    variables: {txns},
+    variables: {txns, txnId: txns[0].txn_id},
   });
 }
 

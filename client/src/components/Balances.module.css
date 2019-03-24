@@ -12,6 +12,32 @@
     border-radius: 5px;
 }
 
+.ProgressFlipped {
+    transform: rotate(180deg);
+}
+
+.ProgressFlipped::-moz-progress-bar {
+    background-color: red;
+}
+
+.ProgressFlipped::-webkit-progress-value {
+    background-color: red;
+}
+
+.Progress::-moz-progress-bar {
+    background-color: green;
+}
+.Progress::-webkit-progress-value {
+    background-color: green;
+}
+
+.Progress[value] {
+    appearance: none;
+}
+.ProgressFlipped[value] {
+    appearance: none;
+}
+
 .Balance:first-of-type {
     border-top: 1px solid black;
 }

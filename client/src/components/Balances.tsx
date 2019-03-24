@@ -16,7 +16,17 @@ function Balance({balance}: {balance: Balances2.T}) {
   };
 
   return <>
-    <span className={styles.BalanceLabel}>{balance.name}</span>
+    <div className={styles.BalanceLabel}>
+      <div>{balance.name}</div>
+      {Balances2.isBalanceEnvelope(balance) ?
+        <progress
+          className={balance.balance < 0 ? styles.ProgressFlipped : styles.Progress}
+          value={Math.abs(balance.balance)}
+          max={balance.extra.target || 0}
+        />
+        : null
+      }
+    </div>
     <div>
       <div className={styles.BalanceAmount}>{toDollars(balance.balance)}</div>
       {Balances2.isBalanceEnvelope(balance) ?

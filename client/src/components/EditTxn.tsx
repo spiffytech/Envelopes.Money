@@ -104,11 +104,12 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+    const txnId = props.txnId || shortid.generate();
     await ITransactions.saveTransactions(
       AuthStore.userId, AuthStore.apiKey,
       txns.map((txn) => ({
         type: type as CommonTypes.TxnTypes,
-        txn_id: shortid.generate(),
+        txn_id: txnId,
         ...txn,
       })).map((txn) => {
         const {__typename, ...rest} = txn as ITransaction & {__typename: any};
@@ -155,55 +156,87 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <p>Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}</p>
-
-        <input
-          type="date"
-          value={format(txns[0].date, 'YYYY-MM-DD')}
-          onChange={(event) => setTxnsProp({date: new Date(event.target.value)})}
-        />
-
-        <select value={type} onChange={(event) => setType(event.target.value)}>
-          <option value="banktxn">Bank Transaction</option>
-          <option value="envelopeTransfer">Envelope Transfer</option>
-          <option value="accountTransfer">Account Transfer</option>
-        </select>
-
-        <input value={txns[0].label || ''} onChange={(event) => setTxnsProp({label: event.target.value})} />
-
-        {suggestedLabels.map((suggestion) =>
-          <button key={suggestion} onClick={(event) => setSuggestion(event, suggestion)}>{suggestion}</button>
-        )}
-
-        <select value={txns[0].from_id} onChange={(event) => setTxnsProp({from_id: event.target.value})}>
-          {from.map((f) => <option value={f.id} key={f.id}>{f.name} - {toDollars(f.balance)}</option>)}
-        </select>
-
-
-        {txns.map((txn) =>
-          <div key={txn.id}>
-            <p>{JSON.stringify(txn)}</p>
-            <select
-              value={txn.to_id || ''}
-              onChange={(event) => setTxnProp(txn, {to_id: event.target.value})}
-            >
-              {to.map((t) => <option value={t.id} key={t.id}>{t.name} - {toDollars(t.balance)}</option>)}
-            </select>
-
+        <div>
+          <label>
+            Date
             <input
-              type="number"
-              step="0.01"
-              value={Number((txn.amount || 0) / 100 || 0).toString()}
-              onChange={(event) => setTxnProp(txn, {amount: Math.round(parseFloat(event.target.value) * 100)})}
+              type="date"
+              value={format(txns[0].date, 'YYYY-MM-DD')}
+              onChange={(event) => setTxnsProp({date: new Date(event.target.value)})}
             />
-          </div>
-        )}
+          </label>
+        </div>
 
-        <button onClick={() => addEmptyTxn()}>New Split</button>
+        <div>
+          <label >
+            Transaction type
+            <select value={type} onChange={(event) => setType(event.target.value)}>
+              <option value="banktxn">Bank Transaction</option>
+              <option value="envelopeTransfer">Envelope Transfer</option>
+              <option value="accountTransfer">Account Transfer</option>
+            </select>
+          </label>
+        </div>
 
-        <button type='submit'>Save Transaction</button>
+        <div>
+          <label>
+            Who did you pay?
+            <input value={txns[0].label || ''} onChange={(event) => setTxnsProp({label: event.target.value})} />
+          </label>
+        </div>
 
-        {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
+        <div>
+          <label>
+            Suggested payees:
+            {suggestedLabels.map((suggestion) =>
+              <button key={suggestion} onClick={(event) => setSuggestion(event, suggestion)}>{suggestion}</button>
+            )}
+          </label>
+        </div>
+
+        <div>
+          <label>
+            This was paid from:
+            <select value={txns[0].from_id} onChange={(event) => setTxnsProp({from_id: event.target.value})}>
+              {from.map((f) => <option value={f.id} key={f.id}>{f.name} - {toDollars(f.balance)}</option>)}
+            </select>
+          </label>
+        </div>
+
+        <div>
+          <p>Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}</p>
+          <label>
+            You paid into these accounts/envelopes:
+            {txns.map((txn) =>
+              <div key={txn.id}>
+                <select
+                  value={txn.to_id || ''}
+                  onChange={(event) => setTxnProp(txn, {to_id: event.target.value})}
+                >
+                  {to.map((t) => <option value={t.id} key={t.id}>{t.name} - {toDollars(t.balance)}</option>)}
+                </select>
+
+                <input
+                  type="number"
+                  
+                  value={Number((txn.amount || 0) / 100 || 0).toString()}
+                  onChange={(event) => setTxnProp(txn, {amount: Math.round(parseFloat(event.target.value) * 100)})}
+                />
+              </div>
+            )}
+          </label>
+
+          <button onClick={(event) => {event.preventDefault(); addEmptyTxn()}}>New Split</button>
+        </div>
+
+
+        <div style={{marginTop: '1rem'}}>
+          <button type='submit'>Save Transaction</button>
+        </div>
+
+        <div style={{marginTop: '3rem'}}>
+          {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
+        </div>
       </form>
     </>
   );

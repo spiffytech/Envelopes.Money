@@ -20,7 +20,7 @@ export interface Envelope {
   name: string;
   type: 'envelope';
   extra: {
-    due: Date | null;
+    due: Date | string | null;
     target: number;
     interval: Intervals;
   }

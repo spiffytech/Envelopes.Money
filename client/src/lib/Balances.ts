@@ -19,6 +19,27 @@ export function isBalanceEnvelope(account: T): account is BalanceEnvelope {
 }
 
 export function calcAmountForPeriod(balance: BalanceEnvelope): {[key in Intervals]: number} {
+  if (balance.extra.due) {
+    const baseline = balance.balance;
+    const daysUntilDue =
+      Math.round(new Date(balance.extra.due).getTime() - new Date().getTime()) / 86400000;
+    const intervalsLeft: {[key in Intervals]: number} = {
+      weekly: Math.max(1, Math.ceil(daysUntilDue / 7)),
+      biweekly: Math.max(1, Math.ceil(daysUntilDue / 14)),
+      monthly: Math.max(1, Math.ceil(Math.round(daysUntilDue / 30))),
+      annually: Math.max(1, Math.ceil(daysUntilDue / 365)),
+      total: daysUntilDue,
+    };
+
+    return fromPairs(
+      Object.entries(intervalsLeft).
+      map(([period, interval]) => [
+        period,
+        Math.round(balance.extra.target - baseline) / interval,
+      ])
+    ) as {[key in Intervals]: number};
+  }
+
   const interval =
     balance.extra.interval === 'weekly' ? 7 :
     balance.extra.interval === 'biweekly' ? 14 :
@@ -33,6 +54,7 @@ export function calcAmountForPeriod(balance: BalanceEnvelope): {[key in Interval
     annually: interval / 365,
     total: interval,
   }
+
 
   return fromPairs(
     Object.entries(periods).

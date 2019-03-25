@@ -8,6 +8,7 @@ import * as Balances from '../lib/Balances';
 import {Intervals} from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
 import {toDollars} from '../lib/pennies';
+import { reaction } from 'mobx';
 
 export default function FillEnvelopes(props: RouteComponentProps & {txnId?: string}) {
   interface Fill {envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope}
@@ -66,11 +67,14 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
   const unallocated = fills.find(({envelope}) => envelope.name === '[Unallocated]');
   if (!unallocated) throw new Error('You don\'t have an [Unallocated] category!');
 
-  function setFillAmount(fill: Fill, amount: number) {
-    setFills(fills.map((f) => {
-      if (fill !== f) return f;
-      return {...f, amount}
-    }));
+  function fillEnvelope(fill: Fill, amount: number) {
+    return function fn(event: React.FormEvent<any>) {
+      event.preventDefault();
+      setFills(fills.map((f) => {
+        if (fill !== f) return f;
+        return {...f, amount}
+      }));
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<any>) {
@@ -97,29 +101,6 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
     await ITransactions.deleteTransactions(AuthStore.userId, AuthStore.apiKey, txnId);
     await ITransactions.saveTransactions(AuthStore.userId, AuthStore.apiKey, txns);
     navigate('/');
-  }
-
-  function fillFixedAmount(fill: Fill) {
-    return (event: React.FormEvent<any>) => {
-      event.preventDefault();
-      setFills(fills.map((f) => {
-        if (fill !== f) return f;
-        return {
-          ...f,
-          amount: Math.round(Balances.calcAmountForPeriod(fill.envelope)[interval])
-        };
-      }))
-    };
-  }
-
-  function setToZero(fill: Fill) {
-    return (event: React.FormEvent<any>) => {
-      event.preventDefault();
-      setFills(fills.map((f) => {
-        if (fill === f) return {...f, amount: -fill.envelope.balance};
-        return f;
-      }))
-    };
   }
 
   function sumOfFills() {
@@ -161,15 +142,15 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
                 <td style={{textAlign: 'right'}}>{toDollars(fill.envelope.balance)}</td>
                 <td>
                   + &nbsp;
-                  <button onClick={fillFixedAmount(fill)} className={styles.FillTargetBtn}>
+                  <button onClick={fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])} className={styles.FillTargetBtn}>
                     Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
                   </button>
-                  <button onClick={setToZero(fill)}>Set to 0</button>
+                  <button onClick={fillEnvelope(fill, -fill.envelope.balance)}>Set to 0</button>
                   <input
                     type='number'
                     step='0.01'
                     value={fill.amount / 100}
-                    onChange={(event) => setFillAmount(fill, Math.round(parseFloat(event.target.value) * 100))}
+                    onChange={(event) => fillEnvelope(fill, Math.round(parseFloat(event.target.value) * 100))(event)}
                   />
                 </td>
 

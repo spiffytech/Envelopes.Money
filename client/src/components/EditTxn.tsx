@@ -202,7 +202,7 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
           <label className={styles.FormLabel}>
             <span>Suggested payees:</span>
             <div>
-              {suggestedLabels.length === 1 && txns[0].label ?
+              {suggestedLabels.length === 1 && suggestedLabels[0] === txns[0].label ?
                 null :
                 suggestedLabels.map((suggestion) =>
                 <div><button

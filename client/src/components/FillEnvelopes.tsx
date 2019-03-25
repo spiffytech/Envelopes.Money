@@ -8,7 +8,6 @@ import * as Balances from '../lib/Balances';
 import {Intervals} from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
 import {toDollars} from '../lib/pennies';
-import { reaction } from 'mobx';
 
 export default function FillEnvelopes(props: RouteComponentProps & {txnId?: string}) {
   interface Fill {envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope}
@@ -136,7 +135,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
 
         <table>
           <tbody>
-            {fills.map((fill) =>
+            {fills.filter((fill) => fill.envelope.name !== '[Unallocated]').map((fill) =>
               <tr key={fill.envelope.id}>
                 <td>{fill.envelope.name}</td>
                 <td style={{textAlign: 'right'}}>{toDollars(fill.envelope.balance)}</td>

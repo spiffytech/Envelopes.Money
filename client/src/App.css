@@ -9,7 +9,9 @@ button {
   */
   text-decoration: none;
   /*background: #0069ed;*/
-  color: #ffffff;
+  background: #f7f7f7;
+  border: 2px solid #e1e1e1;
+  color: #222222;
   font-family: sans-serif;
   font-size: 1rem;
   cursor: pointer;

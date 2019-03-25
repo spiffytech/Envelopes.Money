@@ -1,0 +1,33 @@
+.Form {
+    display: flex;
+    justify-content: space-around;
+    flex: 1;
+    min-width: 0;
+}
+
+.FormForm {
+    background-color: white;
+    padding: 24px;
+    border-radius: 8px;
+    border: 2px solid #e1e1e1;
+    margin: 24px;
+}
+
+.FormInput {
+    width: 250px;
+}
+
+.FormLabel {
+    display: flex;
+    justify-content: space-between;
+}
+
+.Total {
+    font-weight: bold;
+}
+
+.SuggestionButton {
+    width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

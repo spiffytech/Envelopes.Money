@@ -6,6 +6,7 @@ import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
+import styles from './EditTxn.module.css';
 import {AuthStore, FlashStore} from '../store';
 import {ITransaction} from '../../../common/lib/types';
 import * as Balances from '../lib/Balances';
@@ -161,20 +162,24 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
 
   function setSuggestion(event: React.FormEvent, suggestion: string) {
     event.preventDefault();
-    setTxnsProp({label: suggestion});
     setTxns(txns.map((txn, i) => ({
       ...txn,
+      label: suggestion,
       to_id: i === 0 ? topLabels[suggestion].to_id : txn.to_id,
     })));
   }
 
   return (
-    <>
-      <form onSubmit={handleSubmit}>
+    <div className={styles.Form}>
+      <form onSubmit={handleSubmit} className={styles.FormForm}>
         <div>
-          <label >
-            Transaction type
-            <select value={type} onChange={(event) => setType(event.target.value)}>
+          <label className={styles.FormLabel}>
+            <span>Transaction type</span>
+            <select
+              value={type}
+              onChange={(event) => setType(event.target.value)}
+              className={styles.FormInput}
+            >
               <option value="banktxn">Bank Transaction</option>
               <option value="envelopeTransfer">Envelope Transfer</option>
               <option value="accountTransfer">Account Transfer</option>
@@ -183,38 +188,60 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
         </div>
 
         <div>
-          <label>
+          <label className={styles.FormLabel}>
             Who did you pay?
-            <input value={txns[0].label || ''} onChange={(event) => setTxnsProp({label: event.target.value})} />
+            <input
+              value={txns[0].label || ''}
+              onChange={(event) => setTxnsProp({label: event.target.value})}
+              className={styles.FormInput}
+            />
           </label>
         </div>
 
         <div>
-          <label>
-            Suggested payees:
-            {suggestedLabels.map((suggestion) =>
-              <button key={suggestion} onClick={(event) => setSuggestion(event, suggestion)}>{suggestion}</button>
-            )}
+          <label className={styles.FormLabel}>
+            <span>Suggested payees:</span>
+            <div>
+              {suggestedLabels.length === 1 && txns[0].label ?
+                null :
+                suggestedLabels.map((suggestion) =>
+                <div><button
+                  key={suggestion}
+                  onClick={(event) => setSuggestion(event, suggestion)}
+                  className={styles.SuggestionButton}
+                >
+                  {suggestion}
+                </button></div>
+                )
+              }
+            </div>
           </label>
         </div>
 
         <div>
-          <label>
+          <label className={styles.FormLabel}>
             Date
             <input
               type="date"
               value={format(txns[0].date, 'YYYY-MM-DD')}
               onChange={(event) => setTxnsProp({date: new Date(event.target.value)})}
+              className={styles.FormInput}
             />
           </label>
         </div>
 
-        <p>Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}</p>
+        <p className={styles.Total}>
+          Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
+        </p>
 
         <div>
-          <label>
+          <label className={styles.FormLabel}>
             {type === 'banktxn' ? 'Account:' : 'Transfer from:'}
-            <select value={txns[0].from_id} onChange={(event) => setTxnsProp({from_id: event.target.value})}>
+            <select
+              value={txns[0].from_id}
+              onChange={(event) => setTxnsProp({from_id: event.target.value})}
+              className={styles.FormInput}
+            >
               {from.map((f) => <option value={f.id} key={f.id}>{f.name}: {toDollars(f.balance)}</option>)}
             </select>
           </label>
@@ -254,6 +281,6 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
           {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
         </div>
       </form>
-    </>
+    </div>
   );
 }

@@ -106,7 +106,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
         if (fill !== f) return f;
         return {
           ...f,
-          amount: Balances.calcAmountForPeriod(fill.envelope)[interval]
+          amount: Math.round(Balances.calcAmountForPeriod(fill.envelope)[interval])
         };
       }))
     };
@@ -169,7 +169,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
                     type='number'
                     step='0.01'
                     value={fill.amount / 100}
-                    onChange={(event) => setFillAmount(fill, parseFloat(event.target.value) * 100 || 0)}
+                    onChange={(event) => setFillAmount(fill, Math.round(parseFloat(event.target.value) * 100))}
                   />
                 </td>
 

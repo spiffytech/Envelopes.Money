@@ -2,13 +2,13 @@
   display: flex;
   justify-content: space-between;
   padding: 12px;
-  border: 1px solid black;
+  border: 1px solid #e1e1e1;
   border-top: 0;
   border-radius: 5px;
 }
 
 .txnGroupedOuter:first-of-type {
-  border-top: 1px solid black;
+  border: 1px solid #e1e1e1;
 }
 
 .txnGroupedDate {

@@ -172,17 +172,6 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
     <>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>
-            Date
-            <input
-              type="date"
-              value={format(txns[0].date, 'YYYY-MM-DD')}
-              onChange={(event) => setTxnsProp({date: new Date(event.target.value)})}
-            />
-          </label>
-        </div>
-
-        <div>
           <label >
             Transaction type
             <select value={type} onChange={(event) => setType(event.target.value)}>
@@ -211,30 +200,42 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
 
         <div>
           <label>
-            This was paid from:
+            Date
+            <input
+              type="date"
+              value={format(txns[0].date, 'YYYY-MM-DD')}
+              onChange={(event) => setTxnsProp({date: new Date(event.target.value)})}
+            />
+          </label>
+        </div>
+
+        <p>Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}</p>
+
+        <div>
+          <label>
+            {type === 'banktxn' ? 'Account:' : 'Transfer from:'}
             <select value={txns[0].from_id} onChange={(event) => setTxnsProp({from_id: event.target.value})}>
-              {from.map((f) => <option value={f.id} key={f.id}>{f.name} - {toDollars(f.balance)}</option>)}
+              {from.map((f) => <option value={f.id} key={f.id}>{f.name}: {toDollars(f.balance)}</option>)}
             </select>
           </label>
         </div>
 
         <div>
-          <p>Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}</p>
           <label>
-            You paid into these accounts/envelopes:
+            {type === 'banktxn' ? 'Envelopes:' : 'Transfer into'}
             {txns.map((txn) =>
               <div key={txn.id}>
                 <select
                   value={txn.to_id || ''}
                   onChange={(event) => setTxnProp(txn, {to_id: event.target.value})}
                 >
-                  {to.map((t) => <option value={t.id} key={t.id}>{t.name} - {toDollars(t.balance)}</option>)}
+                  {to.map((t) => <option value={t.id} key={t.id}>{t.name}: {toDollars(t.balance)}</option>)}
                 </select>
 
                 <input
                   type="number"
-                  
                   value={Number((txn.amount || 0) / 100 || 0).toString()}
+                  step='0.01'
                   onChange={(event) => setTxnProp(txn, {amount: Math.round(parseFloat(event.target.value) * 100)})}
                 />
               </div>

@@ -48,9 +48,8 @@ export default observer(function Home(props: RouteComponentProps) {
       null
       :
       <>
-        <button onClick={exportTxns}>Export Transactions</button>
+        <button onClick={exportTxns} className={styles.ExportTxns}>Export Transactions</button>
         <div style={{display: 'flex'}}>
-
           <div className={styles.Balances}>
             <header className={styles.header}>Balances</header>
             <Balances />

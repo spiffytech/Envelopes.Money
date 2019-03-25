@@ -22,14 +22,17 @@ function Flash() {
 function App() {
   return (
     <>
+      <div className='stripe'></div>
       {AuthStore.loggedIn ?
         (
           <>
-            <div>
-              <Link to='/'>Home</Link>
-              <Link to='/editAccount'>New Account</Link>
-              <Link to='/editTxn'>New Transaction</Link>
-              <Link to='/fill'>Fill Envelopes</Link>
+            <div style={{backgroundColor: 'white', border: '2px solid #e1e1e1', display: 'flex', justifyContent: 'space-between'}}>
+              <Link to='/' className='linkBtn title'>HackerBudget</Link>
+              <div>
+                <Link to='/editTxn' className='linkBtn primary'>New Transaction</Link>
+                <Link to='/editAccount' className='linkBtn secondary'>New Account</Link>
+                <Link to='/fill' className='linkBtn secondary'>Fill Envelopes</Link>
+              </div>
             </div>
 
             <Flash />

@@ -7,9 +7,13 @@
     display: flex;
     justify-content: space-between;
     padding: 12px;
-    border: 1px solid black;
+    border: 1px solid #e1e1e1;
     border-top: 0;
     border-radius: 5px;
+}
+
+.Balance:first-of-type {
+    border: 1px solid #e1e1e1;
 }
 
 .ProgressFlipped {
@@ -17,18 +21,18 @@
 }
 
 .ProgressFlipped::-moz-progress-bar {
-    background-color: red;
+    background-color: #c65e21;
 }
 
 .ProgressFlipped::-webkit-progress-value {
-    background-color: red;
+    background-color: #c65e21;
 }
 
 .Progress::-moz-progress-bar {
-    background-color: green;
+    background-color: #7bb026;
 }
 .Progress::-webkit-progress-value {
-    background-color: green;
+    background-color: #7bb026;
 }
 
 .Progress[value] {
@@ -36,10 +40,6 @@
 }
 .ProgressFlipped[value] {
     appearance: none;
-}
-
-.Balance:first-of-type {
-    border-top: 1px solid black;
 }
 
 .BalanceLabel {

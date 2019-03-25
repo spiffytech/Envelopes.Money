@@ -1,8 +1,6 @@
 .Form {
     display: flex;
     justify-content: space-around;
-    flex: 1;
-    min-width: 0;
 }
 
 .FormForm {

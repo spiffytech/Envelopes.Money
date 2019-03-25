@@ -2,6 +2,7 @@ import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
+import styles from './FillEnvelopes.module.css';
 import {AuthStore, FlashStore} from '../store';
 import * as Balances from '../lib/Balances';
 import {Intervals} from '../lib/Accounts';
@@ -138,9 +139,10 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
   }
 
   return (
-    <>
-      <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills())}</p>
-      <form onSubmit={handleSubmit}>
+    <div className={styles.Form}>
+      <form onSubmit={handleSubmit} className={styles.FormForm}>
+        <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills())}</p>
+
         <select
           value={interval}
           onChange={(event) => setInterval(event.target.value as Intervals)}
@@ -159,7 +161,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
                 <td style={{textAlign: 'right'}}>{toDollars(fill.envelope.balance)}</td>
                 <td>
                   + &nbsp;
-                  <button onClick={fillFixedAmount(fill)}>
+                  <button onClick={fillFixedAmount(fill)} className={styles.FillTargetBtn}>
                     Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
                   </button>
                   <button onClick={setToZero(fill)}>Set to 0</button>
@@ -181,6 +183,6 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
 
         <input type='submit' value='Fill!' />
       </form>
-    </>
+    </div>
   )
 }

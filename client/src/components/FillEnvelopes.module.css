@@ -1,0 +1,16 @@
+.Form {
+    display: flex;
+    justify-content: space-around;
+}
+
+.FormForm {
+    background-color: white;
+    padding: 24px;
+    border-radius: 8px;
+    border: 2px solid #e1e1e1;
+    margin: 24px;
+}
+
+.FillTargetBtn {
+    width: 120px;
+}

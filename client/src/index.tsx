@@ -10,6 +10,16 @@ import {endpoint} from './lib/config';
 
 axios.defaults.withCredentials = true;
 
+setInterval(async () => {
+  try {
+    await axios.get(`${endpoint}/isAuthed`);
+  } catch (ex) {
+    AuthStore.userId = null;
+    AuthStore.apiKey = null;
+    AuthStore.loggedIn = false;
+  }
+}, 5000);
+
 axios.get(`${endpoint}/isAuthed`).then((response) => {
   AuthStore.loggedIn = response.data.isAuthed;
   AuthStore.userId = response.data.userId;

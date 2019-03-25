@@ -166,6 +166,7 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
       ...txn,
       label: suggestion,
       to_id: i === 0 ? topLabels[suggestion].to_id : txn.to_id,
+      from_id: i === 0 ? topLabels[suggestion].from_id : txn.from_id,
     })));
   }
 

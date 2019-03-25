@@ -7,6 +7,7 @@ export interface T {
   label: string;
   count: number;
   to_id: string;
+  from_id: string;
   user_id: string;
   name: string;
 }

@@ -25,12 +25,21 @@ function LogIn(props: RouteComponentProps) {
     }
   }
 
+  const style: React.CSSProperties = {
+    backgroundColor: 'white',
+    padding: '24px',
+    borderRadius: '8px',
+    border: '2px solid #e1e1e1',
+    margin: '24px',
+  }
+
   return (
     <>
       {error ? <p>{error}</p> : null}
-      <form onSubmit={handleSubmit}>
-        <input type="text" value={username} onChange={(event) => setUsername(event.target.value)} />
-        <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+      <form style={style} onSubmit={handleSubmit}>
+        <header style={{fontWeight: 'bold'}}>Log In</header>
+        <input type="text" placeholder='username' value={username} onChange={(event) => setUsername(event.target.value)} />
+        <input type="password" placeholder='password' value={password} onChange={(event) => setPassword(event.target.value)} />
 
         <button type="submit">Log In</button>
       </form>

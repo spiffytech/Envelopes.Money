@@ -26,9 +26,9 @@ function App() {
       {AuthStore.loggedIn ?
         (
           <>
-            <div style={{backgroundColor: 'white', border: '2px solid #e1e1e1', display: 'flex', justifyContent: 'space-between'}}>
+            <div className='appNav'>
               <Link to='/' className='linkBtn title'>HackerBudget</Link>
-              <div>
+              <div className='navRight'>
                 <Link to='/editTxn' className='linkBtn primary'>New Transaction</Link>
                 <Link to='/editAccount' className='linkBtn secondary'>New Account</Link>
                 <Link to='/fill' className='linkBtn secondary'>Fill Envelopes</Link>

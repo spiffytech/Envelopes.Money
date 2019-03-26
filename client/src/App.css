@@ -76,3 +76,20 @@ body {
 .title {
   font-weight: bold;
 }
+
+.appNav {
+  background-color: white;
+  border: 2px solid #eee;
+  display: flex;
+  justify-content: space-between;
+}
+
+@media screen and (max-width: 500px) {
+  .appNav {
+    flex-wrap: wrap;
+  }
+
+  .appNav .navRight {
+    font-size: 12px;
+  }
+}

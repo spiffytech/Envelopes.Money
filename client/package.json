@@ -2,6 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:8000",
   "dependencies": {
     "@types/jest": "24.0.9",
     "@types/node": "11.10.5",
@@ -32,6 +33,7 @@
     "@reach/router": "^1.2.1",
     "@types/lodash": "^4.14.123",
     "@types/reach__router": "^1.2.3",
+    "@types/react-responsive": "^3.0.3",
     "@types/shortid": "0.0.29",
     "apollo-cache-inmemory": "^1.5.1",
     "apollo-client": "^2.5.1",
@@ -46,6 +48,7 @@
     "lodash": "^4.17.11",
     "mobx-react": "^5.4.3",
     "mobx-react-lite": "^1.1.1",
+    "react-responsive": "^6.1.1",
     "shortid": "^2.2.14"
   }
 }

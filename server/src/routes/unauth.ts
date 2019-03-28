@@ -8,6 +8,6 @@ export default router;
 
 router.
   post('/signup', auth.signUp).
-  post('/login', auth.logIn).
+  post('/login', express.json(), auth.logIn).
   get('/isAuthed', auth.isAuthed).
   get('/hasura_auth', hasura.authHook);

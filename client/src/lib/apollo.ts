@@ -5,10 +5,12 @@ import {onError} from 'apollo-link-error';
 import {createHttpLink} from 'apollo-link-http';
 import gql from 'graphql-tag';
 
+import {endpoint} from './config';
+
 function mkClient(token: string, isAdmin=false) {
-  const uri = process.env.REACT_APP_GRAPHQL_ENDPOINT || process.env.GRAPHQL_ENDPOINT;
+  const uri = `${endpoint}/v1alpha1/graphql`;
   if (!uri) throw new Error('Missing Apollo GraphQL endpoint');
-  const httpLink = createHttpLink({uri: process.env.REACT_APP_GRAPHQL_ENDPOINT || process.env.GRAPHQL_ENDPOINT});
+  const httpLink = createHttpLink({uri});
   const authLink = setContext((_, {headers}) => {
     return {
       headers: {

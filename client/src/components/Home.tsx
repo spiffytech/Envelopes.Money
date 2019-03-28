@@ -1,6 +1,7 @@
 import {observer} from 'mobx-react-lite';
 import {RouteComponentProps} from '@reach/router';
-import React from 'react';
+import React, {useState} from 'react';
+import MediaQuery from 'react-responsive';
 
 import styles from './Home.module.css';
 import Balances from './Balances';
@@ -43,23 +44,56 @@ async function exportTxns(event: React.FormEvent<any>) {
 }
 
 export default observer(function Home(props: RouteComponentProps) {
+  const [visibleTab, setVisibleTab] = useState<'accounts' | 'transactions'>('accounts');
+
+  function setTab(tab: 'accounts' | 'transactions') {
+    return function fn(event: React.FormEvent<any>) {
+      event.preventDefault();
+      setVisibleTab(tab);
+    }
+  }
+
   return (
     FlashStore.type === 'error' ?
       null
       :
       <>
         <button onClick={exportTxns} className={styles.ExportTxns}>Export Transactions</button>
-        <div style={{display: 'flex'}}>
-          <div className={styles.Balances}>
-            <header className={styles.header}>Balances</header>
-            <Balances />
-          </div>
 
-          <div className={styles.Transactions}>
-            <header className={styles.header}>Transactions</header>
-            <Transactions />
+        <MediaQuery query='(max-width: 500px)'>
+          <div>
+            <button onClick={setTab('accounts')}>Accounts/Envelopes</button>
+            <button onClick={setTab('transactions')}>Transactions</button>
           </div>
-        </div>
+          <div>
+            { visibleTab === 'accounts' ?
+              <div className={styles.Balances}>
+                <header className={styles.header}>Balances</header>
+                <Balances />
+              </div>
+            : visibleTab === 'transactions' ?
+              <div className={styles.Transactions}>
+                <header className={styles.header}>Transactions</header>
+                <Transactions />
+              </div>
+            : null
+          }
+          </div>
+        </MediaQuery>
+
+        <MediaQuery query='(min-width: 501px)'>
+          <div style={{display: 'flex'}}>
+            <div className={styles.Balances}>
+              <header className={styles.header}>Balances</header>
+              <Balances />
+            </div>
+
+            <div className={styles.Transactions}>
+              <header className={styles.header}>Transactions</header>
+              <Transactions />
+            </div>
+          </div>
+        </MediaQuery>
       </>
   )
 });

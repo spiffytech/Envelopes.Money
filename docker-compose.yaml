@@ -17,6 +17,16 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
-      HASURA_GRAPHQL_AUTH_HOOK: https://hackerbudget.localhost.run/hasura_auth
+      HASURA_GRAPHQL_AUTH_HOOK: http://hackerbudget:3000/hasura_auth
+  hackerbudget:
+    image: warbucks
+    ports:
+        - "8001:3000"
+    depends_on:
+    - "graphql-engine"
+    restart: always
+    environment:
+      GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1alpha1/graphql
+      HASURA_ADMIN_KEY: myadminsecretkey
 volumes:
   db_data:

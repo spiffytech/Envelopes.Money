@@ -12,3 +12,14 @@ COPY client/package*.json /workdir/client/
 
 WORKDIR /workdir/client
 RUN npm install
+
+COPY client/ /workdir/client/
+COPY common/ /workdir/common/
+COPY server/ /workdir/server/
+
+WORKDIR /workdir/client
+RUN npm run build
+
+WORKDIR /workdir/server
+RUN ./node_modules/.bin/tsc
+CMD node dist/server/index.js

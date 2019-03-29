@@ -2,6 +2,7 @@ import express from 'express';
 import gql from 'graphql-tag';
 
 import mkApollo from '../lib/apollo';
+if (!process.env.HASURA_ADMIN_KEY) throw new Error('Must supply HASURA_ADMIN_KEY');
 
 export function apikeyFromRequest(req: express.Request) {
   if (!req.cookies.session) {
@@ -38,7 +39,7 @@ export async function lookUpUser(email: string) {
   const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
   const result = await apollo.query<{users: any}>({
     query: gql`
-      query LookUpUSer($email: String!) {
+      query LookUpUser($email: String!) {
         users(where: {email: {_eq: $email}}) {
           id
           scrypt

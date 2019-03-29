@@ -5,7 +5,6 @@ const router = express.Router();
 export default router;
 
 router.use(async (req, res, next) => {
-  console.log('here');
   const apikey = sessions.apikeyFromRequest(req);
   if (!apikey) {
     res.statusCode = 500;

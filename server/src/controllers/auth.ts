@@ -64,7 +64,6 @@ export async function signUp(req: express.Request, res: express.Response) {
 }
 
 export async function logIn(req: express.Request, res: express.Response) {
-  console.log('here')
   try {
     if (!/\S+@\S+\.\S+/.test(req.body.email)) {
       console.error(`"${req.body.email}" is not a valid email address`);
@@ -72,16 +71,13 @@ export async function logIn(req: express.Request, res: express.Response) {
       res.send({error: 'Email is not formatted like an email'});
       return;
     }
-    const hash = await crypto.encode(req.body.password);
 
-    const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
     const user = await sessions.lookUpUser(req.body.email);
     if (!user) {
       res.statusCode = 401;
       return res.json({error: 'Invalid credentials'});
     }
 
-    console.log('user', user);
     const isPasswordValid = crypto.verify(user.scrypt, req.body.password);
     if (!isPasswordValid) {
       res.statusCode = 401;

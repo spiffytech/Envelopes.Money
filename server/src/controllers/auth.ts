@@ -9,7 +9,7 @@ import * as crypto from '../lib/crypto';
 import * as sessions from '../lib/sessions';
 
 function setCookie(res: express.Response, apikey: string) {
-  res.cookie('session', apikey, {maxAge: 9000000, httpOnly: true});
+  res.cookie('session', apikey, {maxAge: 86400 * 1000 * 14, httpOnly: true});
 }
 
 export async function signUp(req: express.Request, res: express.Response) {

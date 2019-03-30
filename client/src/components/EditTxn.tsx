@@ -28,17 +28,14 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
   useEffect(() => {
     async function fetchBalances() {
       try {
-        const {stale: staleP, fresh: freshP} = cache.withCache(
+        cache.withCache(
           'balances',
           () => {
             if (!AuthStore.loggedIn) throw new Error('User must be logged in');
             return Balances.loadBalancess(AuthStore.userId, AuthStore.apiKey);
           },
+          (data) => setBalances(data.data.balances),
         )
-        const stale = await staleP;
-        if (stale) setBalances(stale.data.balances);
-        const fresh = await freshP;
-        setBalances(fresh.data.balances);
       } catch (ex) {
         FlashStore.flash = ex.message
         FlashStore.type = 'error';
@@ -70,23 +67,16 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
 
   useEffect(() => {
     async function fetchLabels() {
-      const {stale: staleP, fresh: freshP} = cache.withCache(
+      cache.withCache(
         'topLabels',
         () => {
           if (!AuthStore.loggedIn) throw new Error('User must be logged in');
           return TopLabels.loadTopLabels(AuthStore.userId, AuthStore.apiKey);
-        }
+        },
+        (data) => setTopLabels(fromPairs(
+          data.data.top_labels.map((topLabel) => [topLabel.label, topLabel])
+        )),
       );
-      const stale = await staleP;
-      if (stale) {
-        setTopLabels(fromPairs(
-          stale.data.top_labels.map((topLabel) => [topLabel.label, topLabel])
-        ));
-      }
-      const fresh = await freshP;
-      setTopLabels(fromPairs(
-        fresh.data.top_labels.map((topLabel) => [topLabel.label, topLabel])
-      ));
     }
 
     fetchLabels();

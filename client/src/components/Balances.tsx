@@ -46,17 +46,14 @@ export default function Balances() {
   useEffect(() => {
     async function fetchBalances() {
       try {
-        const {stale: staleP, fresh: freshP} = cache.withCache(
+        cache.withCache(
           'balances',
           () => {
             if (!AuthStore.loggedIn) throw new Error('User must be logged in');
             return Balances2.loadBalancess(AuthStore.userId, AuthStore.apiKey);
           },
+          (data) => setBalances(data.data.balances),
         )
-        const stale = await staleP;
-        if (stale) setBalances(stale.data.balances);
-        const fresh = await freshP;
-        setBalances(fresh.data.balances);
       } catch (ex) {
         FlashStore.flash = ex.message
         FlashStore.type = 'error';

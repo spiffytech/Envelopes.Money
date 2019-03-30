@@ -19,20 +19,17 @@ function App() {
     async function fetchTxns() {
       try {
         setLoading('Loading from cache');
-        const {stale: staleP, fresh: freshP} = cache.withCache(
+        cache.withCache(
           'transactions',
           () => {
             if (!AuthStore.loggedIn) throw new Error('User must be logged in');
             return ITxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey)
+          },
+          (data, isFresh) => {
+            setLoading(isFresh ? null : 'Loading from server');
+            setTxns(data.data.txns_grouped);
           }
         );
-        const stale = await staleP;
-        console.log(stale);
-        if (stale) setTxns(stale.data.txns_grouped);
-        setLoading('Loading from server');
-        const fresh = await freshP;
-        setTxns(fresh.data.txns_grouped);
-        setLoading(null);
       } catch (ex) {
         setLoading(null);
         setError(ex.message);

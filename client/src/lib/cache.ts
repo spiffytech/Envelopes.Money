@@ -5,13 +5,16 @@ export async function cache(key: string, data: any) {
   return;
 }
 
-export function withCache<T>(key: string, fn: () => Promise<T>): {stale: Promise<T|null>, fresh: Promise<T>} {
+export async function withCache<T>(key: string, fn: () => Promise<T>, onFetch: (t: T, isFresh: boolean) => void) {
   const fullKey = `cache/${key}`;
-  return {
-    stale: localForage.getItem<string>(fullKey).then((data) => data ? JSON.parse(data) : data),
-    fresh: fn().then(async (data) => {
+  const {staleP, freshP} = {
+    staleP: localForage.getItem<string>(fullKey).then((data) => data ? JSON.parse(data) : data),
+    freshP: fn().then(async (data) => {
       await localForage.setItem(fullKey, JSON.stringify(data));
       return data;
     }),
-  }
+  };
+  const stale = await staleP;
+  if (stale) onFetch(stale, false);
+  onFetch(await freshP, true);
 }

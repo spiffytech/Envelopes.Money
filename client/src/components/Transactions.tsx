@@ -1,6 +1,7 @@
 import {navigate} from '@reach/router';
 import React, { useEffect, useState } from 'react';
 
+import Loading from './Loading';
 import TxnGrouped from './TxnGrouped';
 import * as cache from '../lib/cache';
 import * as ITxnGrouped from '../lib/TxnGrouped';
@@ -13,9 +14,11 @@ function setError(msg: string) {
 
 function App() {
   const [txns, setTxns] = useState<ITxnGrouped.T[]>([]);
+  const [loading, setLoading] = useState<string | null>(null);
   useEffect(() => {
     async function fetchTxns() {
       try {
+        setLoading('Loading from cache');
         const {stale: staleP, fresh: freshP} = cache.withCache(
           'transactions',
           () => {
@@ -26,9 +29,12 @@ function App() {
         const stale = await staleP;
         console.log(stale);
         if (stale) setTxns(stale.data.txns_grouped);
+        setLoading('Loading from server');
         const fresh = await freshP;
         setTxns(fresh.data.txns_grouped);
+        setLoading(null);
       } catch (ex) {
+        setLoading(null);
         setError(ex.message);
       }
     }
@@ -37,6 +43,7 @@ function App() {
 
   return (
     <div className="App">
+      <Loading loading={loading} />
       {txns.map((txn) =>
         <TxnGrouped
           key={txn.txn_id}

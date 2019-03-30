@@ -14,3 +14,8 @@
 .FillTargetBtn {
     width: 120px;
 }
+
+.Fill {
+  display: flex;
+  justify-content: space-between;
+}

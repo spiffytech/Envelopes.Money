@@ -2,6 +2,7 @@ import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
+import '../lib/core.css';
 import styles from './FillEnvelopes.module.css';
 import {AuthStore, FlashStore} from '../store';
 import * as Balances from '../lib/Balances';
@@ -133,31 +134,30 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
           <option value='annually'>Annually</option>
         </select>
 
-        <table>
-          <tbody>
-            {fills.filter((fill) => fill.envelope.name !== '[Unallocated]').map((fill) =>
-              <tr key={fill.envelope.id}>
-                <td>{fill.envelope.name}</td>
-                <td style={{textAlign: 'right'}}>{toDollars(fill.envelope.balance)}</td>
-                <td>
-                  + &nbsp;
-                  <button onClick={fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])} className={styles.FillTargetBtn}>
-                    Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
-                  </button>
-                  <button onClick={fillEnvelope(fill, -fill.envelope.balance)}>Set to 0</button>
-                  <input
-                    type='number'
-                    step='0.01'
-                    value={fill.amount / 100}
-                    onChange={(event) => fillEnvelope(fill, Math.round(parseFloat(event.target.value) * 100))(event)}
-                  />
-                </td>
-
-                <td> = {toDollars(fill.envelope.balance + fill.amount)}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <>
+          {fills.filter((fill) => fill.envelope.name !== '[Unallocated]').map((fill) =>
+            <div key={fill.envelope.id} className={`${styles.Fill} bubble`}>
+              <div>
+                <div>{fill.envelope.name}</div>
+                <button onClick={fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])} className={styles.FillTargetBtn}>
+                  Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                </button>
+                <button onClick={fillEnvelope(fill, -fill.envelope.balance)}>Set to 0</button>
+              </div>
+              <div>
+                <div>Balance: {toDollars(fill.envelope.balance)}</div>
+                <span>Fill:</span> <input
+                  type='number'
+                  step='0.01'
+                  value={fill.amount / 100}
+                  onChange={(event) => fillEnvelope(fill, Math.round(parseFloat(event.target.value) * 100))(event)}
+                  style={{width: '100px'}}
+                />
+                <div><div>New Balance:</div>{toDollars(fill.envelope.balance + fill.amount)}</div>
+              </div>
+            </div>
+          )}
+      </>
 
         {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
 

@@ -69,13 +69,27 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
   const [topLabels, setTopLabels] = useState<{[label: string]: TopLabels.T}>({});
 
   useEffect(() => {
-    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    TopLabels.loadTopLabels(AuthStore.userId, AuthStore.apiKey).
-    then(({data}) => {
+    async function fetchLabels() {
+      const {stale: staleP, fresh: freshP} = cache.withCache(
+        'topLabels',
+        () => {
+          if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+          return TopLabels.loadTopLabels(AuthStore.userId, AuthStore.apiKey);
+        }
+      );
+      const stale = await staleP;
+      if (stale) {
+        setTopLabels(fromPairs(
+          stale.data.top_labels.map((topLabel) => [topLabel.label, topLabel])
+        ));
+      }
+      const fresh = await freshP;
       setTopLabels(fromPairs(
-        data.top_labels.map((topLabel) => [topLabel.label, topLabel])
+        fresh.data.top_labels.map((topLabel) => [topLabel.label, topLabel])
       ));
-    })
+    }
+
+    fetchLabels();
   }, [])
 
   if (balances.length === 0) return <p>Loading...</p>;

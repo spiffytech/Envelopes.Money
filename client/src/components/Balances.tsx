@@ -4,9 +4,8 @@ import {navigate} from '@reach/router';
 import React, { useEffect, useState } from 'react';
 
 import styles from './Balances.module.css';
-import mkApollo from '../lib/apollo';
-import {fragments} from '../lib/apollo';
 import * as Balances2 from '../lib/Balances';
+import * as cache from '../lib/cache';
 import {toDollars} from '../lib/pennies';
 import { AuthStore, FlashStore } from '../store';
 
@@ -45,23 +44,26 @@ export default function Balances() {
   const groups = groupBy(balances, (balance) => balance.type);
 
   useEffect(() => {
-    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    const apollo = mkApollo(AuthStore.apiKey);
-    apollo.query<{balances: Balances2.T[]}>({
-      query: gql`
-        ${fragments}
-        query GetBalances($user_id: String!) {
-          balances(where: {user_id: {_eq: $user_id}}) {
-            ...balance
-          }
-        }
-      `,
-      variables: {user_id: AuthStore.userId},
-    }).then(({data}) => setBalances(data.balances)).
-    catch((ex) => {
-      FlashStore.flash = ex.message
-      FlashStore.type = 'error';
-    });
+    async function fetchBalances() {
+      try {
+        const {stale: staleP, fresh: freshP} = cache.withCache(
+          'balances',
+          () => {
+            if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+            return Balances2.loadBalancess(AuthStore.userId, AuthStore.apiKey);
+          },
+        )
+        const stale = await staleP;
+        if (stale) setBalances(stale.data.balances);
+        const fresh = await freshP;
+        setBalances(fresh.data.balances);
+      } catch (ex) {
+        FlashStore.flash = ex.message
+        FlashStore.type = 'error';
+      }
+    }
+
+    fetchBalances();
   }, []);
 
   const onClick = (balance: Balances2.T) =>

@@ -31,6 +31,7 @@
   ],
   "devDependencies": {
     "@reach/router": "^1.2.1",
+    "@types/localforage": "0.0.34",
     "@types/lodash": "^4.14.123",
     "@types/reach__router": "^1.2.3",
     "@types/react-responsive": "^3.0.3",
@@ -45,6 +46,7 @@
     "fuzzysort": "^1.1.4",
     "graphql": "^14.1.1",
     "graphql-tag": "^2.10.1",
+    "localforage": "^1.7.3",
     "lodash": "^4.17.11",
     "mobx-react": "^5.4.3",
     "mobx-react-lite": "^1.1.1",

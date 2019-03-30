@@ -8,6 +8,7 @@ import * as shortid from 'shortid';
 
 import styles from './EditTxn.module.css';
 import {AuthStore, FlashStore} from '../store';
+import * as cache from '../lib/cache';
 import {ITransaction} from '../../../common/lib/types';
 import * as Balances from '../lib/Balances';
 import * as ITransactions from '../lib/ITransactions';
@@ -25,9 +26,26 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
   const [txns, setTxns] = useState<PartialTransaction[]>([]);
 
   useEffect(() => {
-    if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    Balances.loadTransaction(AuthStore.userId, AuthStore.apiKey).
-    then(({data}) => setBalances(data.balances));
+    async function fetchBalances() {
+      try {
+        const {stale: staleP, fresh: freshP} = cache.withCache(
+          'balances',
+          () => {
+            if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+            return Balances.loadBalancess(AuthStore.userId, AuthStore.apiKey);
+          },
+        )
+        const stale = await staleP;
+        if (stale) setBalances(stale.data.balances);
+        const fresh = await freshP;
+        setBalances(fresh.data.balances);
+      } catch (ex) {
+        FlashStore.flash = ex.message
+        FlashStore.type = 'error';
+      }
+    }
+
+    fetchBalances();
   }, []);
 
   useEffect(() => {

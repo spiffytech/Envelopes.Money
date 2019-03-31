@@ -1,0 +1,3 @@
+- args:
+    sql: ALTER TABLE "public"."transactions" DROP COLUMN "insertion_order"
+  type: run_sql

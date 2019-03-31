@@ -1,0 +1,4 @@
+- args:
+    sql: ALTER TABLE "public"."transactions" ADD COLUMN "insertion_order" bigserial
+      NOT NULL
+  type: run_sql

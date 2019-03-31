@@ -3,6 +3,7 @@ import {navigate, RouteComponentProps} from '@reach/router';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
+import '../lib/core.css';
 import * as Accounts from '../lib/Accounts';
 import {AuthStore} from '../store';
 
@@ -59,9 +60,7 @@ export default function EditAccount(props: RouteComponentProps & {accountId?: st
   }
 
   return (
-    <form onSubmit={(event) => handleSubmit(event, account)}>
-      <p>{JSON.stringify(account)}</p>
-
+    <form className='area' onSubmit={(event) => handleSubmit(event, account)}>
       <input
         value={account.name}
         onChange={(event) => setAccount({...account, name: event.target.value})}

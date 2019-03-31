@@ -2,6 +2,7 @@ import express from 'express';
 import gql from 'graphql-tag';
 
 import mkApollo from '../lib/apollo';
+import { isatty } from 'tty';
 if (!process.env.HASURA_ADMIN_KEY) throw new Error('Must supply HASURA_ADMIN_KEY');
 
 export function apikeyFromRequest(req: express.Request) {
@@ -19,8 +20,8 @@ interface User {
   id: string; emai: string; scrypt: string, apikey: string;
 }
 
-export async function lookUpSession(apikey: string) {
-  const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
+export async function lookUpSession(apikey: string, isAdmin=true) {
+  const apollo = await mkApollo(isAdmin ? process.env.HASURA_ADMIN_KEY! : apikey, isAdmin);
   const result = await apollo.query<{users: User[]}>({
     query: gql`
       query LookUpSession($apikey: String!) {

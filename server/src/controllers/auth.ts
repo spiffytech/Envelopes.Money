@@ -101,12 +101,18 @@ export async function isAuthed(req: express.Request, res: express.Response) {
     return;
   }
   
-  const session = await sessions.lookUpSession(apiKey);
-  if (session) {
-    res.send({isAuthed: true, userId: session.id, apiKey});
-    return;
-  }
+  try {
+    const session = await sessions.lookUpSession(apiKey, false);
+    if (session) {
+      res.send({isAuthed: true, userId: session.id, apiKey});
+      return;
+    }
 
-  res.statusCode = 401;
-  res.send({isAuthed: false});
+    res.statusCode = 401;
+    res.send({isAuthed: false});
+  } catch (ex) {
+    console.error(ex);
+    res.statusCode = 500;
+    res.send({error: 'Error trying to validate your API key'});
+  }
 }

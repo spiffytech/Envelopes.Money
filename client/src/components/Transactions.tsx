@@ -15,6 +15,8 @@ function setError(msg: string) {
 function App() {
   const [txns, setTxns] = useState<ITxnGrouped.T[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
+  const itemModulo = 100;
+  const [maxItems, setMaxItems] = useState(itemModulo);
   useEffect(() => {
     async function fetchTxns() {
       try {
@@ -41,12 +43,15 @@ function App() {
   return (
     <div className="App">
       <Loading loading={loading} />
-      {txns.map((txn) =>
+      {txns.slice(0, maxItems).map((txn) =>
         <TxnGrouped
           key={txn.txn_id}
           txn={txn}
           onClick={() => navigate(`/${txn.type === 'fill' ? 'fill' : 'editTxn'}/${txn.txn_id}`)}
         />
+      )}
+      {new Array(Math.ceil(txns.length / itemModulo)).fill(null).map((n, i) =>
+        <button onClick={(event) => {event.preventDefault(); setMaxItems(itemModulo * i)}}>{i}</button>
       )}
     </div>
   );

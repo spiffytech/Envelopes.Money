@@ -1,5 +1,6 @@
+import debounce from 'lodash/debounce';
 import {navigate} from '@reach/router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import Loading from './Loading';
 import TxnGrouped from './TxnGrouped';
@@ -12,12 +13,26 @@ function setError(msg: string) {
   FlashStore.type = 'error';
 }
 
-function App() {
+
+export default function Transactions() {
   const [txns, setTxns] = useState<ITxnGrouped.T[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const itemModulo = 100;
   const [maxItems, setMaxItems] = useState(itemModulo);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const componentRef = useRef<any | null>(null);
+
   useEffect(() => {
+    if (!componentRef.current) return;
+    componentRef.current.addEventListener('scroll', () => {
+      console.log(componentRef.current.scrollTop + componentRef.current.clientHeight >= componentRef.current.scrollHeight - 1);
+      console.log('ref', componentRef.current.scrollTop, componentRef.current.clientHeight, componentRef.current.scrollHeight);
+    })
+  }, [componentRef]);
+
+  const {current: fetchTxns} = useRef(debounce((value: string) => {
+    console.log('Searching')
     async function fetchTxns() {
       try {
         setLoading('Loading from cache');
@@ -25,7 +40,7 @@ function App() {
           'transactions',
           () => {
             if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-            return ITxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey)
+            return ITxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey, value)
           },
           (data, isFresh) => {
             setLoading(isFresh ? null : 'Loading from server');
@@ -38,11 +53,14 @@ function App() {
       }
     }
     fetchTxns();
-  }, []);
+  }, 1000, {leading: false}));
+
+  useEffect(() => fetchTxns(searchTerm), [searchTerm]);
 
   return (
-    <div className="App">
+    <div ref={componentRef} style={{height: 'calc(100% - 150px)', display: 'flex', flexDirection: 'column'}}>
       <Loading loading={loading} />
+      <input value={searchTerm} onChange={(event) => {event.preventDefault(); setSearchTerm(event.target.value)}} />
       {txns.slice(0, maxItems).map((txn) =>
         <TxnGrouped
           key={txn.txn_id}
@@ -51,10 +69,8 @@ function App() {
         />
       )}
       {new Array(Math.ceil(txns.length / itemModulo)).fill(null).map((n, i) =>
-        <button onClick={(event) => {event.preventDefault(); setMaxItems(itemModulo * i)}}>{i}</button>
+        <button onClick={(event) => {event.preventDefault(); setMaxItems(itemModulo * i)}}>{i+1}</button>
       )}
     </div>
   );
 }
-
-export default App;

@@ -1,4 +1,3 @@
-import {observer} from 'mobx-react-lite';
 import {RouteComponentProps} from '@reach/router';
 import React, {useState} from 'react';
 import MediaQuery from 'react-responsive';
@@ -26,7 +25,7 @@ async function exportTxns(event: React.FormEvent<any>) {
   event.preventDefault();
   if (!AuthStore.loggedIn) throw new Error('User must be logged in');
   const txnsGrouped =
-    await TxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey).
+    await TxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey, '').
       then(({data}) => data.txns_grouped);
 
   const dataStr =
@@ -43,7 +42,7 @@ async function exportTxns(event: React.FormEvent<any>) {
   triggerDownload(dataStr);
 }
 
-export default observer(function Home(props: RouteComponentProps) {
+export default function Home(props: RouteComponentProps) {
   const [visibleTab, setVisibleTab] = useState<'accounts' | 'transactions'>('accounts');
 
   function setTab(tab: 'accounts' | 'transactions') {
@@ -96,4 +95,4 @@ export default observer(function Home(props: RouteComponentProps) {
         </MediaQuery>
       </>
   )
-});
+}

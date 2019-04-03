@@ -57,16 +57,14 @@ export default function Home(props: RouteComponentProps) {
       null
       :
       <>
-        <button onClick={exportTxns} className={styles.ExportTxns}>Export Transactions</button>
-
         <MediaQuery query='(max-width: 500px)'>
           <div>
-            <button onClick={setTab('accounts')}>Accounts/Envelopes</button>
-            <button onClick={setTab('transactions')}>Transactions</button>
-          </div>
-          <div>
+            <div>
+              <button onClick={setTab('accounts')}>Accounts/Envelopes</button>
+              <button onClick={setTab('transactions')}>Transactions</button>
+            </div>
             { visibleTab === 'accounts' ?
-              <div className={styles.Balances}>
+              <div className={`${styles.Balances} ${styles.BalancesSmall}`}>
                 <header className={styles.header}>Balances</header>
                 <Balances />
               </div>
@@ -81,16 +79,15 @@ export default function Home(props: RouteComponentProps) {
         </MediaQuery>
 
         <MediaQuery query='(min-width: 501px)'>
-          <div style={{display: 'flex'}}>
-            <div className={styles.Balances}>
-              <header className={styles.header}>Balances</header>
-              <Balances />
-            </div>
+          <div className={`${styles.Balances} ${styles.BalancesBig}`}>
+            <header className={styles.header}>Balances</header>
+            <Balances />
+          </div>
 
-            <div className={styles.Transactions}>
-              <header className={styles.header}>Transactions</header>
-              <Transactions />
-            </div>
+          <div className={styles.Transactions}>
+            <button onClick={exportTxns} className={styles.ExportTxns}>Export Transactions</button>
+            <header className={styles.header}>Transactions</header>
+            <Transactions />
           </div>
         </MediaQuery>
       </>

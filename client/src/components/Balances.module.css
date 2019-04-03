@@ -12,6 +12,11 @@
     border-radius: 5px;
 }
 
+.Balances a {
+    text-decoration: none;
+    color: inherit;
+}
+
 .Balance:first-of-type {
     border: 1px solid #e1e1e1;
 }

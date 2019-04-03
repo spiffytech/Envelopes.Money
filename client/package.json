@@ -11,6 +11,7 @@
     "mobx": "^5.9.0",
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
+    "react-router-dom": "^5.0.0",
     "react-scripts": "2.1.8",
     "typescript": "3.3.3333"
   },
@@ -35,6 +36,7 @@
     "@types/lodash": "^4.14.123",
     "@types/reach__router": "^1.2.3",
     "@types/react-responsive": "^3.0.3",
+    "@types/react-router-dom": "^4.3.1",
     "@types/shortid": "0.0.29",
     "apollo-cache-inmemory": "^1.5.1",
     "apollo-client": "^2.5.1",

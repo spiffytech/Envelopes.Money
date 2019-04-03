@@ -2,7 +2,7 @@ const fuzzysort = require('fuzzysort');
 import {format} from 'date-fns';
 import fromPairs from 'lodash/fromPairs';
 import groupBy from 'lodash/groupBy';
-import {navigate, RouteComponentProps} from '@reach/router';
+import {RouteComponentProps} from 'react-router-dom';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
@@ -16,7 +16,7 @@ import * as TopLabels from '../lib/TopLabels';
 import * as CommonTypes from '../../../common/lib/types';
 import {toDollars} from '../lib/pennies';
 
-export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}) {
+export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>) {
   const [type, setType] = useState('banktxn');
   const [balances, setBalances] = useState<Balances.T[]>([]);
   type PartialTransaction = Pick<
@@ -46,22 +46,22 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
   }, []);
 
   useEffect(() => {
-    if (!props.txnId) return;  // Not loading an existing txs
+    if (!props.match.params.txnId) return;  // Not loading an existing txs
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.txnId).
+    ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId).
     then(({data}) => {
       if (data.transactions.length === 0) {
-        navigate('/404');
+        props.history.push('/404');
         return;  // 404
       }
 
       if (data.transactions[0].type === 'fill') {
-        return navigate(`/fill/${props.txnId}`);
+        return props.history.push(`/fill/${props.match.params.txnId}`);
       }
       setTxns(data.transactions);
       setType(data.transactions[0].type);
     });
-  }, [props.txnId]);
+  }, [props.match.params.txnId]);
 
   const [topLabels, setTopLabels] = useState<{[label: string]: TopLabels.T}>({});
 
@@ -127,7 +127,7 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    const txnId = props.txnId || shortid.generate();
+    const txnId = props.match.params.txnId || shortid.generate();
     try {
       const toSubmit =
         txns.map((txn) => ({
@@ -150,7 +150,7 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
       await ITransactions.saveTransactions(AuthStore.userId, AuthStore.apiKey, toSubmit);
       FlashStore.flash = null;
       FlashStore.type = 'default';
-      navigate('/');
+      props.history.push('/');
     } catch (ex) {
       FlashStore.flash = ex.message;
       FlashStore.type = 'error';
@@ -159,14 +159,14 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
 
   async function deleteTransaction(event: React.MouseEvent<any>) {
     event.preventDefault();
-    if (!props.txnId) {
+    if (!props.match.params.txnId) {
       throw new Error('Shouldn\'t be inside delete handler without a txn to delete');
     }
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
     await ITransactions.deleteTransactions(
-      AuthStore.userId, AuthStore.apiKey, props.txnId
+      AuthStore.userId, AuthStore.apiKey, props.match.params.txnId
     );
-    navigate('/');
+    props.history.push('/');
   }
 
   function setTxnsProp(props: Partial<CommonTypes.ITransaction>) {
@@ -301,7 +301,7 @@ export default function NewBankTxn(props: RouteComponentProps & {txnId?: string}
         </div>
 
         <div style={{marginTop: '3rem'}}>
-          {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
+          {props.match.params.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
         </div>
       </form>
     </div>

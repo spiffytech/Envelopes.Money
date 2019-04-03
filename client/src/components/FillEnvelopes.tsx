@@ -1,4 +1,4 @@
-import {navigate, RouteComponentProps} from '@reach/router';
+import {RouteComponentProps} from 'react-router-dom';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
@@ -10,7 +10,7 @@ import {Intervals} from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
 import {toDollars} from '../lib/pennies';
 
-export default function FillEnvelopes(props: RouteComponentProps & {txnId?: string}) {
+export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string}>) {
   interface Fill {envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope}
   const [fills, setFills] = useState<Fill[]>([]);
   const [interval, setInterval] = useState<Intervals>('weekly');
@@ -34,14 +34,14 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
         }));
       setFills(newFills);
 
-      if (!props.txnId) return;
+      if (!props.match.params.txnId) return;
       if (!AuthStore.loggedIn) throw new Error('User must be logged in');
       // Load a prior fill
       return (
-        ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.txnId).
+        ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId).
         then(({data}) => {
           if (data.transactions.length === 0) {
-            navigate('/404');
+            props.history.push('/404');
             return;  // 404
           }
 
@@ -60,7 +60,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
         }).catch((ex) => setError(ex.message))
       );
     }).catch((ex) => setError(ex.message));
-  }, [props.txnId]);
+  }, [props.match.params.txnId]);
 
   if (fills.length === 0) return <p>Loading...</p>;
 
@@ -79,7 +79,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
 
   async function handleSubmit(event: React.FormEvent<any>) {
     event.preventDefault();
-    const txnId = props.txnId || shortid.generate();
+    const txnId = props.match.params.txnId || shortid.generate();
     if (!AuthStore.userId) throw new Error('User must be logged in');
     const txns: ITransactions.T[] = fills.map((fill, i) => {
       if (!AuthStore.userId) throw new Error('User must be logged in');
@@ -100,7 +100,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
 
     await ITransactions.deleteTransactions(AuthStore.userId, AuthStore.apiKey, txnId);
     await ITransactions.saveTransactions(AuthStore.userId, AuthStore.apiKey, txns);
-    navigate('/');
+    props.history.push('/');
   }
 
   function sumOfFills() {
@@ -109,14 +109,14 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
 
   async function deleteTransaction(event: React.MouseEvent<any>) {
     event.preventDefault();
-    if (!props.txnId) {
+    if (!props.match.params.txnId) {
       throw new Error('Shouldn\'t be inside delete handler without a txn to delete');
     }
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
     await ITransactions.deleteTransactions(
-      AuthStore.userId, AuthStore.apiKey, props.txnId
+      AuthStore.userId, AuthStore.apiKey, props.match.params.txnId
     );
-    navigate('/');
+    props.history.push('/');
   }
 
   return (
@@ -159,7 +159,7 @@ export default function FillEnvelopes(props: RouteComponentProps & {txnId?: stri
           )}
       </>
 
-        {props.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
+        {props.match.params.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
 
         <input type='submit' value='Fill!' />
       </form>

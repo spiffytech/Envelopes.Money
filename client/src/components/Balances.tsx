@@ -1,7 +1,6 @@
-import gql from 'graphql-tag';
 import groupBy from 'lodash/groupBy';
-import {navigate} from '@reach/router';
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import styles from './Balances.module.css';
 import * as Balances2 from '../lib/Balances';
@@ -63,19 +62,19 @@ export default function Balances() {
     fetchBalances();
   }, []);
 
-  const onClick = (balance: Balances2.T) =>
-    () =>
-      navigate(`/editAccount/${encodeURIComponent(balance.id)}`)
-
   return (
     <div className={styles.Balances}>
       {groups['account'] ?
         <div>
           <header className={styles.header}>Accounts</header>
           {groups['account'].map((balance) =>
-            <div className={styles.Balance} key={balance.id} onClick={onClick(balance)}>
+            <Link
+              to={`/editAccount/${encodeURIComponent(balance.id)}`}
+              className={styles.Balance}
+              key={balance.id}
+            >
               <Balance balance={balance} />
-            </div>
+            </Link>
           )}
         </div>
         : null
@@ -85,9 +84,13 @@ export default function Balances() {
         <div>
           <header className={styles.header}>Envelopes</header>
           {groups['envelope'].map((balance) =>
-            <div className={styles.Balance} key={balance.id} onClick={onClick(balance)}>
+            <Link
+              to={`/editAccount/${encodeURIComponent(balance.id)}`}
+              className={styles.Balance}
+              key={balance.id}
+            >
               <Balance balance={balance} />
-            </div>
+            </Link>
           )}
         </div>
         : null

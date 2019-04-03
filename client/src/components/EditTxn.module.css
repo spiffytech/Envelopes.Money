@@ -1,6 +1,7 @@
 .Form {
     display: flex;
     justify-content: space-around;
+    grid-area: content;
 }
 
 .FormForm {

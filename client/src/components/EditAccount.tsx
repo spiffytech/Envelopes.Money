@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
-import {navigate, RouteComponentProps} from '@reach/router';
+import {RouteComponentProps, Redirect} from 'react-router-dom';
+import {History} from 'history';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
@@ -7,7 +8,7 @@ import '../lib/core.css';
 import * as Accounts from '../lib/Accounts';
 import {AuthStore} from '../store';
 
-async function handleSubmit(event: React.FormEvent<any>, account: Accounts.T) {
+async function handleSubmit(event: React.FormEvent<any>, account: Accounts.T, history: History) {
   event.preventDefault();
   if (!AuthStore.loggedIn) throw new Error('You must be logged in to do this');
 
@@ -17,13 +18,15 @@ async function handleSubmit(event: React.FormEvent<any>, account: Accounts.T) {
     AuthStore.apiKey,
     {...rest, id: rest.id === '' ? `${rest.type}/${shortid.generate()}` : rest.id},
   );
-  navigate('/');
+  history.push('/');
 }
 
-export default function EditAccount(props: RouteComponentProps & {accountId?: string}) {
-  console.log(props.accountId);
-
+export default function EditAccount(props: RouteComponentProps<{accountId: string}>) {
   if (!AuthStore.loggedIn) return <p>You must be logged in to do this</p>;
+
+  const accountId = props.match.params.accountId ? decodeURIComponent(props.match.params.accountId) : null;
+
+  console.log(props);
 
   const emptyEnvelope: Accounts.Envelope = {
     id: '',
@@ -40,19 +43,23 @@ export default function EditAccount(props: RouteComponentProps & {accountId?: st
     extra: {},
   };
 
+  const [is404, setIs404] = useState(false);
   const [account, setAccount] = useState<Accounts.T>(emptyEnvelope);
   const [canChangeType, setCanChangeType] = useState(true);
 
   useEffect(() => {
-    if (!props.accountId) return;  // Now loading an existing account
+    if (!accountId) return;  // Not loading an existing account
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    Accounts.loadAccount(AuthStore.userId, AuthStore.apiKey, props.accountId).
+    Accounts.loadAccount(AuthStore.userId, AuthStore.apiKey, accountId).
     then(({data}) => {
-      if (data.accounts.length === 0) return navigate('/404');
+      console.log(data)
+      if (data.accounts.length === 0) return setIs404(true);
       setAccount(data.accounts[0])
       setCanChangeType(false);
     });
   }, []);
+
+  if (is404) return <Redirect to='/404' />
 
   function setAccountType(type: 'envelope' | 'account') {
     if (type === account.type) return;
@@ -60,7 +67,11 @@ export default function EditAccount(props: RouteComponentProps & {accountId?: st
   }
 
   return (
-    <form className='area' onSubmit={(event) => handleSubmit(event, account)}>
+    <form
+      className='area'
+      style={{gridArea: 'content'}}
+      onSubmit={(event) => handleSubmit(event, account, props.history)}
+    >
       <input
         value={account.name}
         onChange={(event) => setAccount({...account, name: event.target.value})}

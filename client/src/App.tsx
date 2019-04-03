@@ -1,6 +1,5 @@
 import {Observer, observer} from 'mobx-react-lite';
-import {Link, Router} from '@reach/router';
-import {RouteComponentProps} from '@reach/router';
+import {BrowserRouter as Router, Route, Link, Switch} from 'react-router-dom';
 import React from 'react';
 
 import './App.css';
@@ -11,41 +10,43 @@ import FillEnvelopes from './components/FillEnvelopes';
 import LogIn from './components/LogIn';
 import {AuthStore, FlashStore} from './store';
 
-function Route404(props: RouteComponentProps) {
+function Route404() {
   return <p>404 not found!!1!</p>;
 }
 
 function Flash() {
-  return <Observer>{() => <div>{FlashStore.flash}</div>}</Observer>
+  return <Observer>{() => <div style={{gridArea: 'flash'}}>{FlashStore.flash}</div>}</Observer>
 }
 
 function App() {
   return (
-    <>
+    <div className='appGrid'>
       <div className='stripe'></div>
       {AuthStore.loggedIn ?
         (
           <>
-            <div className='appNav'>
-              <Link to='/' className='linkBtn title'>HackerBudget</Link>
-              <div className='navRight'>
-                <Link to='/editTxn' className='linkBtn primary'>New Transaction</Link>
-                <Link to='/editAccount' className='linkBtn secondary'>New Account</Link>
-                <Link to='/fill' className='linkBtn secondary'>Fill Envelopes</Link>
-              </div>
-            </div>
-
-            <Flash />
-
             <Router>
-              <Home path='/' />
-              <EditAccount path='/editAccount' />
-              <EditAccount path='/editAccount/:accountId' />
-              <EditTxn path='/editTxn' />
-              <EditTxn path='/editTxn/:txnId' />
-              <FillEnvelopes path='/fill' />
-              <FillEnvelopes path='/fill/:txnId' />
-              <Route404 default />
+              <div className='appNav'>
+                <Link to='/' className='linkBtn title'>HackerBudget</Link>
+                <div className='navRight'>
+                  <Link to='/editTxn' className='linkBtn primary'>New Transaction</Link>
+                  <Link to='/editAccount' className='linkBtn secondary'>New Account</Link>
+                  <Link to='/fill' className='linkBtn secondary'>Fill Envelopes</Link>
+                </div>
+              </div>
+
+              <Flash />
+
+              <Switch>
+                <Route path='/editAccount/:accountId' component={EditAccount} />
+                <Route path='/editAccount' component={EditAccount} />
+                <Route path='/editTxn/:txnId' component={EditTxn} />
+                <Route path='/editTxn' component={EditTxn} />
+                <Route path='/fill/:txnId' component={FillEnvelopes} />
+                <Route path='/fill' component={FillEnvelopes} />
+                <Route path='/' component={Home} />
+                <Route component={Route404} />
+              </Switch>
             </Router>
           </>
         )
@@ -54,12 +55,12 @@ function App() {
           <>
             <Flash />
             <Router>
-              <LogIn path='/login' default />
+              <Route path='/login' component={LogIn} />
             </Router>
           </>
         )
       }
-    </>
+    </div>
   );
 }
 

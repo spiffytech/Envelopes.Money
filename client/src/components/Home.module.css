@@ -5,17 +5,25 @@
 
 .Balances {
     min-width: 0;
-    flex: 1 1 0;
     padding: 12px;
     margin-right: 12px;
     border-radius: 5px;
+    overflow: auto;
+}
+
+.BalancesBig {
+    grid-area: sidebar;
+}
+.BalancesSmall {
+    grid-area: content;
 }
 
 .Transactions {
+    grid-area: content;
     min-width: 0;
-    flex: 3 2 0;
     padding: 12px;
     border-radius: 5px;
+    overflow: auto;
 }
 
 .Balances, .Transactions {

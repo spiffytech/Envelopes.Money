@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {navigate, RouteComponentProps} from '@reach/router';
+import {RouteComponentProps} from 'react-router-dom';
 import React, {useState} from 'react';
 
 import {AuthStore} from '../store';
@@ -19,7 +19,7 @@ function LogIn(props: RouteComponentProps) {
       AuthStore.loggedIn = true;
       AuthStore.userId = response.data.userId;
       AuthStore.apiKey = response.data.apikey;
-      navigate('/');
+      props.history.push('/');
     } catch (ex) {
       setError(ex.response.data.error);
     }

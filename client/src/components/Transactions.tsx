@@ -1,6 +1,6 @@
 import debounce from 'lodash/debounce';
-import {navigate} from '@reach/router';
 import React, { useEffect, useState, useRef } from 'react';
+import { Redirect } from 'react-router';
 
 import Loading from './Loading';
 import TxnGrouped from './TxnGrouped';
@@ -15,6 +15,7 @@ function setError(msg: string) {
 
 
 export default function Transactions() {
+  const [redirect, setRedirect] = useState<string | null>(null);
   const [txns, setTxns] = useState<ITxnGrouped.T[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const itemModulo = 100;
@@ -57,6 +58,8 @@ export default function Transactions() {
 
   useEffect(() => fetchTxns(searchTerm), [searchTerm]);
 
+  if (redirect) return <Redirect to={redirect} />
+
   return (
     <div ref={componentRef} style={{height: 'calc(100% - 150px)', display: 'flex', flexDirection: 'column'}}>
       <Loading loading={loading} />
@@ -65,11 +68,11 @@ export default function Transactions() {
         <TxnGrouped
           key={txn.txn_id}
           txn={txn}
-          onClick={() => navigate(`/${txn.type === 'fill' ? 'fill' : 'editTxn'}/${txn.txn_id}`)}
+          onClick={() => setRedirect(`/${txn.type === 'fill' ? 'fill' : 'editTxn'}/${txn.txn_id}`)}
         />
       )}
       {new Array(Math.ceil(txns.length / itemModulo)).fill(null).map((n, i) =>
-        <button onClick={(event) => {event.preventDefault(); setMaxItems(itemModulo * i)}}>{i+1}</button>
+        <button key={i} onClick={(event) => {event.preventDefault(); setMaxItems(itemModulo * i)}}>{i+1}</button>
       )}
     </div>
   );

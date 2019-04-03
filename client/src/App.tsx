@@ -9,6 +9,7 @@ import EditTxn from './components/EditTxn';
 import FillEnvelopes from './components/FillEnvelopes';
 import LogIn from './components/LogIn';
 import {AuthStore, FlashStore} from './store';
+import { Redirect } from '@reach/router';
 
 function Route404() {
   return <p>404 not found!!1!</p>;
@@ -55,7 +56,10 @@ function App() {
           <>
             <Flash />
             <Router>
-              <Route path='/login' component={LogIn} />
+              <Switch>
+                <Route path='/login' component={LogIn} />
+                <Route render={() => <Redirect to='/login' />}></Route>
+              </Switch>
             </Router>
           </>
         )

@@ -7,10 +7,13 @@ import shortid from 'shortid';
 import mkApollo from '../lib/apollo';
 import * as crypto from '../lib/crypto';
 import * as sessions from '../lib/sessions';
-import { setTimeout } from 'timers';
 
 function setCookie(res: express.Response, apikey: string) {
-  res.cookie('session', apikey, {maxAge: 86400 * 1000 * 14, httpOnly: true});
+  const maxAge = 86400 * 1000 * 14
+  // Lets the browser see how long the session will last
+  res.cookie('sessionAlive', (maxAge * 1000).toString(), {maxAge, httpOnly: false});
+  // Holds our actual session auth information
+  res.cookie('session', apikey, {maxAge, httpOnly: true});
 }
 
 export async function signUp(req: express.Request, res: express.Response) {

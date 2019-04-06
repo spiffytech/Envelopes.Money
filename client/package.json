@@ -32,6 +32,7 @@
   ],
   "devDependencies": {
     "@reach/router": "^1.2.1",
+    "@types/js-cookie": "^2.2.2",
     "@types/localforage": "0.0.34",
     "@types/lodash": "^4.14.123",
     "@types/reach__router": "^1.2.3",
@@ -49,6 +50,7 @@
     "graphql": "^14.2.1",
     "graphql-tag": "^2.10.1",
     "is-online": "^8.2.0",
+    "js-cookie": "^2.2.0",
     "localforage": "^1.7.3",
     "lodash": "^4.17.11",
     "mobx-react": "^5.4.3",

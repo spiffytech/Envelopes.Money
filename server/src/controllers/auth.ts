@@ -8,12 +8,13 @@ import mkApollo from '../lib/apollo';
 import * as crypto from '../lib/crypto';
 import * as sessions from '../lib/sessions';
 
-function setCookie(res: express.Response, apikey: string) {
+function setCookie(res: express.Response, apikey: string, userId: string) {
   const maxAge = 86400 * 1000 * 14
   // Lets the browser see how long the session will last
-  res.cookie('sessionAlive', (maxAge * 1000).toString(), {maxAge, httpOnly: false});
+  res.cookie('sessionAlive', maxAge.toString(), {maxAge, httpOnly: false});
   // Holds our actual session auth information
-  res.cookie('session', apikey, {maxAge, httpOnly: true});
+  res.cookie('apikey', apikey, {maxAge, httpOnly: false});
+  res.cookie('userId', userId, {maxAge, httpOnly: false});
 }
 
 export async function signUp(req: express.Request, res: express.Response) {
@@ -39,6 +40,7 @@ export async function signUp(req: express.Request, res: express.Response) {
     const apikey = bs58.encode(await nodeCrypto.randomBytes(32));
     console.log(apikey);
 
+    const userId = shortid.generate()
     const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
     console.log(await apollo.mutate({
       mutation: gql`
@@ -52,7 +54,7 @@ export async function signUp(req: express.Request, res: express.Response) {
       `,
       variables: {
         objects: [{
-          id: shortid.generate(),
+          id: userId,
           email: req.body.email,
           scrypt: hash,
           apikey,
@@ -60,7 +62,7 @@ export async function signUp(req: express.Request, res: express.Response) {
       },
     }));
     console.log(`Signed up ${req.body.email}`);
-    setCookie(res, apikey);
+    setCookie(res, apikey, userId);
     res.send({success: true});
   } catch(ex) {
     console.error(ex);
@@ -88,35 +90,11 @@ export async function logIn(req: express.Request, res: express.Response) {
       return res.json({error: 'Invalid credentials'});
     }
 
-    setCookie(res, user.apikey);
+    setCookie(res, user.apikey, user.id);
     res.send({success: true, userId: user.id, apikey: user.apikey});
   } catch(ex) {
     console.error(ex);
     res.statusCode = 500;
     res.send({error: 'unknown error'});
-  }
-}
-
-export async function isAuthed(req: express.Request, res: express.Response) {
-  const apiKey = sessions.apikeyFromRequest(req);
-  if (!apiKey) {
-    res.statusCode = 401;
-    res.send({isAuthed: false});
-    return;
-  }
-  
-  try {
-    const session = await sessions.lookUpSession(apiKey, false);
-    if (session) {
-      res.send({isAuthed: true, userId: session.id, apiKey});
-      return;
-    }
-
-    res.statusCode = 401;
-    res.send({isAuthed: false});
-  } catch (ex) {
-    console.error(ex);
-    res.statusCode = 500;
-    res.send({error: 'Error trying to validate your API key'});
   }
 }

@@ -2,18 +2,12 @@ import express from 'express';
 import gql from 'graphql-tag';
 
 import mkApollo from '../lib/apollo';
-import { isatty } from 'tty';
 if (!process.env.HASURA_ADMIN_KEY) throw new Error('Must supply HASURA_ADMIN_KEY');
 
 export function apikeyFromRequest(req: express.Request) {
-  if (!req.cookies.session) {
-    if (!req.query.apikey) {
-      return null;
-    }
-
-    return req.query.apikey;
-  }
-  return req.cookies.session;
+  if (req.cookies.apikey) return req.cookies.apikey;
+  if (req.query.apikey) return req.query.apikey
+  return null;
 }
 
 interface User {

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import checkOnline from 'is-online';
 import * as jsCookie from 'js-cookie';
 import {Observer, observer} from 'mobx-react-lite';
@@ -24,52 +23,38 @@ function Flash() {
 
 function App() {
   const [isOnline, setIsOnline] = useState<boolean | undefined>(undefined);
-  const [loginStateError, setLoginStateError] = useState<string | null>(null);
   useEffect(() => {
-    async function watchLoginStatus(): Promise<void> {
+    async function watchLoginAndOnlineStatus(): Promise<void> {
       const onlineStatus = await checkOnline();
       setIsOnline(onlineStatus);
-      if (!onlineStatus) return watchLoginStatus();
 
-      try {
-        const response = await axios.get(`${endpoint}/isAuthed`, {timeout: 5000});
-        AuthStore.loggedIn = response.data.isAuthed;
-        AuthStore.userId = response.data.userId;
-        AuthStore.apiKey = response.data.apiKey;
-        setLoginStateError(null);
-
-        const sessionDurationStr = jsCookie.get('sessionAlive');
-        // Sleep until our session expires instead of hammering the server with
-        // useless checks to see if we're still logged in. (Logging out will
-        // take care of setting the `loggedIn` flag.)
-        if (sessionDurationStr) {
-          const sessionDuration = parseInt(sessionDurationStr);
-          await new Promise((resolve) => setTimeout(
-            // setTimeout can only handle 32-bit numbers. A 2-week millisecond
-            // expiration is bigger than that.
-            resolve, Math.min(sessionDuration, 2147483647)
-          ));
-        }
-      } catch (ex) {
-        if (ex.response.status >= 500) {
-          setLoginStateError('Error validating your logged-in state');
-        }
+      const sessionDurationStr = jsCookie.get('sessionAlive');
+      // Sleep until our session expires instead of hammering the server with
+      // useless checks to see if we're still logged in. (Logging out will
+      // take care of setting the `loggedIn` flag.)
+      if (sessionDurationStr) {
+        const sessionDuration = parseInt(sessionDurationStr);
+        await new Promise((resolve) => setTimeout(
+          resolve,
+          // setTimeout can only handle 32-bit numbers. A 2-week millisecond
+          // expiration is bigger than that.
+          Math.min(sessionDuration, 2147483647)
+        ));
+      } else {
+        AuthStore.loggedIn = false;
         AuthStore.userId = null;
         AuthStore.apiKey = null;
-        AuthStore.loggedIn = false;
-      } finally {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        watchLoginStatus();
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      watchLoginAndOnlineStatus();
     }
 
-    watchLoginStatus();
+    watchLoginAndOnlineStatus();
   }, []);
 
   if (isOnline === undefined) return <p>Checking online status...</p>
   if (isOnline === false) return <p>App cannot work offline</p>
-  if (AuthStore.loggedIn === undefined) return <p>Checking if you're logged in</p>;
-  if (loginStateError) return <p>{loginStateError}</p>;
 
   return (
     <div className='appGrid'>

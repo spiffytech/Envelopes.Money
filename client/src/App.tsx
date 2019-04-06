@@ -1,4 +1,5 @@
 import axios from 'axios';
+import isOnline from 'is-online';
 import {Observer, observer} from 'mobx-react-lite';
 import {BrowserRouter as Router, Route, Link, Redirect, Switch} from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
@@ -21,11 +22,12 @@ function Flash() {
 }
 
 function App() {
-  const [loginStateKnown, setLoginStateKnown] = useState(false);
+  const [online, setOnline] = useState<boolean | undefined>(undefined);
   const [loginStateError, setLoginStateError] = useState<string | null>(null);
   useEffect(() => {
     async function watchLoginStatus() {
       try {
+        setOnline(await isOnline());
         const response = await axios.get(`${endpoint}/isAuthed`, {timeout: 5000});
         AuthStore.loggedIn = response.data.isAuthed;
         AuthStore.userId = response.data.userId;
@@ -39,7 +41,6 @@ function App() {
         AuthStore.apiKey = null;
         AuthStore.loggedIn = false;
       } finally {
-        if (!loginStateKnown) setLoginStateKnown(true);
         await new Promise((resolve) => setTimeout(resolve, 5000));
         watchLoginStatus();
       }
@@ -48,8 +49,10 @@ function App() {
     watchLoginStatus();
   }, []);
 
+  if (online === undefined) return <p>Checking online status...</p>
+  if (online === false) return <p>App cannot work offline</p>
+  if (AuthStore.loggedIn === undefined) return <p>Checking if you're logged in</p>;
   if (loginStateError) return <p>{loginStateError}</p>;
-  if (!loginStateKnown) return <p>Checking if you're logged in</p>;
 
   return (
     <div className='appGrid'>

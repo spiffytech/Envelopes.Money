@@ -48,6 +48,7 @@
     "fuzzysort": "^1.1.4",
     "graphql": "^14.2.1",
     "graphql-tag": "^2.10.1",
+    "is-online": "^8.2.0",
     "localforage": "^1.7.3",
     "lodash": "^4.17.11",
     "mobx-react": "^5.4.3",

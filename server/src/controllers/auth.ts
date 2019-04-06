@@ -7,6 +7,7 @@ import shortid from 'shortid';
 import mkApollo from '../lib/apollo';
 import * as crypto from '../lib/crypto';
 import * as sessions from '../lib/sessions';
+import { setTimeout } from 'timers';
 
 function setCookie(res: express.Response, apikey: string) {
   res.cookie('session', apikey, {maxAge: 86400 * 1000 * 14, httpOnly: true});

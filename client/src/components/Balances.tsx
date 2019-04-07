@@ -1,5 +1,6 @@
 import flatten from 'lodash/flatten';
 import groupBy from 'lodash/groupBy';
+import localForage from 'localforage';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -77,6 +78,18 @@ export default function Balances() {
     fetchBalances();
   }, []);
 
+  const localForageTagKey = 'selectedTag';
+  useEffect(() => {
+    localForage.getItem<string>(localForageTagKey).then((tag) => {
+      if (tag) setSelectedTag(tag);
+    });
+  });
+
+  async function selectTag(tag: string) {
+    await localForage.setItem(localForageTagKey, tag);
+    setSelectedTag(tag);
+  }
+
   return (
     <div className={styles.Balances}>
       {groups['account'] ?
@@ -97,7 +110,7 @@ export default function Balances() {
 
       <select
         value={selectedTag || ''}
-        onChange={(event) => setSelectedTag(event.target.value)}
+        onChange={(event) => selectTag(event.target.value)}
       >
         <option value={''} selected={selectedTag === null}>Select a tag</option>
         {allTags.map((tag) => <option value={tag} selected={selectedTag === tag}>{tag}</option>)}

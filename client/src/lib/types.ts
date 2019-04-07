@@ -23,7 +23,8 @@ export interface Envelope {
     due: Date | string | null;
     target: number;
     interval: Intervals;
-  }
+  };
+  tags: {[key: string]: string};
 }
 
 export interface BankAccount {

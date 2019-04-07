@@ -63,6 +63,7 @@ export const fragments = gql`
         name
         type
         extra
+        tags
       }
 
       fragment balance on balances {
@@ -72,6 +73,7 @@ export const fragments = gql`
         type
         extra
         balance
+        tags
       }
 
       fragment txn_grouped on txns_grouped {

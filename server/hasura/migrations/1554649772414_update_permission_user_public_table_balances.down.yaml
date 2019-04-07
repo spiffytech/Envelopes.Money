@@ -1,0 +1,24 @@
+- args:
+    role: user
+    table:
+      name: balances
+      schema: public
+  type: drop_select_permission
+- args:
+    permission:
+      allow_aggregations: false
+      columns:
+      - balance
+      - id
+      - user_id
+      - name
+      - type
+      - extra
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+    role: user
+    table:
+      name: balances
+      schema: public
+  type: create_select_permission

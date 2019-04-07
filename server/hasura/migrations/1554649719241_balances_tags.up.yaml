@@ -1,0 +1,16 @@
+- args:
+    cascade: true
+    sql: "CREATE OR REPLACE VIEW \"public\".\"balances\" AS \n SELECT COALESCE(sums.s,
+      (0)::bigint) AS balance,\n    accounts.id,\n    accounts.user_id,\n    accounts.name,\n
+      \   accounts.type,\n    accounts.extra,\n    accounts.tags\n   FROM (( SELECT
+      amounts.id,\n            sum(amounts.amount) AS s\n           FROM ( SELECT
+      transactions.from_id AS id,\n                    (- transactions.amount) AS
+      amount\n                   FROM transactions\n                UNION ALL\n                 SELECT
+      transactions.to_id AS id,\n                    transactions.amount\n                   FROM
+      transactions\n                  WHERE (transactions.type <> 'banktxn'::text)\n
+      \               UNION ALL\n                 SELECT transactions.to_id AS id,\n
+      \                   (- transactions.amount)\n                   FROM transactions\n
+      \                 WHERE (transactions.type = 'banktxn'::text)) amounts\n          GROUP
+      BY amounts.id) sums\n     RIGHT JOIN accounts ON ((accounts.id = sums.id)))\n
+      \ ORDER BY accounts.type, accounts.name;"
+  type: run_sql

@@ -21,7 +21,8 @@ export interface Envelope {
     due: Date | null;
     target: number;
     interval: 'total' | 'weekly' | 'biweekly' | 'monthly' | 'annually'
-  }
+  };
+  tags: {[key: string]: string};
 }
 
 export interface BankAccount {

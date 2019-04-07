@@ -34,6 +34,7 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
     name: '',
     type: 'envelope',
     extra: {due: null, target: 0, interval: 'total'},
+    tags: {},
   };
   const emptyBankAccount: Accounts.BankAccount = {
     id: '',

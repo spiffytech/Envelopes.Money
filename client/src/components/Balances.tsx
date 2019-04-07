@@ -1,3 +1,4 @@
+import flatten from 'lodash/flatten';
 import groupBy from 'lodash/groupBy';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -7,6 +8,7 @@ import * as Balances2 from '../lib/Balances';
 import * as cache from '../lib/cache';
 import {toDollars} from '../lib/pennies';
 import { AuthStore, FlashStore } from '../store';
+import { isEnvelope } from '../lib/Accounts';
 
 function Balance({balance}: {balance: Balances2.T}) {
     const targetStyle: React.CSSProperties = {
@@ -41,6 +43,19 @@ export default function Balances() {
   const [balances, setBalances] = useState<Balances2.T[]>([]);
 
   const groups = groupBy(balances, (balance) => balance.type);
+
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const envelopesByTag = groups['envelope'] ? groupBy(
+    groups['envelope'].filter(Balances2.isBalanceEnvelope),
+    (envelope: Balances2.BalanceEnvelope) => selectedTag ? envelope.tags[selectedTag] || '' : null
+  ) : {};
+
+  console.log(groups['envelope']);
+  const allTags = groups['envelope'] ? Array.from(new Set(flatten(
+    groups['envelope'].
+    filter(Balances2.isBalanceEnvelope).
+    map((envelope) => Object.keys(envelope.tags))
+  ))) : [];
 
   useEffect(() => {
     async function fetchBalances() {
@@ -80,17 +95,30 @@ export default function Balances() {
         : null
       }
 
+      <select
+        value={selectedTag || ''}
+        onChange={(event) => setSelectedTag(event.target.value)}
+      >
+        <option value={''} selected={selectedTag === null}>Select a tag</option>
+        {allTags.map((tag) => <option value={tag} selected={selectedTag === tag}>{tag}</option>)}
+      </select>
+
       {groups['envelope'] ?
         <div>
           <header className={styles.header}>Envelopes</header>
-          {groups['envelope'].map((balance) =>
-            <Link
-              to={`/editAccount/${encodeURIComponent(balance.id)}`}
-              className={styles.Balance}
-              key={balance.id}
-            >
-              <Balance balance={balance} />
-            </Link>
+          {Object.entries(envelopesByTag).map(([tagValue, envelopes]) =>
+            <div>
+              <header>{tagValue || 'No Value'}</header>
+              {envelopes.map((balance) =>
+                <Link
+                  to={`/editAccount/${encodeURIComponent(balance.id)}`}
+                  className={styles.Balance}
+                  key={balance.id}
+                >
+                  <Balance balance={balance} />
+                </Link>
+              )}
+            </div>
           )}
         </div>
         : null

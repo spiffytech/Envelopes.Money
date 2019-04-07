@@ -99,4 +99,8 @@ export const fragments = gql`
         name
       }
 
+      fragment tag on tags {
+        user_id
+        tag
+      }
     `;

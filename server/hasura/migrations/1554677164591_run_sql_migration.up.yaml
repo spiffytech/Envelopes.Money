@@ -1,0 +1,9 @@
+- args:
+    cascade: true
+    sql: create or replace view tags as select distinct user_id, jsonb_object_keys(tags)
+      from accounts;
+  type: run_sql
+- args:
+    name: tags
+    schema: public
+  type: add_existing_table_or_view

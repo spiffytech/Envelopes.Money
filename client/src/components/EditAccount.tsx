@@ -6,6 +6,7 @@ import * as shortid from 'shortid';
 
 import '../lib/core.css';
 import * as Accounts from '../lib/Accounts';
+import * as Tags from '../lib/Tags';
 import {AuthStore} from '../store';
 
 async function handleSubmit(event: React.FormEvent<any>, account: Accounts.T, history: History) {
@@ -47,7 +48,10 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
   const [is404, setIs404] = useState(false);
   const [account, setAccount] = useState<Accounts.T>(emptyEnvelope);
   const [canChangeType, setCanChangeType] = useState(true);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState({key: '', value: ''});
 
+  console.log('account', account);
   useEffect(() => {
     if (!accountId) return;  // Not loading an existing account
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
@@ -58,6 +62,15 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
       setAccount(data.accounts[0])
       setCanChangeType(false);
     });
+  }, [props.match.params.accountId]);
+
+  useEffect(() => {
+    async function loadTags() {
+      if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+      const {data} = await Tags.loadTags(AuthStore.userId, AuthStore.apiKey);
+      setAllTags(data.tags.map(({tag}) => tag));
+    }
+    loadTags();
   }, []);
 
   if (is404) return <Redirect to='/404' />
@@ -73,6 +86,7 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
       style={{gridArea: 'content'}}
       onSubmit={(event) => handleSubmit(event, account, props.history)}
     >
+      <header>{account.name}</header>
       <input
         value={account.name}
         onChange={(event) => setAccount({...account, name: event.target.value})}
@@ -127,6 +141,37 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
             <option value='monthly'>Monthly</option>
             <option value='annually'>Annually</option>
           </select>
+
+          <header>Tags</header>
+          <div>
+            {allTags.map((tag) => 
+              <div key={tag}>
+                <label>
+                  {tag}
+                  <input
+                    value={account.tags[tag] || ''}
+                    onChange={(event) => setAccount({...account, tags: {...account.tags, [tag]: event.target.value}})}
+                  />
+                </label>
+              </div>
+            )}
+
+            <input
+              placeholder='Name'
+              value={newTag.key}
+              onChange={(event) => setNewTag({...newTag, key: event.target.value})}
+            />
+            <input
+              value={newTag.value}
+              onChange={(event) => setNewTag({...newTag, value: event.target.value})}
+            />
+            <button onClick={(event) => {
+              event.preventDefault();
+              setAccount({...account, tags: {...account.tags, [newTag.key]: newTag.value}});
+              setAllTags([...allTags, newTag.key]);  // Necessary to show the new tag value
+              setNewTag({key: '', value: ''})
+            }}>Add tag</button>
+          </div>
         </>
       ) : null}
 

@@ -75,13 +75,13 @@ function App() {
               <Flash />
 
               <Switch>
-                <Route path='/editAccount/:accountId' component={EditAccount} />
-                <Route path='/editAccount' component={EditAccount} />
-                <Route path='/editTxn/:txnId' component={EditTxn} />
-                <Route path='/editTxn' component={EditTxn} />
-                <Route path='/fill/:txnId' component={FillEnvelopes} />
-                <Route path='/fill' component={FillEnvelopes} />
-                <Route path='/' component={Home} />
+                <Route exact path='/editAccount/:accountId' component={EditAccount} />
+                <Route exact path='/editAccount' component={EditAccount} />
+                <Route exact path='/editTxn/:txnId' component={EditTxn} />
+                <Route exact path='/editTxn' component={EditTxn} />
+                <Route exact path='/fill/:txnId' component={FillEnvelopes} />
+                <Route exact path='/fill' component={FillEnvelopes} />
+                <Route exact path='/' component={Home} />
                 <Route component={Route404} />
               </Switch>
             </Router>

@@ -1,0 +1,6 @@
+- args:
+    cascade: true
+    sql: "drop view tags; CREATE OR REPLACE VIEW \"public\".\"tags\" AS \n SELECT
+      DISTINCT accounts.user_id,\n    jsonb_object_keys(accounts.tags) AS tag\n   FROM
+      accounts;"
+  type: run_sql

@@ -53,7 +53,7 @@ export function saveAccount(userId: string, apiKey: string, account: T) {
           objects: [$account],
           on_conflict: {
             constraint: accounts_pkey, 
-            update_columns: [name, type, extra]
+            update_columns: [name, type, extra, tags]
           }) {
           returning {id}
         }

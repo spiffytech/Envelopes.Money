@@ -229,6 +229,7 @@ function discoverCategories(rows: IGoodBudgetRow[]): {[key: string]: CommonTypes
         interval: 'total' as 'total',
         due: null,
       },
+      tags: {},
     }),
   );
 

@@ -35,6 +35,7 @@
     "@types/js-cookie": "^2.2.2",
     "@types/localforage": "0.0.34",
     "@types/lodash": "^4.14.123",
+    "@types/preval.macro": "^3.0.0",
     "@types/reach__router": "^1.2.3",
     "@types/react-responsive": "^3.0.3",
     "@types/react-router-dom": "^4.3.1",
@@ -55,6 +56,7 @@
     "lodash": "^4.17.11",
     "mobx-react": "^5.4.3",
     "mobx-react-lite": "^1.1.1",
+    "preval.macro": "^3.0.0",
     "react-responsive": "^6.1.1",
     "shortid": "^2.2.14"
   }

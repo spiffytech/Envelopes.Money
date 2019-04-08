@@ -15,6 +15,8 @@ function Balance({balance}: {balance: Balances2.T}) {
     fontSize: '12px',
   };
 
+  const prorated = Balances2.isBalanceEnvelope(balance) ? Balances2.calcAmountForPeriod(balance)['monthly'] : 0;
+
   return <>
     <div className={styles.BalanceLabel}>
       <div>{balance.name}</div>
@@ -31,7 +33,7 @@ function Balance({balance}: {balance: Balances2.T}) {
       <div className={styles.BalanceAmount}>{toDollars(balance.balance)}</div>
       {Balances2.isBalanceEnvelope(balance) ?
         <div className={styles.BalanceTarget} style={{...targetStyle, fontStyle: 'italic'}}>
-          {toDollars(balance.extra.target)} / {balance.extra.interval}
+          {toDollars(prorated)} / month
         </div> :
         null
       }

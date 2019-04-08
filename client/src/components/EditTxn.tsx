@@ -255,6 +255,16 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
           </label>
         </div>
 
+        <div>
+          <label className={styles.FormLabel}>
+            Memo
+            <input
+              value={txns[0].memo}
+              onChange={(event) => setTxnsProp({memo: event.target.value})}
+            />
+          </label>
+        </div>
+
         <p className={styles.Total}>
           Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
         </p>

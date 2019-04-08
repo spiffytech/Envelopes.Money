@@ -138,6 +138,7 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
           >
             <option value='total'>Total</option>
             <option value='weekly'>Weekly</option>
+            <option value='biweekly'>Bi-Weekly</option>
             <option value='monthly'>Monthly</option>
             <option value='annually'>Annually</option>
           </select>

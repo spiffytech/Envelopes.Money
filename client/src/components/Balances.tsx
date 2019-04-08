@@ -51,7 +51,6 @@ export default function Balances() {
     (envelope: Balances2.BalanceEnvelope) => selectedTag ? envelope.tags[selectedTag] || '' : null
   ) : {};
 
-  console.log(groups['envelope']);
   const allTags = groups['envelope'] ? Array.from(new Set(flatten(
     groups['envelope'].
     filter(Balances2.isBalanceEnvelope).
@@ -112,15 +111,15 @@ export default function Balances() {
         value={selectedTag || ''}
         onChange={(event) => selectTag(event.target.value)}
       >
-        <option value={''} selected={selectedTag === null}>Select a tag</option>
-        {allTags.map((tag) => <option value={tag} selected={selectedTag === tag}>{tag}</option>)}
+        <option value={''}>Select a tag</option>
+        {allTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
       </select>
 
       {groups['envelope'] ?
         <div>
           <header className={styles.header}>Envelopes</header>
           {Object.entries(envelopesByTag).map(([tagValue, envelopes]) =>
-            <div>
+            <div key={tagValue}>
               <header>{tagValue || 'No Value'}</header>
               {envelopes.map((balance) =>
                 <Link

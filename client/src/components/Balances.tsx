@@ -86,7 +86,7 @@ export default function Balances() {
 
   async function selectTag(tag: string) {
     await localForage.setItem(localForageTagKey, tag);
-    setSelectedTag(tag);
+    setSelectedTag(tag || null);
   }
 
   return (
@@ -120,7 +120,7 @@ export default function Balances() {
           <header className={styles.header}>Envelopes</header>
           {Object.entries(envelopesByTag).map(([tagValue, envelopes]) =>
             <div key={tagValue}>
-              <header>{tagValue || 'No Value'}</header>
+              <header>{tagValue === 'null' ? 'No Value' : tagValue || 'No Value'}</header>
               {envelopes.map((balance) =>
                 <Link
                   to={`/editAccount/${encodeURIComponent(balance.id)}`}

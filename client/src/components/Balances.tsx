@@ -9,7 +9,6 @@ import * as Balances2 from '../lib/Balances';
 import * as cache from '../lib/cache';
 import {toDollars} from '../lib/pennies';
 import { AuthStore, FlashStore } from '../store';
-import { isEnvelope } from '../lib/Accounts';
 
 function Balance({balance}: {balance: Balances2.T}) {
     const targetStyle: React.CSSProperties = {
@@ -120,7 +119,11 @@ export default function Balances() {
           <header className={styles.header}>Envelopes</header>
           {Object.entries(envelopesByTag).map(([tagValue, envelopes]) =>
             <div key={tagValue}>
-              <header>{tagValue === 'null' ? 'No Value' : tagValue || 'No Value'}</header>
+              <header>
+                {tagValue === 'null' ? 'No Value' : tagValue || 'No Value'}: &nbsp;
+                {toDollars(envelopes.map((envelope) => envelope.balance).reduce((acc, item) => acc + item, 0))} / &nbsp;
+                {toDollars(envelopes.map((envelope) => Balances2.calcAmountForPeriod(envelope)['monthly']).reduce((acc, item) => acc + item, 0))}
+              </header>
               {envelopes.map((balance) =>
                 <Link
                   to={`/editAccount/${encodeURIComponent(balance.id)}`}

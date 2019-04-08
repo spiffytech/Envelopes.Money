@@ -23,11 +23,20 @@ function Flash() {
 
 function App() {
   const [isOnline, setIsOnline] = useState<boolean | undefined>(undefined);
+
   useEffect(() => {
-    async function watchLoginAndOnlineStatus(): Promise<void> {
+    async function watchOnlineStatus() {
       const onlineStatus = await checkOnline();
       setIsOnline(onlineStatus);
 
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      watchOnlineStatus();
+    }
+    watchOnlineStatus();
+  }, []);
+
+  useEffect(() => {
+    async function watchLoginStatus(): Promise<void> {
       const sessionDurationStr = jsCookie.get('sessionAlive');
       // Sleep until our session expires instead of hammering the server with
       // useless checks to see if we're still logged in. (Logging out will
@@ -45,16 +54,13 @@ function App() {
         AuthStore.userId = null;
         AuthStore.apiKey = null;
       }
-
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      watchLoginAndOnlineStatus();
     }
 
-    watchLoginAndOnlineStatus();
+    watchLoginStatus();
   }, []);
 
   if (isOnline === undefined) return <p>Checking online status...</p>
-  if (isOnline === false) return <p>App cannot work offline</p>
+  if (!isOnline) return <p>App cannot work offline</p>
 
   return (
     <div className='appGrid'>

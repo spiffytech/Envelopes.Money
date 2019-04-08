@@ -46,7 +46,9 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
   }, []);
 
   useEffect(() => {
-    if (!props.match.params.txnId) return;  // Not loading an existing txs
+    if (!props.match.params.txnId) {  // Not loading an existing txs
+      return setTxns([]);  // Handle if we click from an existing txn to the New Txn button
+    }
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
     ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId).
     then(({data}) => {

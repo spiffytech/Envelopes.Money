@@ -56,7 +56,7 @@ export default function Balances() {
     groups['envelope'].
     filter(Balances2.isBalanceEnvelope).
     map((envelope) => Object.keys(envelope.tags))
-  ))) : [];
+  ))).sort((a, b) => !a ? 1 : a < b ? -1 : 1) : [];
 
   useEffect(() => {
     async function fetchBalances() {

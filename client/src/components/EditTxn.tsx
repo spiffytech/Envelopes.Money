@@ -202,7 +202,7 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
             <span>Transaction type</span>
             <select
               value={type}
-              onChange={(event) => setType(event.target.value)}
+              onChange={(event) => {setTxns([]); setType(event.target.value)}}
               className={styles.FormInput}
             >
               <option value="banktxn">Bank Transaction</option>

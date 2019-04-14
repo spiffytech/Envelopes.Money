@@ -61,7 +61,10 @@ export default function Transactions() {
   if (redirect) return <Redirect to={redirect} />
 
   return (
-    <div ref={componentRef} style={{height: 'calc(100% - 150px)', display: 'flex', flexDirection: 'column'}}>
+    <div
+      ref={componentRef}
+      className='flex flex-col'
+    >
       <Loading loading={loading} />
       <input value={searchTerm} onChange={(event) => {event.preventDefault(); setSearchTerm(event.target.value)}} />
       {txns.slice(0, maxItems).map((txn) =>

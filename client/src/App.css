@@ -1,81 +1,22 @@
 /* ========================= */
 /* https://css-tricks.com/overriding-default-button-styles/ */
 button {
-  display: inline-block;
-  border: none;
-  /*
-  padding: 1rem 2rem;
-  margin: 0;
-  */
-  text-decoration: none;
-  /*background: #0069ed;*/
-  background: #f7f7f7;
-  border: 2px solid #e1e1e1;
-  color: #222222;
-  font-family: sans-serif;
-  font-size: 1rem;
-  cursor: pointer;
-  text-align: center;
-  transition: background 250ms ease-in-out, 
-              transform 150ms ease;
-  -webkit-appearance: none;
-  -moz-appearance: none;
 }
 
 button:hover,
 button:focus {
-  background: #222222;
-  color: #e1e1e1;
 }
 
 button:focus {
-  outline: 1px solid #fff;
-  outline-offset: -4px;
 }
 
 button:active {
-  transform: scale(0.99);
 }
 /* ========================= */
 
 body {
   color: #222222;
   background-color: #f7f7f7;
-}
-
-.stripe {
-  height: 6px;
-  background-color: #e67635;
-  grid-area: stripe;
-}
-
-.linkBtn {
-  padding: 4px;
-  border-radius: 4px;
-  min-width: 0;
-  color: #572508;
-  text-decoration: none;
-  margin: 4px;
-  display: inline-block;
-}
-
-.linkBtn.primary {
-  color: #ffefe6;
-  background-color: #e67635;
-  border: 1px solid #e67635;
-}
-
-.linkBtn.secondary {
-  background-color: #ffefe6;
-  border: 2px solid #ffefe6;
-}
-
-.linkBtn.tertiary {
-  border: 2px solid #fab38b;
-}
-
-.title {
-  font-weight: bold;
 }
 
 .appGrid {
@@ -90,23 +31,7 @@ body {
   justify-content: center;
 }
 
-.appContent {
-  grid-area: appContent;
-}
-
-.appNav {
-  background-color: white;
-  border: 2px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  grid-area: nav;
-}
-
 @media screen and (max-width: 500px) {
-  .appNav {
-    flex-wrap: wrap;
-  }
-
   .appGrid {
     grid-template-areas:
       "stripe"
@@ -114,10 +39,6 @@ body {
       "flash"
       "content";
     grid-template-columns: repeat(1, 100%);
-  }
-
-  .appNav .navRight {
-    font-size: 12px;
   }
 }
 @media screen and (min-width: 501px) {

@@ -16,7 +16,9 @@
     "typescript": "3.3.3333"
   },
   "scripts": {
+    "prestart": "tailwind build ./src/index.tailwind.css -c ./tailwind.js -o ./src/index.css",
     "start": "react-scripts start",
+    "prebuild": "tailwind build ./src/index.tailwind.css -c ./tailwind.js -o ./src/index.css",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -58,6 +60,7 @@
     "mobx-react-lite": "^1.1.1",
     "preval.macro": "^3.0.0",
     "react-responsive": "^6.1.1",
-    "shortid": "^2.2.14"
+    "shortid": "^2.2.14",
+    "tailwindcss": "^0.7.4"
   }
 }

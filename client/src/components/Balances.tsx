@@ -11,14 +11,11 @@ import {toDollars} from '../lib/pennies';
 import { AuthStore, FlashStore } from '../store';
 
 function Balance({balance}: {balance: Balances2.T}) {
-    const targetStyle: React.CSSProperties = {
-    fontSize: '12px',
-  };
 
   const prorated = Balances2.isBalanceEnvelope(balance) ? Balances2.calcAmountForPeriod(balance)['monthly'] : 0;
 
   return <>
-    <div className={styles.BalanceLabel}>
+    <div className='font-bold'>
       <div>{balance.name}</div>
       {Balances2.isBalanceEnvelope(balance) ?
         <progress
@@ -30,9 +27,9 @@ function Balance({balance}: {balance: Balances2.T}) {
       }
     </div>
     <div>
-      <div className={styles.BalanceAmount}>{toDollars(balance.balance)}</div>
+      <div className='text-right'>{toDollars(balance.balance)}</div>
       {Balances2.isBalanceEnvelope(balance) ?
-        <div className={styles.BalanceTarget} style={{...targetStyle, fontStyle: 'italic'}}>
+        <div className='text-right text-xs italic'>
           {toDollars(prorated)} / month
         </div> :
         null
@@ -91,14 +88,14 @@ export default function Balances() {
   }
 
   return (
-    <div className={styles.Balances}>
+    <div>
       {groups['account'] ?
         <div>
-          <header className={styles.header}>Accounts</header>
+          <header className='font-bold text-base lg:text-lg'>Accounts</header>
           {groups['account'].map((balance) =>
             <Link
               to={`/editAccount/${encodeURIComponent(balance.id)}`}
-              className={styles.Balance}
+              className='flex justify-between p-3 border rounded border-grey-light no-underline text-black'
               key={balance.id}
             >
               <Balance balance={balance} />
@@ -118,7 +115,7 @@ export default function Balances() {
 
       {groups['envelope'] ?
         <div>
-          <header className={styles.header}>Envelopes</header>
+          <header className='font-bold text-base lg:text-lg'>Envelopes</header>
           {Object.entries(envelopesByTag).map(([tagValue, envelopes]) =>
             <div key={tagValue}>
               <header>
@@ -129,7 +126,7 @@ export default function Balances() {
               {envelopes.map((balance) =>
                 <Link
                   to={`/editAccount/${encodeURIComponent(balance.id)}`}
-                  className={styles.Balance}
+                  className='flex justify-between p-3 border rounded border-grey-light no-underline text-black'
                   key={balance.id}
                 >
                   <Balance balance={balance} />

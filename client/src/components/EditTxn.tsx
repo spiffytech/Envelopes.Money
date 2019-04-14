@@ -194,16 +194,19 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
     })));
   }
 
+  const inputCss = 'w-64 overflow-hidden border';
+  const labelCss = 'flex flex-col md:flex-row justify-between';
+
   return (
-    <div className={styles.Form}>
-      <form onSubmit={handleSubmit} className={styles.FormForm}>
+    <div className={`flex justify-around content`}>
+      <form onSubmit={handleSubmit} className='bg-white p-4 rounded border border-2 border-grey-light m-4'>
         <div>
-          <label className={styles.FormLabel}>
+          <label className={labelCss}>
             <span>Transaction type</span>
             <select
               value={type}
               onChange={(event) => {setTxns([]); setType(event.target.value)}}
-              className={styles.FormInput}
+              className={inputCss}
             >
               <option value="banktxn">Bank Transaction</option>
               <option value="envelopeTransfer">Envelope Transfer</option>
@@ -213,18 +216,18 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
         </div>
 
         <div>
-          <label className={styles.FormLabel}>
+          <label className={labelCss}>
             Who did you pay?
             <input
               value={txns[0].label || ''}
               onChange={(event) => setTxnsProp({label: event.target.value})}
-              className={styles.FormInput}
+              className={inputCss}
             />
           </label>
         </div>
 
         <div>
-          <label className={styles.FormLabel}>
+          <label className={labelCss}>
             <span>Suggested payees:</span>
             <div>
               {suggestedLabels.length === 1 && suggestedLabels[0] === txns[0].label ?
@@ -233,7 +236,7 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
                 <div><button
                   key={suggestion}
                   onClick={(event) => setSuggestion(event, suggestion)}
-                  className={styles.SuggestionButton}
+                  className={`${inputCss} link-btn link-btn-tertiary`}
                 >
                   {suggestion}
                 </button></div>
@@ -244,38 +247,39 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
         </div>
 
         <div>
-          <label className={styles.FormLabel}>
+          <label className={labelCss}>
             Date
             <input
               type="date"
               value={format(txns[0].date, 'YYYY-MM-DD')}
               onChange={(event) => setTxnsProp({date: new Date(event.target.value)})}
-              className={styles.FormInput}
+              className={inputCss}
             />
           </label>
         </div>
 
         <div>
-          <label className={styles.FormLabel}>
+          <label className={labelCss}>
             Memo
             <input
               value={txns[0].memo}
               onChange={(event) => setTxnsProp({memo: event.target.value})}
+              className={inputCss}
             />
           </label>
         </div>
 
-        <p className={styles.Total}>
+        <p className='font-bold'>
           Total amount: {toDollars(txns.map((txn) => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
         </p>
 
         <div>
-          <label className={styles.FormLabel}>
+          <label className={labelCss}>
             {type === 'banktxn' ? 'Account:' : 'Transfer from:'}
             <select
               value={txns[0].from_id}
               onChange={(event) => setTxnsProp({from_id: event.target.value})}
-              className={styles.FormInput}
+              className={inputCss}
             >
               {from.map((f) => <option value={f.id} key={f.id}>{f.name}: {toDollars(f.balance)}</option>)}
             </select>
@@ -290,6 +294,7 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
                 <select
                   value={txn.to_id || ''}
                   onChange={(event) => setTxnProp(txn, {to_id: event.target.value})}
+                  className={inputCss}
                 >
                   {to.map((t) => <option value={t.id} key={t.id}>{t.name}: {toDollars(t.balance)}</option>)}
                 </select>
@@ -304,17 +309,28 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
                       {amount: Math.round(parseFloat(event.target.value) * 100)}
                     )
                   }
+                  className={inputCss}
                 />
               </div>
             )}
           </label>
 
-          <button onClick={(event) => {event.preventDefault(); addEmptyTxn()}}>New Split</button>
+          <button
+            onClick={(event) => {event.preventDefault(); addEmptyTxn()}}
+            className='link-btn link-btn-secondary'
+          >
+            New Split
+          </button>
         </div>
 
 
         <div style={{marginTop: '1rem'}}>
-          <button type='submit'>Save Transaction</button>
+          <button
+            type='submit'
+            className='link-btn link-btn-primary'
+          >
+            Save Transaction
+          </button>
         </div>
 
         <div style={{marginTop: '3rem'}}>

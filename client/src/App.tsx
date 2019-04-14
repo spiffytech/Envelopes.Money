@@ -64,17 +64,17 @@ function App() {
 
   return (
     <div className='appGrid'>
-      <div className='stripe'></div>
+      <div className='stripe bg-orange h-1'></div>
       {AuthStore.loggedIn ?
         (
           <>
             <Router>
-              <div className='appNav'>
-                <Link to='/' className='linkBtn title'>HackerBudget</Link>
+              <div className='bg-white border-2 border-grey-light flex justify-between flex-wrap nav'>
+                <Link to='/' className='link-btn font-bold'>HackerBudget</Link>
                 <div className='navRight'>
-                  <Link to='/editTxn' className='linkBtn primary'>New Transaction</Link>
-                  <Link to='/editAccount' className='linkBtn secondary'>New Account</Link>
-                  <Link to='/fill' className='linkBtn secondary'>Fill Envelopes</Link>
+                  <Link to='/editTxn' className='link-btn link-btn-primary'>New Transaction</Link>
+                  <Link to='/editAccount' className='link-btn link-btn-secondary'>New Account</Link>
+                  <Link to='/fill' className='link-btn link-btn-secondary'>Fill Envelopes</Link>
                 </div>
               </div>
 

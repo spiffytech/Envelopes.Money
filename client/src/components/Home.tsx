@@ -2,7 +2,6 @@ import {RouteComponentProps} from '@reach/router';
 import React, {useState} from 'react';
 import MediaQuery from 'react-responsive';
 
-import styles from './Home.module.css';
 import Balances from './Balances';
 import Transactions from './Transactions';
 import * as TxnGrouped from '../lib/TxnGrouped';
@@ -52,6 +51,8 @@ export default function Home(props: RouteComponentProps) {
     }
   }
 
+  const headerCss = 'min-w-0 p-3 rounded overflow-auto bg-white border border-2 border-grey-light rounded';
+
   return (
     FlashStore.type === 'error' ?
       null
@@ -60,17 +61,27 @@ export default function Home(props: RouteComponentProps) {
         <MediaQuery query='(max-width: 500px)'>
           <div>
             <div>
-              <button onClick={setTab('accounts')}>Accounts/Envelopes</button>
-              <button onClick={setTab('transactions')}>Transactions</button>
+              <button
+                onClick={setTab('accounts')}
+                className='link-btn link-btn-tertiary'
+              >
+                Accounts/Envelopes
+              </button>
+              <button
+                onClick={setTab('transactions')}
+                className='link-btn link-btn-tertiary'
+              >
+                Transactions
+              </button>
             </div>
             { visibleTab === 'accounts' ?
-              <div className={`${styles.Balances} ${styles.BalancesSmall}`}>
-                <header className={styles.header}>Balances</header>
+              <div className={`${headerCss} content`}>
+                <header className='text-xl font-bold'>Balances</header>
                 <Balances />
               </div>
             : visibleTab === 'transactions' ?
-              <div className={styles.Transactions}>
-                <header className={styles.header}>Transactions</header>
+              <div className={`${headerCss} content`}>
+                <header className='text-xl font-bold'>Transactions</header>
                 <Transactions />
               </div>
             : null
@@ -79,14 +90,14 @@ export default function Home(props: RouteComponentProps) {
         </MediaQuery>
 
         <MediaQuery query='(min-width: 501px)'>
-          <div className={`${styles.Balances} ${styles.BalancesBig}`}>
-            <header className={styles.header}>Balances</header>
+          <div className={`${headerCss} sidebar`}>
+            <header className='text-xl font-bold'>Balances</header>
             <Balances />
           </div>
 
-          <div className={styles.Transactions}>
-            <button onClick={exportTxns} className={styles.ExportTxns}>Export Transactions</button>
-            <header className={styles.header}>Transactions</header>
+          <div className={`${headerCss}`}>
+            <button onClick={exportTxns} className='link-btn link-btn-tertiary'>Export Transactions</button>
+            <header className='text-xl font-bold'>Transactions</header>
             <Transactions />
           </div>
         </MediaQuery>

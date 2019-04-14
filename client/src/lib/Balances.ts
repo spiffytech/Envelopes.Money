@@ -44,7 +44,7 @@ export function calcAmountForPeriod(balance: BalanceEnvelope): {[key in Interval
 
   const interval =
     balance.extra.interval === 'weekly' ? 7 :
-    balance.extra.interval === 'biweekly' ? 14 :
+    balance.extra.interval === 'biweekly' ? 15 :
     balance.extra.interval === 'monthly' ? 30 :
     balance.extra.interval === 'annually' ? 365 :
     1;

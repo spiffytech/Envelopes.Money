@@ -88,8 +88,10 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
     >
       <header>{account.name}</header>
       <input
+        placeholder='Name'
         value={account.name}
         onChange={(event) => setAccount({...account, name: event.target.value})}
+        className='border'
       />
 
       <select
@@ -106,6 +108,7 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
           <input
             type="date"
             value={format(account.extra.due || '', 'YYYY-MM-DD')}
+            className='border'
             onChange={(event) =>
               setAccount({
                 ...account,
@@ -116,12 +119,17 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
           <button onClick={(e) => {
             e.preventDefault();
             setAccount({...account, extra: {...account.extra, due: null}})
-          }}>Clear due date</button>
+          }}
+            className='link-btn link-btn-tertiary'
+          >
+            Clear due date
+          </button>
 
           <input
             type="number"
             step="0.01"
             value={account.extra.target / 100}
+            className='border'
             onChange={(event) => setAccount({
               ...account, extra: {...account.extra, target: Math.round(parseFloat(event.target.value) * 100)}
             })}
@@ -152,18 +160,22 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
                   <input
                     value={account.tags[tag] || ''}
                     onChange={(event) => setAccount({...account, tags: {...account.tags, [tag]: event.target.value}})}
+                    className='border'
                   />
                 </label>
               </div>
             )}
 
             <input
-              placeholder='Name'
+              placeholder='Tag Name'
               value={newTag.key}
+              className='border'
               onChange={(event) => setNewTag({...newTag, key: event.target.value})}
             />
             <input
               value={newTag.value}
+              className='border'
+              placeholder='Tag Value'
               onChange={(event) => setNewTag({...newTag, value: event.target.value})}
             />
             <button onClick={(event) => {
@@ -171,12 +183,16 @@ export default function EditAccount(props: RouteComponentProps<{accountId: strin
               setAccount({...account, tags: {...account.tags, [newTag.key]: newTag.value}});
               setAllTags([...allTags, newTag.key]);  // Necessary to show the new tag value
               setNewTag({key: '', value: ''})
-            }}>Add tag</button>
+            }}
+              className='link-btn link-btn-tertiary'
+            >
+              Add tag
+            </button>
           </div>
         </>
       ) : null}
 
-      <button type='submit'>Save {account.type}</button>
+      <button type='submit' className='link-btn link-btn-primary'>Save {account.type}</button>
     </form>
   );
 }

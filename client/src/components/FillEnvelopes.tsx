@@ -120,8 +120,8 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
   }
 
   return (
-    <div className={styles.Form}>
-      <form onSubmit={handleSubmit} className={styles.FormForm}>
+    <div className={`flex justify-around content`}>
+      <form onSubmit={handleSubmit} className='bg-white p-4 rounded border border-2 border-grey-light m-4'>
         <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills())}</p>
 
         <select
@@ -136,13 +136,19 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
 
         <>
           {fills.filter((fill) => fill.envelope.name !== '[Unallocated]').map((fill) =>
-            <div key={fill.envelope.id} className={`${styles.Fill} bubble`}>
+            <div key={fill.envelope.id} className='flex justify-between bubble'>
               <div>
                 <div>{fill.envelope.name}</div>
-                <button onClick={fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])} className={styles.FillTargetBtn}>
-                  Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
-                </button>
-                <button onClick={fillEnvelope(fill, -fill.envelope.balance)}>Set to 0</button>
+                {props.match.params.txnId ? null :
+                <>
+                  <button
+                    onClick={fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                  >
+                    Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                  </button>
+                  <button onClick={fillEnvelope(fill, -fill.envelope.balance)}>Set to 0</button>
+                </>
+                }
               </div>
               <div>
                 <div>Balance: {toDollars(fill.envelope.balance)}</div>
@@ -151,7 +157,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
                   step='0.01'
                   value={fill.amount / 100}
                   onChange={(event) => fillEnvelope(fill, Math.round(parseFloat(event.target.value) * 100))(event)}
-                  style={{width: '100px'}}
+                  className='w-32 border'
                 />
                 <div><div>New Balance:</div>{toDollars(fill.envelope.balance + fill.amount)}</div>
               </div>

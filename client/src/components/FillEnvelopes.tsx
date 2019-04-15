@@ -124,6 +124,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
         <select
           value={interval}
           onChange={(event) => setInterval(event.target.value as Intervals)}
+          className='border'
         >
           <option value='weekly'>Weekly</option>
           <option value='biweekly'>Biweekly</option>
@@ -163,7 +164,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
 
         {props.match.params.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
 
-        <input type='submit' value='Fill!' />
+        <input type='submit' value='Fill!' className="link-btn link-btn-primary" />
       </form>
     </div>
   )

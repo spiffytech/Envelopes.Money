@@ -11,7 +11,7 @@ import MoneyInput from './MoneyInput';
 import { toDollars } from '../lib/pennies';
 
 export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: string }>) {
-  interface Fill { envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope }
+  interface Fill { id: string, envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope }
   const [fills, setFills] = useState<Fill[]>([]);
   const [interval, setInterval] = useState<Intervals>('weekly');
 
@@ -24,10 +24,11 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
     Balances.loadBalancess(AuthStore.userId, AuthStore.apiKey).
       then(({ data }) => {
-        const newFills =
+        const newFills: Fill[] =
           data.balances.
             filter((balance) => Balances.isBalanceEnvelope(balance)).
             map((balance) => ({
+              id: balance.id,
               envelopeId: balance.id,
               amount: 0,
               envelope: balance as Balances.BalanceEnvelope, // We can cast this becasue of the filter
@@ -50,6 +51,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
                 const priorFill = data.transactions.find((txn) => txn.to_id === fill.envelopeId);
                 if (priorFill) {
                   return {
+                    id: fill.id,
                     envelopeId: fill.envelopeId,
                     amount: priorFill.amount,
                     envelope: fill.envelope
@@ -161,6 +163,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
                   default='credit'
                   startingValue={fill.amount}
                   onChange={(num) => fillEnvelope(fill, num)}
+                  key={`${fill.id}-${fill.envelope.id}`}
                 />
                 <div>New Balance: {toDollars(fill.envelope.balance + fill.amount)}</div>
               </div>

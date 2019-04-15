@@ -162,7 +162,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
                   startingValue={fill.amount}
                   onChange={(num) => fillEnvelope(fill, num)}
                 />
-                <div><div>New Balance:</div>{toDollars(fill.envelope.balance + fill.amount)}</div>
+                <div>New Balance: {toDollars(fill.envelope.balance + fill.amount)}</div>
               </div>
             </div>
           )}

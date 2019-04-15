@@ -3,11 +3,11 @@ import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
 import '../lib/core.css';
-import styles from './FillEnvelopes.module.css';
 import {AuthStore, FlashStore} from '../store';
 import * as Balances from '../lib/Balances';
 import {Intervals} from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
+import MoneyInput from './MoneyInput';
 import {toDollars} from '../lib/pennies';
 
 export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string}>) {
@@ -68,13 +68,10 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
   if (!unallocated) throw new Error('You don\'t have an [Unallocated] category!');
 
   function fillEnvelope(fill: Fill, amount: number) {
-    return function fn(event: React.FormEvent<any>) {
-      event.preventDefault();
-      setFills(fills.map((f) => {
-        if (fill !== f) return f;
-        return {...f, amount}
-      }));
-    }
+    setFills(fills.map((f) => {
+      if (fill !== f) return f;
+      return {...f, amount}
+    }));
   }
 
   async function handleSubmit(event: React.FormEvent<any>) {
@@ -142,22 +139,21 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
                 {props.match.params.txnId ? null :
                 <>
                   <button
-                    onClick={fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                    onClick={(event) => {event.preventDefault(); fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])}}
                   >
                     Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
                   </button>
-                  <button onClick={fillEnvelope(fill, -fill.envelope.balance)}>Set to 0</button>
+                  <button onClick={(event) => {event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance)}}>Set to 0</button>
                 </>
                 }
               </div>
               <div>
                 <div>Balance: {toDollars(fill.envelope.balance)}</div>
-                <span>Fill:</span> <input
-                  type='number'
-                  step='0.01'
-                  value={fill.amount / 100}
-                  onChange={(event) => fillEnvelope(fill, Math.round(parseFloat(event.target.value) * 100))(event)}
-                  className='w-32 border'
+                <span>Fill:</span>
+                <MoneyInput
+                  default='credit'
+                  startingValue={fill.amount}
+                  onChange={(num) => fillEnvelope(fill, num)}
                 />
                 <div><div>New Balance:</div>{toDollars(fill.envelope.balance + fill.amount)}</div>
               </div>

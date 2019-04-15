@@ -6,11 +6,11 @@ import {RouteComponentProps} from 'react-router-dom';
 import React, {useEffect, useState} from 'react';
 import * as shortid from 'shortid';
 
-import styles from './EditTxn.module.css';
 import {AuthStore, FlashStore} from '../store';
 import * as cache from '../lib/cache';
 import {ITransaction} from '../../../common/lib/types';
 import * as Balances from '../lib/Balances';
+import MoneyInput from './MoneyInput';
 import * as ITransactions from '../lib/ITransactions';
 import * as TopLabels from '../lib/TopLabels';
 import * as CommonTypes from '../../../common/lib/types';
@@ -299,17 +299,15 @@ export default function NewBankTxn(props: RouteComponentProps<{txnId?: string}>)
                   {to.map((t) => <option value={t.id} key={t.id}>{t.name}: {toDollars(t.balance)}</option>)}
                 </select>
 
-                <input
-                  type="number"
-                  value={(txn.amount || 0) / 100 || 0}
-                  step='0.01'
-                  onChange={(event) =>
+                <MoneyInput
+                  default='debit'
+                  startingValue={txn.amount}
+                  onChange={(num) =>
                     setTxnProp(
                       txn,
-                      {amount: Math.round(parseFloat(event.target.value) * 100)}
+                      {amount: num}
                     )
                   }
-                  className={inputCss}
                 />
               </div>
             )}

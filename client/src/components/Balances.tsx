@@ -7,10 +7,10 @@ import { Link } from 'react-router-dom';
 import styles from './Balances.module.css';
 import * as Balances2 from '../lib/Balances';
 import * as cache from '../lib/cache';
-import {toDollars} from '../lib/pennies';
+import { toDollars } from '../lib/pennies';
 import { AuthStore, FlashStore } from '../store';
 
-function Balance({balance}: {balance: Balances2.T}) {
+function Balance({ balance }: { balance: Balances2.T }) {
 
   const prorated = Balances2.isBalanceEnvelope(balance) ? Balances2.calcAmountForPeriod(balance)['monthly'] : 0;
 
@@ -51,8 +51,8 @@ export default function Balances() {
 
   const allTags = groups['envelope'] ? Array.from(new Set(flatten(
     groups['envelope'].
-    filter(Balances2.isBalanceEnvelope).
-    map((envelope) => Object.keys(envelope.tags))
+      filter(Balances2.isBalanceEnvelope).
+      map((envelope) => Object.keys(envelope.tags))
   ))).sort((a, b) => !a ? 1 : a < b ? -1 : 1) : [];
 
   useEffect(() => {

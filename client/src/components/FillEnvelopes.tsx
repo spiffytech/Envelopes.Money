@@ -1,17 +1,17 @@
-import {RouteComponentProps} from 'react-router-dom';
-import React, {useEffect, useState} from 'react';
+import { RouteComponentProps } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import * as shortid from 'shortid';
 
 import '../lib/core.css';
-import {AuthStore, FlashStore} from '../store';
+import { AuthStore, FlashStore } from '../store';
 import * as Balances from '../lib/Balances';
-import {Intervals} from '../lib/Accounts';
+import { Intervals } from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
 import MoneyInput from './MoneyInput';
-import {toDollars} from '../lib/pennies';
+import { toDollars } from '../lib/pennies';
 
-export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string}>) {
-  interface Fill {envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope}
+export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: string }>) {
+  interface Fill { envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope }
   const [fills, setFills] = useState<Fill[]>([]);
   const [interval, setInterval] = useState<Intervals>('weekly');
 
@@ -23,54 +23,54 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
   useEffect(() => {
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
     Balances.loadBalancess(AuthStore.userId, AuthStore.apiKey).
-    then(({data}) => {
-      const newFills =
-        data.balances.
-        filter((balance) => Balances.isBalanceEnvelope(balance)).
-        map((balance) => ({
-          envelopeId: balance.id,
-          amount: 0,
-          envelope: balance as Balances.BalanceEnvelope, // We can cast this becasue of the filter
-        }));
-      setFills(newFills);
+      then(({ data }) => {
+        const newFills =
+          data.balances.
+            filter((balance) => Balances.isBalanceEnvelope(balance)).
+            map((balance) => ({
+              envelopeId: balance.id,
+              amount: 0,
+              envelope: balance as Balances.BalanceEnvelope, // We can cast this becasue of the filter
+            }));
+        setFills(newFills);
 
-      if (!props.match.params.txnId) return;
-      if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-      // Load a prior fill
-      return (
-        ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId).
-        then(({data}) => {
-          if (data.transactions.length === 0) {
-            props.history.push('/404');
-            return;  // 404
-          }
+        if (!props.match.params.txnId) return;
+        if (!AuthStore.loggedIn) throw new Error('User must be logged in');
+        // Load a prior fill
+        return (
+          ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId).
+            then(({ data }) => {
+              if (data.transactions.length === 0) {
+                props.history.push('/404');
+                return;  // 404
+              }
 
-          console.log(data.transactions);
-          setFills(newFills.map((fill) => {
-            const priorFill = data.transactions.find((txn) => txn.to_id === fill.envelopeId);
-            if (priorFill) {
-              return {
-                envelopeId: fill.envelopeId,
-                amount: priorFill.amount,
-                envelope: fill.envelope
-              };
-            }
-            return fill;
-          }));
-        }).catch((ex) => setError(ex.message))
-      );
-    }).catch((ex) => setError(ex.message));
+              console.log(data.transactions);
+              setFills(newFills.map((fill) => {
+                const priorFill = data.transactions.find((txn) => txn.to_id === fill.envelopeId);
+                if (priorFill) {
+                  return {
+                    envelopeId: fill.envelopeId,
+                    amount: priorFill.amount,
+                    envelope: fill.envelope
+                  };
+                }
+                return fill;
+              }));
+            }).catch((ex) => setError(ex.message))
+        );
+      }).catch((ex) => setError(ex.message));
   }, [props.match.params.txnId]);
 
   if (fills.length === 0) return <p>Loading...</p>;
 
-  const unallocated = fills.find(({envelope}) => envelope.name === '[Unallocated]');
+  const unallocated = fills.find(({ envelope }) => envelope.name === '[Unallocated]');
   if (!unallocated) throw new Error('You don\'t have an [Unallocated] category!');
 
   function fillEnvelope(fill: Fill, amount: number) {
     setFills(fills.map((f) => {
       if (fill !== f) return f;
-      return {...f, amount}
+      return { ...f, amount }
     }));
   }
 
@@ -138,14 +138,14 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
               <div>
                 <div>{fill.envelope.name}</div>
                 {props.match.params.txnId ? null :
-                <>
-                  <button
-                    onClick={(event) => {event.preventDefault(); fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval])}}
-                  >
-                    Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
-                  </button>
-                  <button onClick={(event) => {event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance)}}>Set to 0</button>
-                </>
+                  <>
+                    <button
+                      onClick={(event) => { event.preventDefault(); fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval]) }}
+                    >
+                      Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                    </button>
+                    <button onClick={(event) => { event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance) }}>Set to 0</button>
+                  </>
                 }
               </div>
               <div>
@@ -160,9 +160,9 @@ export default function FillEnvelopes(props: RouteComponentProps<{txnId?: string
               </div>
             </div>
           )}
-      </>
+        </>
 
-        {props.match.params.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null }
+        {props.match.params.txnId ? <button onClick={deleteTransaction}>Delete Transaction</button> : null}
 
         <input type='submit' value='Fill!' className="link-btn link-btn-primary" />
       </form>

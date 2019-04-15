@@ -1,7 +1,7 @@
 import checkOnline from 'is-online';
 import * as jsCookie from 'js-cookie';
-import {Observer, observer} from 'mobx-react-lite';
-import {BrowserRouter as Router, Route, Link, Redirect, Switch} from 'react-router-dom';
+import { Observer, observer } from 'mobx-react-lite';
+import { BrowserRouter as Router, Route, Link, Redirect, Switch } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 
 import './App.css';
@@ -10,15 +10,15 @@ import EditAccount from './components/EditAccount';
 import EditTxn from './components/EditTxn';
 import FillEnvelopes from './components/FillEnvelopes';
 import LogIn from './components/LogIn';
-import {AuthStore, FlashStore} from './store';
-import {endpoint} from './lib/config';
+import { AuthStore, FlashStore } from './store';
+import { endpoint } from './lib/config';
 
 function Route404() {
   return <p>404 not found!!1!</p>;
 }
 
 function Flash() {
-  return <Observer>{() => <div style={{gridArea: 'flash'}}>{FlashStore.flash}</div>}</Observer>
+  return <Observer>{() => <div style={{ gridArea: 'flash' }}>{FlashStore.flash}</div>}</Observer>
 }
 
 function App() {
@@ -93,7 +93,7 @@ function App() {
             </Router>
           </>
         )
-          :
+        :
         (
           <>
             <Flash />

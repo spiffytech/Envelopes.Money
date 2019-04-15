@@ -1,18 +1,18 @@
-import {RouteComponentProps} from '@reach/router';
-import React, {useState} from 'react';
+import { RouteComponentProps } from '@reach/router';
+import React, { useState } from 'react';
 import MediaQuery from 'react-responsive';
 
 import Balances from './Balances';
 import Transactions from './Transactions';
 import * as TxnGrouped from '../lib/TxnGrouped';
-import {AuthStore, FlashStore} from '../store';
+import { AuthStore, FlashStore } from '../store';
 import { toDollars } from '../lib/pennies';
 
 function triggerDownload(data: string) {
   var a = document.createElement("a");
   document.body.appendChild(a);
   (a as any).style = "display: none";
-  const blob = new Blob([data], {type: "octet/stream"});
+  const blob = new Blob([data], { type: "octet/stream" });
   const url = window.URL.createObjectURL(blob);
   a.href = url;
   a.download = 'export.csv';
@@ -25,7 +25,7 @@ async function exportTxns(event: React.FormEvent<any>) {
   if (!AuthStore.loggedIn) throw new Error('User must be logged in');
   const txnsGrouped =
     await TxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey, '').
-      then(({data}) => data.txns_grouped);
+      then(({ data }) => data.txns_grouped);
 
   const dataStr =
     JSON.stringify(txnsGrouped.map((t) => ({
@@ -74,18 +74,18 @@ export default function Home(props: RouteComponentProps) {
                 Transactions
               </button>
             </div>
-            { visibleTab === 'accounts' ?
+            {visibleTab === 'accounts' ?
               <div className={`${headerCss} content`}>
                 <header className='text-xl font-bold'>Balances</header>
                 <Balances />
               </div>
-            : visibleTab === 'transactions' ?
-              <div className={`${headerCss} content`}>
-                <header className='text-xl font-bold'>Transactions</header>
-                <Transactions />
-              </div>
-            : null
-          }
+              : visibleTab === 'transactions' ?
+                <div className={`${headerCss} content`}>
+                  <header className='text-xl font-bold'>Transactions</header>
+                  <Transactions />
+                </div>
+                : null
+            }
           </div>
         </MediaQuery>
 

@@ -48,7 +48,7 @@ export default function MoneyInput(
         value={startingValue === 0 ? '' : contents }
         placeholder='0'
         onChange={handleChange}
-        className='inline-block border'
+        className='inline-block border w-24'
       />
       <select
         value={txnType}

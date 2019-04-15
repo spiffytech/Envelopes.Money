@@ -38,10 +38,28 @@ function LogIn(props: RouteComponentProps) {
       {error ? <p>{error}</p> : null}
       <form style={style} onSubmit={handleSubmit}>
         <header style={{fontWeight: 'bold'}}>Log In</header>
-        <input type="text" placeholder='username' value={username} onChange={(event) => setUsername(event.target.value)} />
-        <input type="password" placeholder='password' value={password} onChange={(event) => setPassword(event.target.value)} />
+        <label>
+          Username
+          <input
+            type="email"
+            placeholder='username'
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            className='border w-full'
+          />
+        </label>
+        <label>
+          Password
+          <input
+            type="password"
+            placeholder='password'
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className='border w-full'
+          />
+        </label>
 
-        <button type="submit">Log In</button>
+        <button type="submit" className='link-btn link-btn-primary'>Log In</button>
       </form>
     </>
   );

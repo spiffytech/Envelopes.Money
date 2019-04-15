@@ -11,7 +11,6 @@ import EditTxn from './components/EditTxn';
 import FillEnvelopes from './components/FillEnvelopes';
 import LogIn from './components/LogIn';
 import { AuthStore, FlashStore } from './store';
-import { endpoint } from './lib/config';
 
 function Route404() {
   return <p>404 not found!!1!</p>;

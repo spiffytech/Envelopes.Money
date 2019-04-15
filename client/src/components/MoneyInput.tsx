@@ -41,7 +41,7 @@ export default function MoneyInput(
   }
 
   return (
-    <div>
+    <div className = 'flex flex-no-wrap'>
       <input
         type='number'
         step='.01'

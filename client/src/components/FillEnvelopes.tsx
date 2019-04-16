@@ -178,7 +178,6 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
                   default='credit'
                   startingValue={fill.amount}
                   onChange={(num) => fillEnvelope(fill, num)}
-                  key={`${fill.id}-${fill.envelope.id}`}
                 />
                 <div>New Balance: {toDollars(fill.envelope.balance + fill.amount)}</div>
               </div>

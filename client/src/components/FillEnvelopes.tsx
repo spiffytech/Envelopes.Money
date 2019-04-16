@@ -141,7 +141,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
           {fills.filter((fill) => fill.envelope.name !== '[Unallocated]').map((fill) =>
             <div key={fill.envelope.id} className='flex justify-between bubble'>
               <div>
-                <Balance balance={fill.envelope} />
+                <Balance balance={fill.envelope} adjustment={fill.amount} />
                 {props.match.params.txnId ? null :
                   <>
                     <button

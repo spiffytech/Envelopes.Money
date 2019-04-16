@@ -4,39 +4,11 @@ import localForage from 'localforage';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import styles from './Balances.module.css';
 import * as Balances2 from '../lib/Balances';
+import Balance from './Balance';
 import * as cache from '../lib/cache';
 import { toDollars } from '../lib/pennies';
 import { AuthStore, FlashStore } from '../store';
-
-function Balance({ balance }: { balance: Balances2.T }) {
-
-  const prorated = Balances2.isBalanceEnvelope(balance) ? Balances2.calcAmountForPeriod(balance)['monthly'] : 0;
-
-  return <>
-    <div className='font-bold'>
-      <div>{balance.name}</div>
-      {Balances2.isBalanceEnvelope(balance) ?
-        <progress
-          className={balance.balance < 0 ? styles.ProgressFlipped : styles.Progress}
-          value={Math.abs(balance.balance)}
-          max={balance.extra.target || 0}
-        />
-        : null
-      }
-    </div>
-    <div>
-      <div className='text-right'>{toDollars(balance.balance)}</div>
-      {Balances2.isBalanceEnvelope(balance) ?
-        <div className='text-right text-xs italic'>
-          {toDollars(prorated)} / month
-        </div> :
-        null
-      }
-    </div>
-  </>
-}
 
 export default function Balances() {
   const [balances, setBalances] = useState<Balances2.T[]>([]);

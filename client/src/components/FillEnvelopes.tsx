@@ -4,6 +4,7 @@ import * as shortid from 'shortid';
 
 import '../lib/core.css';
 import { AuthStore, FlashStore } from '../store';
+import Balance from './Balance';
 import * as Balances from '../lib/Balances';
 import { Intervals } from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
@@ -140,7 +141,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
           {fills.filter((fill) => fill.envelope.name !== '[Unallocated]').map((fill) =>
             <div key={fill.envelope.id} className='flex justify-between bubble'>
               <div>
-                <div>{fill.envelope.name}</div>
+                <Balance balance={fill.envelope} />
                 {props.match.params.txnId ? null :
                   <>
                     <button

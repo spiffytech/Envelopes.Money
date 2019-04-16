@@ -144,24 +144,30 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
                 <Balance balance={fill.envelope} adjustment={fill.amount} />
                 {props.match.params.txnId ? null :
                   <>
-                    <button
-                      onClick={(event) => { event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance + Balances.calcAmountForPeriod(fill.envelope)[interval]) }}
-                      className='border'
-                    >
-                      Set to {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
-                    </button>
-                    <button
-                      onClick={(event) => { event.preventDefault(); fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval]) }}
-                      className='border'
-                    >
-                      Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
-                    </button>
-                    <button
-                      onClick={(event) => { event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance) }}
-                      className='border'
-                    >
-                      Set to 0
-                    </button>
+                    <div>
+                      <button
+                        onClick={(event) => { event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance + Balances.calcAmountForPeriod(fill.envelope)[interval]) }}
+                        className='border link-btn link-btn-secondary'
+                      >
+                        Set to {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        onClick={(event) => { event.preventDefault(); fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval]) }}
+                        className='border link-btn link-btn-secondary'
+                      >
+                        Fill {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        onClick={(event) => { event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance) }}
+                        className='border link-btn link-btn-secondary'
+                      >
+                        Set to 0
+                      </button>
+                    </div>
                   </>
                 }
               </div>

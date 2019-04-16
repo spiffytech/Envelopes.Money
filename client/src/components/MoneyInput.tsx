@@ -16,17 +16,15 @@ export default function MoneyInput(
   {default: defaultValue, onChange, startingValue}:
   {default: 'credit' | 'debit', onChange: (n: number) => any, startingValue: number}
 ) {
-  const [contents, setContents] = useState((Math.abs(startingValue) / 100).toFixed(2));
+  const [contents, setContents] = useState((Math.abs(startingValue) / 100).toString());
   const [txnType, setTxnType] = useState(pickStartingTxnType(startingValue, defaultValue));
   const [prevProp, setPrevProp] = useState(startingValue);
   // TODO: This implementation of getDerivedStateFromProps feel hacky because it
   // doesn't DRY the calculation with the above calculation
-  /*
   if (startingValue !== prevProp)  {
-    setContents((Math.abs(startingValue) / 100).toFixed(2));
+    setContents((Math.abs(startingValue) / 100).toString());
     setPrevProp(startingValue);
   }
-  */
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     setContents(event.target.value);

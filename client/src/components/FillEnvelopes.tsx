@@ -33,9 +33,11 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
               amount: 0,
               envelope: balance as Balances.BalanceEnvelope, // We can cast this becasue of the filter
             }));
-        setFills(newFills);
 
-        if (!props.match.params.txnId) return;
+        if (!props.match.params.txnId) {
+          setFills(newFills);
+          return;
+        }
         if (!AuthStore.loggedIn) throw new Error('User must be logged in');
         // Load a prior fill
         return (

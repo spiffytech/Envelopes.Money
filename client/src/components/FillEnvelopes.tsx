@@ -145,6 +145,12 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
                 {props.match.params.txnId ? null :
                   <>
                     <button
+                      onClick={(event) => { event.preventDefault(); fillEnvelope(fill, -fill.envelope.balance + Balances.calcAmountForPeriod(fill.envelope)[interval]) }}
+                      className='border'
+                    >
+                      Set to {toDollars(Balances.calcAmountForPeriod(fill.envelope)[interval])}
+                    </button>
+                    <button
                       onClick={(event) => { event.preventDefault(); fillEnvelope(fill, Balances.calcAmountForPeriod(fill.envelope)[interval]) }}
                       className='border'
                     >

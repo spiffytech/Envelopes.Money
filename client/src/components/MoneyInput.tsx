@@ -23,6 +23,7 @@ export default function MoneyInput(
   // doesn't DRY the calculation with the above calculation
   if (startingValue !== prevProp)  {
     setContents((Math.abs(startingValue) / 100).toString());
+    setTxnType(pickStartingTxnType(startingValue, defaultValue));
     setPrevProp(startingValue);
   }
 

@@ -36,9 +36,9 @@ export default function MoneyInput(
 
   function toggleTxnType(event: React.ChangeEvent<HTMLSelectElement>) {
     setTxnType(event.target.value as 'debit' | 'credit');
-    const num = parseFloat(event.target.value);
+    const num = parseFloat(contents);
     if (!num) return;  // Not a number
-    onChange(Math.round(num * (txnType === defaultValue ? 1 : -1)));
+    onChange(Math.round(num * (txnType === defaultValue ? 1 : -1) * 100));
   }
 
   return (

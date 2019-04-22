@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import * as Balances from '../lib/Balances';
 import styles from './Balance.module.css';

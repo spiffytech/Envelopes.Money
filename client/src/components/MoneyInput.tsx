@@ -1,44 +1,46 @@
 import React, { useState } from 'react';
-import { start } from 'repl';
 
 /**
  * A negative number means different things depending on whether this is
  * supposed to be a debit or credit transaction
- * @param startingValue
+ * @param defaultValue
  * @param defaultType 
  */
-function pickStartingTxnType(startingValue: number, defaultType: 'credit' | 'debit') {
-  if (defaultType === 'debit') return startingValue < 0 ? 'credit' : 'debit';
-  return startingValue < 0 ? 'debit' : 'credit';
+function pickStartingTxnType(defaultValue: number, defaultType: 'credit' | 'debit') {
+  if (defaultType === 'debit') return defaultValue < 0 ? 'credit' : 'debit';
+  return defaultValue < 0 ? 'debit' : 'credit';
 }
 
 export default function MoneyInput(
-  {default: defaultValue, onChange, startingValue}:
+  {default: defaultType, onChange, startingValue: defaultValue}:
   {default: 'credit' | 'debit', onChange: (n: number) => any, startingValue: number}
 ) {
-  const [contents, setContents] = useState((Math.abs(startingValue) / 100).toString());
-  const [txnType, setTxnType] = useState(pickStartingTxnType(startingValue, defaultValue));
-  const [prevProp, setPrevProp] = useState(startingValue);
+  const [contents, setContents] = useState((Math.abs(defaultValue) / 100).toString());
+  const [txnType, setTxnType] = useState(pickStartingTxnType(defaultValue, defaultType));
+  const [prevProp, setPrevProp] = useState(defaultValue);
   // TODO: This implementation of getDerivedStateFromProps feel hacky because it
   // doesn't DRY the calculation with the above calculation
-  if (startingValue !== prevProp)  {
-    setContents((Math.abs(startingValue) / 100).toString());
-    setTxnType(pickStartingTxnType(startingValue, defaultValue));
-    setPrevProp(startingValue);
+
+  const defaultValueStr = (defaultValue / 100).toFixed(2)
+
+  if (defaultValue !== prevProp)  {
+    setContents((Math.abs(defaultValue) / 100).toString());
+    setTxnType(pickStartingTxnType(defaultValue, defaultType));
+    setPrevProp(defaultValue);
   }
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     setContents(event.target.value);
     const num = parseFloat(event.target.value);
     if (!num) return;  // Not a number
-    onChange(Math.round(num * (txnType === defaultValue ? 1 : -1) * 100));
+    onChange(Math.round(num * (txnType === defaultType ? 1 : -1) * 100));
   }
 
   function toggleTxnType(event: React.ChangeEvent<HTMLSelectElement>) {
     setTxnType(event.target.value as 'debit' | 'credit');
     const num = parseFloat(contents);
     if (!num) return;  // Not a number
-    onChange(Math.round(num * (txnType === defaultValue ? 1 : -1) * 100));
+    onChange(Math.round(num * (txnType === defaultType ? 1 : -1) * 100));
   }
 
   return (
@@ -46,7 +48,7 @@ export default function MoneyInput(
       <input
         type='number'
         step='.01'
-        value={startingValue === 0 ? '' : contents }
+        defaultValue={defaultValue === 0 ? '' : defaultValueStr }
         placeholder='0'
         onChange={handleChange}
         className='inline-block border w-24'

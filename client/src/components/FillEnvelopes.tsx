@@ -11,6 +11,8 @@ import * as ITransactions from '../lib/ITransactions';
 import MoneyInput from './MoneyInput';
 import { toDollars } from '../lib/pennies';
 
+const MoneyInputMemo = React.memo(MoneyInput);
+
 export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: string }>) {
   interface Fill { id: string, envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope }
   const [fills, setFills] = useState<Fill[]>([]);
@@ -174,7 +176,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
               <div>
                 <div>Balance: {toDollars(fill.envelope.balance)}</div>
                 <span>Fill:</span>
-                <MoneyInput
+                <MoneyInputMemo
                   default='credit'
                   startingValue={fill.amount}
                   onChange={(num) => fillEnvelope(fill, num)}

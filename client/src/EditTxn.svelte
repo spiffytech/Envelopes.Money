@@ -53,7 +53,6 @@
   }).
   filter((txn) => txn.amount != 0);
 
-
   let allLabels = {};
   let suggestedLabels
   $: suggestedLabels =
@@ -238,7 +237,11 @@
                 {/each}
               </select>
 
-              <MoneyInput bind:amount={txn.amount} defaultType="debit" />
+              <MoneyInput
+                bind:amount={txn.amount}
+                defaultType="debit"
+                on:change={({detail}) => txn.amount = detail}
+              />
             {/each}
           </label>
 

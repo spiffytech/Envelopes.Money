@@ -7,8 +7,10 @@
     import * as TxnGrouped from './lib/TxnGrouped';
 
     const creds = getContext('creds');
+    let searchTerm = '';
 
-    const txnsGrouped = TxnGrouped.loadTransactions(creds, '');
+    let txnsGrouped;
+    $: txnsGrouped = TxnGrouped.loadTransactions(creds, searchTerm);
     const numItemsPerPage = 100;
     let pageNum = 0;
 
@@ -49,11 +51,13 @@
 <button class="btn btn-tertiary" on:click={() => activeTab = 'transactions'}>Transactions</button>
 <button class="btn btn-tertiary" on:click={() => activeTab = 'accounts'}>Accounts</button>
 {#if activeTab === 'transactions'}
+  <input class='border w-full' bind:value={searchTerm} placeholder='Search for transactions' />
+
   {#await txnsGrouped}
       Loading transactions...
   {:then txns}
     <button class='btn btn-tertiary' on:click={exportTxns} type='button'>
-      Export Transacitons
+      Export Transactions
     </button>
 
     {#each txns.data.txns_grouped.slice(page * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}

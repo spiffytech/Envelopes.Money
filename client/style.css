@@ -1,0 +1,96 @@
+/**
+ * This injects Tailwind's base styles, which is a combination of
+ * Normalize.css and some additional base styles.
+ *
+ * You can see the styles here:
+ * https://github.com/tailwindcss/tailwindcss/blob/master/css/preflight.css
+ *
+ * If using `postcss-import`, use this import instead:
+ *
+ * @import "tailwindcss/preflight";
+ */
+@tailwind preflight;
+
+/**
+ * This injects any component classes registered by plugins.
+ *
+ * If using `postcss-import`, use this import instead:
+ *
+ * @import "tailwindcss/components";
+ */
+@tailwind components;
+
+/**
+ * Here you would add any of your custom component classes; stuff that you'd
+ * want loaded *before* the utilities so that the utilities could still
+ * override them.
+ *
+ * Example:
+ *
+ * .btn { ... }
+ * .form-input { ... }
+ *
+ * Or if using a preprocessor or `postcss-import`:
+ *
+ * @import "components/buttons";
+ * @import "components/forms";
+ */
+
+/**
+ * This injects all of Tailwind's utility classes, generated based on your
+ * config file.
+ *
+ * If using `postcss-import`, use this import instead:
+ *
+ * @import "tailwindcss/utilities";
+ */
+@tailwind utilities;
+
+/**
+ * Here you would add any custom utilities you need that don't come out of the
+ * box with Tailwind.
+ *
+ * Example :
+ *
+ * .bg-pattern-graph-paper { ... }
+ * .skew-45 { ... }
+ *
+ * Or if using a preprocessor or `postcss-import`:
+ *
+ * @import "utilities/background-patterns";
+ * @import "utilities/skew-transforms";
+ */
+
+.stripe {
+  grid-area: stripe;
+}
+.content {
+  grid-area: content
+}
+.nav {
+  grid-area: nav;
+}
+.sidebar {
+  grid-area: sidebar;
+}
+
+.btn {
+  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-orange-darkest text-sm border-2 border-white bg-white text-orange-darkest cursor-pointer text-center
+}
+@screen md {
+    .btn {
+        @apply p-2 m-2 text-base;
+    }
+}
+
+.btn-primary {
+    @apply text-white border bg-orange border-orange;
+}
+
+.btn-secondary {
+    @apply bg-orange-lighter border border-orange-lighter;
+}
+
+.btn-tertiary {
+    @apply border-grey;
+}

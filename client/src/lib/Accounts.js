@@ -2,20 +2,14 @@ import gql from 'graphql-tag';
 
 import mkApollo from './apollo';
 import {fragments} from './apollo';
-import {IAccount, BankAccount, Envelope, Intervals} from './types';
 
-export type T = IAccount;
-export type Envelope = Envelope;
-export type BankAccount = BankAccount;
-export type Intervals = Intervals;
-
-export function isEnvelope(account: T): account is Envelope {
+export function isEnvelope(account) {
   return account.type === 'envelope';
 }
 
-export function loadAccounts(userId: string, apiKey: string) {
-  const apollo = mkApollo(apiKey);
-  return apollo.query<{accounts: T[]}>({
+export function loadAccounts({userId, apikey}) {
+  const apollo = mkApollo(apikey);
+  return apollo.query({
     query: gql`
       ${fragments}
       query GetAccounts($user_id: String!) {
@@ -28,9 +22,9 @@ export function loadAccounts(userId: string, apiKey: string) {
   });
 }
 
-export function loadAccount(userId: string, apiKey: string, accountId: string) {
-  const apollo = mkApollo(apiKey);
-  return apollo.query<{accounts: T[]}>({
+export function loadAccount({userId, apikey}, accountId) {
+  const apollo = mkApollo(apikey);
+  return apollo.query({
     query: gql`
       ${fragments}
       query GetAccounts($user_id: String!, $account_id: String!) {
@@ -43,8 +37,8 @@ export function loadAccount(userId: string, apiKey: string, accountId: string) {
   });
 }
 
-export function saveAccount(userId: string, apiKey: string, account: T) {
-  const apollo = mkApollo(apiKey);
+export function saveAccount({userId, apikey}, account) {
+  const apollo = mkApollo(apikey);
   return apollo.mutate({
     mutation: gql`
       ${fragments}
@@ -61,4 +55,25 @@ export function saveAccount(userId: string, apiKey: string, account: T) {
     `,
     variables: {account},
   });
+}
+
+export function mkEmptyEnvelope(userId) {
+  return {
+    id: '',
+    user_id: userId,
+    name: '',
+    type: 'envelope',
+    extra: { due: null, target: 0, interval: 'total' },
+    tags: {},
+  };
+}
+
+export function mkEmptyAccount(userId) {
+  return {
+    id: '',
+    user_id: userId,
+    name: '',
+    type: 'account',
+    extra: {},
+  };
 }

@@ -1,0 +1,16 @@
+[**/*.svelte]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+[**/*.vue]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+[**/*.ts]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+[**/*.tsx]
+indent_style = space
+indent_size = 2
+end_of_line = lf

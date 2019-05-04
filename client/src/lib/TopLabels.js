@@ -3,18 +3,9 @@ import gql from 'graphql-tag';
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 
-export interface T {
-  label: string;
-  count: number;
-  to_id: string;
-  from_id: string;
-  user_id: string;
-  name: string;
-}
-
-export function loadTopLabels(userId: string, apiKey: string) {
-  const apollo = mkApollo(apiKey);
-  return apollo.query<{top_labels: T[]}>({
+export function loadTopLabels({userId, apikey}) {
+  const apollo = mkApollo(apikey);
+  return apollo.query({
     query: gql`
       ${fragments}
       query GetTopLabels($user_id: String!) {

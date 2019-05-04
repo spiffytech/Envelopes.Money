@@ -1,0 +1,99 @@
+<script>
+    import page from 'page';
+    import {getContext} from 'svelte';
+
+    import Accounts from './Accounts.svelte';
+    import {toDollars} from './lib/pennies';
+    import * as TxnGrouped from './lib/TxnGrouped';
+
+    const creds = getContext('creds');
+
+    const txnsGrouped = TxnGrouped.loadTransactions(creds, '');
+    const numItemsPerPage = 100;
+    let pageNum = 0;
+
+    let activeTab = 'transactions';
+
+  function triggerDownload(data) {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    const blob = new Blob([data], { type: "octet/stream" });
+    const url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = 'export.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  async function exportTxns(event) {
+    const txnsGrouped =
+      await TxnGrouped.loadTransactions(creds, '').
+        then(({ data }) => data.txns_grouped);
+
+    const dataStr =
+      JSON.stringify(txnsGrouped.map((t) => ({
+        date: t.date,
+        amount: toDollars(t.amount),
+        from: t.from_name,
+        to: t.to_names,
+        memo: t.memo,
+        type: t.type,
+        label: t.label
+      })));
+
+    triggerDownload(dataStr);
+  }
+</script>
+
+<button class="btn btn-tertiary" on:click={() => activeTab = 'transactions'}>Transactions</button>
+<button class="btn btn-tertiary" on:click={() => activeTab = 'accounts'}>Accounts</button>
+{#if activeTab === 'transactions'}
+  {#await txnsGrouped}
+      Loading transactions...
+  {:then txns}
+    <button class='btn btn-tertiary' on:click={exportTxns} type='button'>
+      Export Transacitons
+    </button>
+
+    {#each txns.data.txns_grouped.slice(page * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
+      <div
+        on:click={() => page(`/editTxn/${txn.txn_id}`)}
+        class="flex justify-between p-3 border border-grey-light rounded mb-1"
+      >
+        <div class="mr-2">{txn.date}</div>
+        <div class="text-left flex-1 min-w-0 mr-2">
+          <div class="text-left font-bold">
+            {txn.label} {#if txn.memo}<span title={txn.memo}>((Memo))</span>{/if}
+          </div>
+
+          <div class="flex flex-1 text-xs italic">
+            <span class="whitespace-no-wrap">{txn.from_name}</span>
+            &nbsp;→&nbsp;
+            <span
+              style="text-overflow: ellipsis"
+              class="whitespace-no-wrap overflow-hidden"
+            >
+              {txn.to_names}
+            </span>
+          </div>
+        </div>
+
+        <div class="text-right">{toDollars(txn.amount)}</div>
+      </div>
+    {/each}
+
+    {#each new Array(Math.ceil(txns.data.txns_grouped.length / numItemsPerPage)).fill(null).map((_, i) => i) as btn_number}
+        <button
+            on:click|preventDefault={() => pageNum=btn_number}
+            class="btn btn-secondary"
+        >
+            Page {btn_number + 1}
+        </button>
+    {/each}
+  {:catch ex}
+      Error loading transactions! {ex.message}
+  {/await}
+{:else}
+  <Accounts />
+{/if}

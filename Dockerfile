@@ -22,6 +22,7 @@ RUN ./node_modules/.bin/tsc
 COPY client/ /workdir/client/
 WORKDIR /workdir/client
 RUN npm run build
+RUN npm run tailwind
 
 WORKDIR /workdir/server
 CMD node dist/server/index.js

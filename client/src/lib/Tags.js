@@ -3,14 +3,9 @@ import gql from 'graphql-tag';
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 
-export interface T {
-  user_id: string;
-  tag: string;
-}
-
-export function loadTags(userId: string, apiKey: string) {
-  const apollo = mkApollo(apiKey);
-  return apollo.query<{tags: T[]}>({
+export function loadTags({userId, apikey}) {
+  const apollo = mkApollo(apikey);
+  return apollo.query({
     query: gql`
       ${fragments}
       query GetTags($user_id: String!) {

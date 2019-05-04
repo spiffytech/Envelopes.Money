@@ -47,10 +47,8 @@
 	if (!creds) page('/login');
 </script>
 
-<style>
-</style>
-
 {#if onlineStatus || onlineStatus === undefined}
+  <div class='stripe bg-orange h-1'></div>
 	<div class="bg-white border border-grey-light rounded flex justify-between flex-wrap nav mb-2">
 		<a class="btn font-bold" href="/home">HackerBudget</a>
 		<div>

@@ -91,7 +91,7 @@ export function calcAmountForPeriod(balance: BalanceEnvelope): {[key in Interval
   return calcAmountRegularInterval(balance);
 }
 
-export function loadBalancess(userId: string, apiKey: string) {
+export function loadBalances(userId: string, apiKey: string) {
   const apollo = mkApollo(apiKey);
   return apollo.query<{balances: T[]}>({
     query: gql`

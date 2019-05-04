@@ -32,7 +32,7 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
           'balances',
           () => {
             if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-            return Balances.loadBalancess(AuthStore.userId, AuthStore.apiKey);
+            return Balances.loadBalances(AuthStore.userId, AuthStore.apiKey);
           },
           (data) => setBalances(data.data.balances),
         )

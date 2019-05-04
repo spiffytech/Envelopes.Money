@@ -25,7 +25,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
 
   useEffect(() => {
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    Balances.loadBalancess(AuthStore.userId, AuthStore.apiKey).
+    Balances.loadBalances(AuthStore.userId, AuthStore.apiKey).
       then(({ data }) => {
         const newFills: Fill[] =
           data.balances.

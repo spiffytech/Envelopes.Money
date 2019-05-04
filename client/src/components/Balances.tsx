@@ -34,7 +34,7 @@ export default function Balances() {
           'balances',
           () => {
             if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-            return Balances2.loadBalancess(AuthStore.userId, AuthStore.apiKey);
+            return Balances2.loadBalances(AuthStore.userId, AuthStore.apiKey);
           },
           (data) => setBalances(data.data.balances),
         )

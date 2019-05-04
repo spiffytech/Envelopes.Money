@@ -75,7 +75,7 @@
         {#each envelopes as envelope}
           <a
             href={`/editAccount/${Base64.encode(envelope.id)}`}
-            class="flex bustify-between p-3 border rounded border-grey-light no-underline text-black"
+            class="flex justify-between p-3 border rounded border-grey-light no-underline text-black"
           >
             <Balance balance={envelope} interval="monthly" />
           </a>

@@ -44,7 +44,7 @@
         <input
             type="password"
             placeholder="password"
-            class="bordre w-full"
+            class="border w-full"
             bind:value={password}
             required
         />

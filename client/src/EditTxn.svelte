@@ -245,20 +245,19 @@
             {/each}
           </label>
 
-          <button
-            type='button'
-            class="btn btn-secondary" 
-            on:click|preventDefault={() => txns = [...txns, Transactions.mkEmptyTransaction(creds.userId)]}
-          >
-            New Split
-          </button>
+          <div class='mb-3 mt-3'>
+            <button
+              type='button'
+              class="btn btn-secondary" 
+              on:click|preventDefault={() => txns = [...txns, Transactions.mkEmptyTransaction(creds.userId)]}
+            >
+              New Split
+            </button>
+          </div>
         </div>
 
-        <div>
+        <div class='flex justify-between'>
           <button type="submit" class="btn btn-primary">Save Transaction</button>
-        </div>
-
-        <div>
           <button class="btn btn-tertiary" on:click|preventDefault={deleteTransaction}>
             Delete Transaction
           </button>

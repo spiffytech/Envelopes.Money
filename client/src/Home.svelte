@@ -68,7 +68,8 @@
         <div class="mr-2">{txn.date}</div>
         <div class="text-left flex-1 min-w-0 mr-2">
           <div class="text-left font-bold">
-            {txn.label} {#if txn.memo}<span title={txn.memo}>((Memo))</span>{/if}
+            {#if txn.label}{txn.label}{:else}<span class='italic text-sm'>No Label</span>{/if} 
+            {#if txn.memo}<span title={txn.memo}>((Memo))</span>{/if}
           </div>
 
           <div class="flex flex-1 text-xs italic">

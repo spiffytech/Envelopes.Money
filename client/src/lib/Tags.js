@@ -19,7 +19,7 @@ export function loadTags({userId, apikey}) {
 }
 
 /**
- * 
+ * Sets the given tag from the given accounts
  * @param {{accountId: string]: {[tag: string]: any}}} accounts 
  */
 export function updateAccountsTags({userId, apikey}, accounts) {
@@ -41,4 +41,26 @@ export function updateAccountsTags({userId, apikey}, accounts) {
   })
 
   return Promise.all(promises);
+}
+
+/**
+ * Removes the given tag from the given accounts
+ * @param {string} tag
+ * @param {string[]} accounts
+ */
+export function deleteTagFromAccounts({userId, apikey}, tag, accounts) {
+  const apollo = mkApollo(apikey);
+  return apollo.mutate({
+    mutation: gql`
+      mutation DeleteTags($user_id: String!, $tag: String!, $accounts: [String!]!) {
+        update_accounts(
+          where: {_and: [{user_id: {_eq: $user_id}}, {id: {_in: $accounts}}]},
+          _delete_at_path: {tags: [$tag]}
+        ) {
+          returning {id}
+        }
+      }
+    `,
+    variables: {user_id: userId, accounts, tag}
+  });
 }

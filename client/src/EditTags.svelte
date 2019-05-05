@@ -35,12 +35,20 @@
       filter((account) => account.tags[selectedTag]).
       map((account) => [account.id, {[selectedTag]: account.tags[selectedTag]}])
     );
+
+    const accountsWithoutSelectedTag =
+      accounts.
+      filter((account) => !account.tags[selectedTag]).
+      map((account) => account.id);
+  
     try {
       await Tags.updateAccountsTags(creds, accountsWithSelectedTag)
+      await Tags.deleteTagFromAccounts(creds, selectedTag, accountsWithoutSelectedTag);
       error = null;
       page('/home');
     } catch (ex) {
       error = ex.message;
+      throw ex;
     }
   }
 </script>

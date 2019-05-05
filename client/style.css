@@ -61,19 +61,6 @@
  * @import "utilities/skew-transforms";
  */
 
-.stripe {
-  grid-area: stripe;
-}
-.content {
-  grid-area: content
-}
-.nav {
-  grid-area: nav;
-}
-.sidebar {
-  grid-area: sidebar;
-}
-
 .btn {
   @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-orange-darkest text-sm border-2 border-white bg-white text-orange-darkest cursor-pointer text-center
 }
@@ -93,4 +80,24 @@
 
 .btn-tertiary {
     @apply border-grey;
+}
+
+.label {
+  @apply flex flex-col justify-between mb-4
+}
+@screen md {
+  .label {
+    @apply flex-row mb-0
+  }
+}
+
+.input {
+  @apply w-64 overflow-hidden border
+}
+@screen md {
+  @apply ml-12
+}
+
+.content {
+  @apply bg-white p-2 rounded border border-2 border-grey-light m-4
 }

@@ -124,8 +124,6 @@
     page('/home');
   }
 
-  const inputCss = 'w-64 overflow-hidden border';
-  const labelCss = 'flex flex-col md:flex-row justify-between'
 </script>
 
 {#await initializeP}
@@ -135,17 +133,17 @@
     <p>Go create some accounts and envelopes before trying to do this</p>
   {:else}
     {#if error}<p>Error! {error}</p>{/if}
-    <div class="flex justify-around content">
+    <div class="flex justify-around">
       <form
-        class="bg-white p-4 rounded border border-2 border-grey-light m-4"
+        class="content"
         on:submit|preventDefault={handleSubmit}
       >
         <div>
-          <label class={labelCss}>
+          <label class='label'>
             Transaction Type
             <select
               bind:value={type}
-              class={inputCss}
+              class='input'
             >
               <option value="banktxn">Bank Transaction</option>
               <option value="envelopeTransfer">Envelope Transfer</option>
@@ -155,17 +153,17 @@
         </div>
 
         <div>
-          <label class={labelCss}>
+          <label class='label'>
             Who did you pay?
             <input
               bind:value={txns[0].label}
-              class={inputCss}
+              class='input'
             />
           </label>
         </div>
 
         <div>
-          <label class={labelCss}>
+          <label class='label'>
             {#if suggestedLabels.length > 0 && (suggestedLabels.length > 1 || suggestedLabels[0] !== txns[0].label)}
               Suggested Payees:
               <div>
@@ -173,7 +171,7 @@
                   <div>
                     <button
                       type='button'
-                      class={`${inputCss} btn btn-tertiary`}
+                      class={`input btn btn-tertiary`}
                       on:click|preventDefault={() => setSuggestion(suggestion)}
                     >
                       {suggestion}
@@ -186,23 +184,23 @@
         </div>
 
         <div>
-          <label class={labelCss}>
+          <label class='label'>
             Date
             <input
               type="date"
               value={moment(txns[0].date).toISOString(false).slice(0, 10)}
-              class={inputCss}
+              class='input'
               on:input={(event) => txns[0].date = new Date(event.target.value)}
             />
           </label>
         </div>
 
         <div>
-          <label class={labelCss}>
+          <label class='label'>
             Memo
             <input
               bind:value={txns[0].memo}
-              class={inputCss}
+              class='input'
             />
           </label>
         </div>
@@ -212,11 +210,11 @@
         </p>
 
         <div>
-          <label class={labelCss}>
+          <label class='label'>
             {type === 'banktxn' ? 'Account:' : 'Transfer From:'}
             <select
               bind:value={txns[0].from_id}
-              class={inputCss}
+              class='input'
             >
               <option value={null}>Select a source</option>
               {#each from as f}
@@ -230,7 +228,7 @@
           <label>
             {type === 'banktxn' ? 'Envelopes:' : 'Transfer Into:'}
             {#each txns as txn}
-              <select bind:value={txn.to_id} class={inputCss}>
+              <select bind:value={txn.to_id} class='input'>
                 <option value={null}>Select a destination</option>
                 {#each to as t}
                   <option value={t.id}>{t.name}: {toDollars(t.balance)}</option>

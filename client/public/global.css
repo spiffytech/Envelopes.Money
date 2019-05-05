@@ -6192,22 +6192,6 @@ table {
  * @import "utilities/skew-transforms";
  */
 
-.stripe {
-  grid-area: stripe;
-}
-
-.content {
-  grid-area: content;
-}
-
-.nav {
-  grid-area: nav;
-}
-
-.sidebar {
-  grid-area: sidebar;
-}
-
 .btn {
   padding: .25rem;
   border-radius: .25rem;
@@ -6248,6 +6232,40 @@ table {
 
 .btn-tertiary {
   border-color: #b8c2cc;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .label {
+    flex-direction: row;
+    margin-bottom: 0;
+  }
+}
+
+.input {
+  width: 16rem;
+  overflow: hidden;
+  border-width: 1px;
+}
+
+@media (min-width: 768px) {
+  @apply ml-12;
+}
+
+.content {
+  background-color: #fff;
+  padding: .5rem;
+  border-radius: .25rem;
+  border-width: 1px;
+  border-width: 2px;
+  border-color: #dae1e7;
+  margin: 1rem;
 }
 
 @media (min-width: 576px) {

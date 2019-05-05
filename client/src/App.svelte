@@ -3,7 +3,8 @@
 	import {getContext, setContext} from 'svelte';
 
   import {endpoint} from './lib/config';
-  import EditAccount from './EditAccount.svelte'
+	import EditAccount from './EditAccount.svelte'
+	import EditTags from './EditTags.svelte';
   import EditTxn from './EditTxn.svelte';
 	import FillEnvelopes from './FillEnvelopes.svelte';
 	import Home from './Home.svelte';
@@ -27,6 +28,7 @@
 	page('/home', () => route = Home);
 	page('/login', () => route = Login);
 	page('/fill', () => route = FillEnvelopes);
+	page('/editTags', setRoute(EditTags));
 	page('/editTxn', setRoute(EditTxn));
 	page('/editTxn/:txnId', setRoute(EditTxn));
 	page('/editAccount', setRoute(EditAccount));
@@ -55,6 +57,7 @@
 			<a class="btn btn-primary" href="/editTxn">New Transaction</a>
 			<a class="btn btn-secondary" href="/editAccount">New Account</a>
 			<a class="btn btn-secondary" href="/fill">Fill Envelopes</a>
+			<a class="btn btn-secondary" href="/editTags">Edit Tags</a>
 		</div>
 	</div>
 	<svelte:component this={route} bind:params={routeParams} />

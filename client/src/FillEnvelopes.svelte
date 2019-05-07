@@ -84,6 +84,7 @@
             >
                 <option value='weekly'>Weekly</option>
                 <option value='biweekly'>Biweekly</option>
+                <option value='bimonthly'>Bimonthly</option>
                 <option value='monthly'>Monthly</option>
                 <option value='annually'>Annually</option>
             </select>

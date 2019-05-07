@@ -12,6 +12,7 @@ const durations = {
   total: 0,
   weekly: 7,
   biweekly: 14,
+  bimonthly: 15,
   monthly: 30,
   annually: 365,
 }
@@ -39,7 +40,7 @@ export function calcAmountWithDueDate(balance) {
   if (!due) throw new Error('Should always have a due date when calling this function');
 
   return fromPairs(
-    ['weekly', 'biweekly', 'monthly', 'annually', 'total'].
+    ['weekly', 'biweekly', 'bimonthly', 'monthly', 'annually', 'total'].
     map((interval) => [
       interval,
       balance.extra.interval === 'total' ? 0 :
@@ -56,7 +57,7 @@ export function calcAmountRegularInterval(balance) {
   if (due) throw new Error('Should never have a due date when calling this function');
 
   return fromPairs(
-    ['weekly', 'biweekly', 'monthly', 'annually', 'total'].
+    ['weekly', 'biweekly', 'bimonthly', 'monthly', 'annually', 'total'].
     map((interval) => [
       interval,
       balance.extra.interval === 'total' ? 0 :
@@ -69,6 +70,7 @@ export function calcAmountForPeriod(balance) {
   if (!balance.extra.target) return {
     weekly: 0,
     biweekly: 0,
+    bimonthly: 0,
     monthly: 0,
     annually: 0,
     total: 0,

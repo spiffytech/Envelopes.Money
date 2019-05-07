@@ -43,7 +43,6 @@ export function calcAmountWithDueDate(balance) {
     ['weekly', 'biweekly', 'bimonthly', 'monthly', 'annually', 'total'].
     map((interval) => [
       interval,
-      balance.extra.interval === 'total' ? 0 :
       (
         calcRemainingBalance(balance) *
         multiplierWithDueDate(durations[interval], daysUntilDue(due))

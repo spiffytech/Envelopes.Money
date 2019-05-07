@@ -8,7 +8,7 @@
 
   $: prorated =
     Balances.isBalanceEnvelope(balance) ?
-    Balances.calcAmountForPeriod(balance)['monthly'] :
+    Balances.calcAmountForPeriod(balance)[interval] :
     0;
 </script>
 

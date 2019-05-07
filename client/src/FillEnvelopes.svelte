@@ -22,9 +22,13 @@
     fill => fill.envelope.name !== "[Unallocated]"
   );
 
-  let interval = "weekly";
+  let interval = localStorage.getItem('fillInterval') || "monthly";
   $: c = fill =>
     Math.round(Balances.calcAmountForPeriod(fill.envelope)[interval]);
+
+  function persistInterval() {
+    localStorage.setItem('fillInterval', interval);
+  }
 
   async function handleSubmit() {
     const txnId = shortid.generate();
@@ -80,6 +84,7 @@
 
             <select
                 bind:value={interval}
+                on:change={persistInterval}
                 class="border"
             >
                 <option value='weekly'>Weekly</option>

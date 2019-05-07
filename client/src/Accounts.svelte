@@ -14,6 +14,9 @@
 
   let balances = [];
 
+  // Default for if the user hasn't selected a fill interval yet.
+  let interval = localStorage.getItem('fillInterval') || 'monthly';
+
   $: envelopes = groupBy(balances, (balance) => balance.type)['envelope'] || [];
   $: accounts = groupBy(balances, (balance) => balance.type)['account'] || [];
 
@@ -50,7 +53,7 @@
         href={`./editAccount/${Base64.encode(account.id)}`}
         class="flex justify-between p-3 border rounded border-grey-light no-underline text-black"
       >
-        <Balance balance={account} interval="monthly" />
+        <Balance balance={account} interval={interval} />
       </a>
     {/each}
   </div>
@@ -69,7 +72,7 @@
         <header>
           {tagValue === 'null' ? 'No Value' : tagValue}: &nbsp;
           {toDollars(envelopes.map((envelope) => envelope.balance).reduce((acc, item) => acc + item, 0))} / &nbsp;
-          {toDollars(envelopes.map((envelope) => Balances.calcAmountForPeriod(envelope)['monthly']).reduce((acc, item) => acc + item, 0))}
+          {toDollars(envelopes.map((envelope) => Balances.calcAmountForPeriod(envelope)[interval]).reduce((acc, item) => acc + item, 0))}
         </header>
 
         {#each envelopes as envelope}
@@ -77,7 +80,7 @@
             href={`/editAccount/${Base64.encode(envelope.id)}`}
             class="flex justify-between p-3 border rounded border-grey-light no-underline text-black"
           >
-            <Balance balance={envelope} interval="monthly" />
+            <Balance balance={envelope} interval={interval} />
           </a>
         {/each}
       </div>

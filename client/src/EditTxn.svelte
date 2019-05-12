@@ -119,6 +119,7 @@
   }
 
   async function deleteTransaction() {
+    if (!confirm('Are you sure you wan to delete this transaction?')) return;
     if (!txnId) return;
     await Transactions.deleteTransactions(creds, txnId);
     page('/home');

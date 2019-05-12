@@ -24,8 +24,8 @@ async function exportTxns(event: React.FormEvent<any>) {
   event.preventDefault();
   if (!AuthStore.loggedIn) throw new Error('User must be logged in');
   const txnsGrouped =
-    await TxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey, '').
-      then(({ data }) => data.txns_grouped);
+    await TxnGrouped.loadTransactions(AuthStore.userId, AuthStore.apiKey, '')
+      .then(({ data }) => data.txns_grouped);
 
   const dataStr =
     JSON.stringify(txnsGrouped.map((t) => ({

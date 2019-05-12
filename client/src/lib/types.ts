@@ -12,7 +12,8 @@ export interface ITransaction {
   to_id: string;
 }
 
-export type Intervals = 'total' | 'weekly' | 'biweekly' | 'monthly' | 'annually';
+export const INTERVALS = ['total', 'weekly', 'biweekly', 'bimonthly', 'monthly', 'annually'] as const;
+export type Intervals = typeof INTERVALS[number];
 
 export interface Envelope {
   id: string;

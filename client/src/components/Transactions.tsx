@@ -56,7 +56,7 @@ export default function Transactions() {
     fetchTxns();
   }, 1000, {leading: false}));
 
-  useEffect(() => fetchTxns(searchTerm), [searchTerm]);
+  useEffect(() => fetchTxns(searchTerm), [fetchTxns, searchTerm]);
 
   if (redirect) return <Redirect to={redirect} />
 

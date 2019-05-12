@@ -10,7 +10,7 @@ export default function({txn, onClick}: {txn: CommonTypes.TxnGrouped, onClick: (
       <div className='mr-2'>{format(txn.date, 'MM/DD')}</div>
       <div className='text-left flex-1 min-w-0 mr-2'>
         <div className='text-left font-bold'>
-          {txn.label} {txn.memo ? <span title={txn.memo}>📄</span> : null}
+          {txn.label} {txn.memo ? <span title={txn.memo} role='img' aria-label='memo'>📄</span> : null}
         </div>
 
         <div className='flex flex-1 text-xs italic'>

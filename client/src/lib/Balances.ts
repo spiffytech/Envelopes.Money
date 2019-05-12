@@ -3,7 +3,7 @@ import gql from 'graphql-tag';
 
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
-import {BankAccount, Envelope, Intervals, isEnvelope} from './Accounts';
+import {BankAccount, Envelope, Intervals, INTERVALS} from './Accounts';
 
 export interface BalanceEnvelope extends Envelope {
   balance: number;
@@ -22,6 +22,7 @@ const durations: {[key in Intervals]: number} = {
   total: 0,
   weekly: 7,
   biweekly: 14,
+  bimonthly: 15,
   monthly: 30,
   annually: 365,
 }
@@ -49,8 +50,7 @@ export function calcAmountWithDueDate(balance: BalanceEnvelope): {[key in Interv
   if (!due) throw new Error('Should always have a due date when calling this function');
 
   return fromPairs(
-    ['weekly', 'biweekly', 'monthly', 'annually', 'total'].
-    map((interval) => [
+    INTERVALS.map((interval) => [
       interval,
       balance.extra.interval === 'total' ? 0 :
       (
@@ -66,8 +66,7 @@ export function calcAmountRegularInterval(balance: BalanceEnvelope): {[key in In
   if (due) throw new Error('Should never have a due date when calling this function');
 
   return fromPairs(
-    ['weekly', 'biweekly', 'monthly', 'annually', 'total'].
-    map((interval) => [
+    INTERVALS.map((interval) => [
       interval,
       balance.extra.interval === 'total' ? 0 :
       balance.extra.target * (durations[interval as Intervals] / durations[balance.extra.interval])
@@ -79,6 +78,7 @@ export function calcAmountForPeriod(balance: BalanceEnvelope): {[key in Interval
   if (!balance.extra.target) return {
     weekly: 0,
     biweekly: 0,
+    bimonthly: 0,
     monthly: 0,
     annually: 0,
     total: 0,

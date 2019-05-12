@@ -1,3 +1,4 @@
+import capitalize from 'lodash/capitalize';
 import { format } from 'date-fns';
 import { RouteComponentProps, Redirect } from 'react-router-dom';
 import { History } from 'history';
@@ -23,11 +24,7 @@ async function handleSubmit(event: React.FormEvent<any>, account: Accounts.T, hi
 }
 
 export default function EditAccount(props: RouteComponentProps<{ accountId: string }>) {
-  if (!AuthStore.loggedIn) return <p>You must be logged in to do this</p>;
-
-  const accountId = props.match.params.accountId ? decodeURIComponent(props.match.params.accountId) : null;
-
-  console.log(props);
+  if (!AuthStore.loggedIn) throw new Error('Must be logged in');
 
   const emptyEnvelope: Accounts.Envelope = {
     id: '',
@@ -51,12 +48,12 @@ export default function EditAccount(props: RouteComponentProps<{ accountId: stri
   const [allTags, setAllTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState({ key: '', value: '' });
 
-  console.log('account', account);
   useEffect(() => {
+    const accountId = props.match.params.accountId ? decodeURIComponent(props.match.params.accountId) : null;
     if (!accountId) return;  // Not loading an existing account
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    Accounts.loadAccount(AuthStore.userId, AuthStore.apiKey, accountId).
-      then(({ data }) => {
+    Accounts.loadAccount(AuthStore.userId, AuthStore.apiKey, accountId)
+      .then(({ data }) => {
         console.log(data)
         if (data.accounts.length === 0) return setIs404(true);
         setAccount(data.accounts[0])
@@ -144,11 +141,7 @@ export default function EditAccount(props: RouteComponentProps<{ accountId: stri
               })
             }
           >
-            <option value='total'>Total</option>
-            <option value='weekly'>Weekly</option>
-            <option value='biweekly'>Bi-Weekly</option>
-            <option value='monthly'>Monthly</option>
-            <option value='annually'>Annually</option>
+            {Accounts.INTERVALS.map((interval) => <option value={interval}>{capitalize(interval)}</option>)}
           </select>
 
           <header>Tags</header>

@@ -1,3 +1,4 @@
+import capitalize from 'lodash/capitalize';
 import { RouteComponentProps } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import * as shortid from 'shortid';
@@ -6,7 +7,7 @@ import '../lib/core.css';
 import { AuthStore, FlashStore } from '../store';
 import Balance from './Balance';
 import * as Balances from '../lib/Balances';
-import { Intervals } from '../lib/Accounts';
+import { Intervals, INTERVALS } from '../lib/Accounts';
 import * as ITransactions from '../lib/ITransactions';
 import MoneyInput from './MoneyInput';
 import { toDollars } from '../lib/pennies';
@@ -20,17 +21,17 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
 
   function setError(msg: string) {
     FlashStore.flash = msg;
-    FlashStore.type === 'error';
+    FlashStore.type = 'error';
   }
 
   useEffect(() => {
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    Balances.loadBalances(AuthStore.userId, AuthStore.apiKey).
-      then(({ data }) => {
+    Balances.loadBalances(AuthStore.userId, AuthStore.apiKey)
+      .then(({ data }) => {
         const newFills: Fill[] =
-          data.balances.
-            filter((balance) => Balances.isBalanceEnvelope(balance)).
-            map((balance) => ({
+          data.balances
+            .filter((balance) => Balances.isBalanceEnvelope(balance))
+            .map((balance) => ({
               id: balance.id,
               envelopeId: balance.id,
               amount: 0,
@@ -44,8 +45,8 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
         if (!AuthStore.loggedIn) throw new Error('User must be logged in');
         // Load a prior fill
         return (
-          ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId).
-            then(({ data }) => {
+          ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId)
+            .then(({ data }) => {
               if (data.transactions.length === 0) {
                 props.history.push('/404');
                 return;  // 404
@@ -67,7 +68,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
             }).catch((ex) => setError(ex.message))
         );
       }).catch((ex) => setError(ex.message));
-  }, [props.match.params.txnId]);
+  }, [props.history, props.match.params.txnId]);
 
   if (fills.length === 0) return <p>Loading...</p>;
 
@@ -133,10 +134,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
           onChange={(event) => setInterval(event.target.value as Intervals)}
           className='border'
         >
-          <option value='weekly'>Weekly</option>
-          <option value='biweekly'>Biweekly</option>
-          <option value='monthly'>Monthly</option>
-          <option value='annually'>Annually</option>
+          {INTERVALS.map((interval) => <option value={interval}>{capitalize(interval)}</option>)}
         </select>
 
         <>

@@ -13,8 +13,8 @@ export async function cache(key: string, data: any) {
 
 async function cleanUpCache() {
   const keysToPurge =
-    (await localForage.keys()).
-    filter((key) => key.startsWith('cache/') && !key.endsWith(suffix));
+    (await localForage.keys())
+    .filter((key) => key.startsWith('cache/') && !key.endsWith(suffix));
 
   await Promise.all((keysToPurge.map((key) => localForage.removeItem(key))));
 }

@@ -22,9 +22,9 @@ export default function Balances() {
   ) : {};
 
   const allTags = groups['envelope'] ? Array.from(new Set(flatten(
-    groups['envelope'].
-      filter(Balances2.isBalanceEnvelope).
-      map((envelope) => Object.keys(envelope.tags))
+    groups['envelope']
+      .filter(Balances2.isBalanceEnvelope)
+      .map((envelope) => Object.keys(envelope.tags))
   ))).sort((a, b) => !a ? 1 : a < b ? -1 : 1) : [];
 
   useEffect(() => {

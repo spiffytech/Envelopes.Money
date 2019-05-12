@@ -1,10 +1,9 @@
-const fuzzysort = require('fuzzysort');
 import { format } from 'date-fns';
 import fromPairs from 'lodash/fromPairs';
 import groupBy from 'lodash/groupBy';
 import { Observer, useLocalStore } from "mobx-react-lite"
 import { RouteComponentProps } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import * as shortid from 'shortid';
 
 import { AuthStore, FlashStore } from '../store';
@@ -16,6 +15,8 @@ import SplitList from './SplitList';
 import * as TopLabels from '../lib/TopLabels';
 import * as CommonTypes from '../../../common/lib/types';
 import { toDollars } from '../lib/pennies';
+
+const fuzzysort = require('fuzzysort');
 
 export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }>) {
   const finalTxnId = props.match.params.txnId || shortid.generate();
@@ -38,9 +39,9 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
       return this.txns[0].from_id;
     },
     get suggestedLabels(): string[] {
-      return fuzzysort.go(this.label, Object.values(this.topLabels).map((l) => l.label)).
-        map((result: { target: string }) => result.target).
-        slice(0, 5);
+      return fuzzysort.go(this.label, Object.values(this.topLabels).map((l) => l.label))
+        .map((result: { target: string }) => result.target)
+        .slice(0, 5);
     },
     get derivedTxns(): (ITransactions.EmptyTransaction | ITransactions.T)[] {
       return this.txns.map((txn) => ({
@@ -89,7 +90,7 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
     }
 
     fetchBalances();
-  }, []);
+  }, [store.balances, store.loading]);
 
   useEffect(() => {
     if (!props.match.params.txnId) {  // Not loading an existing txs
@@ -97,8 +98,8 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
     }
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
     store.loading += 1;
-    ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId).
-      then(({ data }) => {
+    ITransactions.loadTransaction(AuthStore.userId, AuthStore.apiKey, props.match.params.txnId)
+      .then(({ data }) => {
         if (data.transactions.length === 0) {
           props.history.push('/404');
           return;  // 404
@@ -111,7 +112,7 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
         store.type = data.transactions[0].type;
         store.loading -= 1;
       });
-  }, [props.match.params.txnId]);
+  }, [props.history, props.match.params.txnId, store.loading, store.txns, store.type]);
 
   useEffect(() => {
     async function fetchLabels() {
@@ -130,7 +131,7 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
     }
 
     fetchLabels();
-  }, [])
+  }, [store.loading, store.topLabels])
 
   // if (store.balances.length === 0) return <p>Loading...</p>;
 
@@ -162,12 +163,11 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!AuthStore.loggedIn) throw new Error('User must be logged in');
-    const txnId = props.match.params.txnId || shortid.generate();
     try {
       const toSubmit =
-        store.derivedTxns.
-          filter((txn) => txn.amount !== 0).
-          map((txn) => {
+        store.derivedTxns
+          .filter((txn) => txn.amount !== 0)
+          .map((txn) => {
             const { __typename, ...rest } = txn as ITransaction & { __typename: any };
             return rest;
           });
@@ -202,13 +202,6 @@ export default function NewBankTxn(props: RouteComponentProps<{ txnId?: string }
 
   function setTxnsProp(props: Partial<CommonTypes.ITransaction>) {
     store.txns = store.txns.map((t) => {
-      return { ...t, ...props };
-    });
-  }
-
-  function setTxnProp(txn: Partial<CommonTypes.ITransaction>, props: Partial<CommonTypes.ITransaction>) {
-    store.txns = store.txns.map((t) => {
-      if (t !== txn) return t;
       return { ...t, ...props };
     });
   }

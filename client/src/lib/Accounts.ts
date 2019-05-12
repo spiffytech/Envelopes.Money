@@ -2,12 +2,13 @@ import gql from 'graphql-tag';
 
 import mkApollo from './apollo';
 import {fragments} from './apollo';
-import {IAccount, BankAccount, Envelope, Intervals} from './types';
+import {IAccount, BankAccount, Envelope, Intervals, INTERVALS} from './types';
 
 export type T = IAccount;
 export type Envelope = Envelope;
 export type BankAccount = BankAccount;
 export type Intervals = Intervals;
+export {INTERVALS};
 
 export function isEnvelope(account: T): account is Envelope {
   return account.type === 'envelope';

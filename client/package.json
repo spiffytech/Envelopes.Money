@@ -11,8 +11,8 @@
     "react": "^16.8.4",
     "react-dom": "^16.8.4",
     "react-router-dom": "^5.0.0",
-    "react-scripts": "2.1.8",
-    "typescript": "3.3.3333"
+    "react-scripts": "3.0.1",
+    "typescript": "^3.4.0"
   },
   "scripts": {
     "prestart": "tailwind build ./src/index.tailwind.css -c ./tailwind.js -o ./src/index.css",

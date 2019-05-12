@@ -1,11 +1,12 @@
 import React from 'react';
 
+import {Intervals} from '../lib/Accounts';
 import * as Balances from '../lib/Balances';
 import styles from './Balance.module.css';
 import { toDollars } from '../lib/pennies';
 
-export default function Balance({ balance, adjustment }: { balance: Balances.T, adjustment?: number }) {
-  const prorated = Balances.isBalanceEnvelope(balance) ? Balances.calcAmountForPeriod(balance)['monthly'] : 0;
+export default function Balance({ balance, adjustment, interval }: { balance: Balances.T, adjustment?: number, interval?: Intervals }) {
+  const prorated = Balances.isBalanceEnvelope(balance) ? Balances.calcAmountForPeriod(balance)[interval || 'monthly'] : 0;
   adjustment = adjustment || 0;
 
   return <>
@@ -24,7 +25,7 @@ export default function Balance({ balance, adjustment }: { balance: Balances.T, 
       <div className='text-right'>{toDollars(balance.balance + adjustment)}</div>
       {Balances.isBalanceEnvelope(balance) ?
         <div className='text-right text-xs italic'>
-          {toDollars(prorated)} / month
+          {toDollars(prorated)} / {interval}
         </div> :
         null
       }

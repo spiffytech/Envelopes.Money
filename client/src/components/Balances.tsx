@@ -4,6 +4,7 @@ import localForage from 'localforage';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import {Intervals} from '../lib/Accounts';
 import * as Balances2 from '../lib/Balances';
 import Balance from './Balance';
 import * as cache from '../lib/cache';
@@ -12,6 +13,7 @@ import { AuthStore, FlashStore } from '../store';
 
 export default function Balances() {
   const [balances, setBalances] = useState<Balances2.T[]>([]);
+  const fillInterval = localStorage.getItem('fillInterval') as Intervals || 'monthly';
 
   const groups = groupBy(balances, (balance) => balance.type);
 
@@ -70,7 +72,7 @@ export default function Balances() {
               className='flex justify-between p-3 border rounded border-grey-light no-underline text-black'
               key={balance.id}
             >
-              <Balance balance={balance} />
+              <Balance balance={balance} interval={fillInterval} />
             </Link>
           )}
         </div>
@@ -93,7 +95,7 @@ export default function Balances() {
               <header>
                 {tagValue === 'null' ? 'No Value' : tagValue || 'No Value'}: &nbsp;
                 {toDollars(envelopes.map((envelope) => envelope.balance).reduce((acc, item) => acc + item, 0))} / &nbsp;
-                {toDollars(envelopes.map((envelope) => Balances2.calcAmountForPeriod(envelope)['monthly']).reduce((acc, item) => acc + item, 0))}
+                {toDollars(envelopes.map((envelope) => Balances2.calcAmountForPeriod(envelope)[fillInterval]).reduce((acc, item) => acc + item, 0))}
               </header>
               {envelopes.map((balance) =>
                 <Link
@@ -101,7 +103,7 @@ export default function Balances() {
                   className='flex justify-between p-3 border rounded border-grey-light no-underline text-black'
                   key={balance.id}
                 >
-                  <Balance balance={balance} />
+                  <Balance balance={balance} interval={fillInterval} />
                 </Link>
               )}
             </div>

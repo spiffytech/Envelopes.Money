@@ -17,7 +17,7 @@ const MoneyInputMemo = React.memo(MoneyInput);
 export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: string }>) {
   interface Fill { id: string, envelopeId: string; amount: number; envelope: Balances.BalanceEnvelope }
   const [fills, setFills] = useState<Fill[]>([]);
-  const [interval, setInterval] = useState<Intervals>('weekly');
+  const [interval, setInterval] = useState<Intervals>(localStorage.getItem('fillInterval') as Intervals || 'monthly');
 
   function setError(msg: string) {
     FlashStore.flash = msg;
@@ -131,7 +131,7 @@ export default function FillEnvelopes(props: RouteComponentProps<{ txnId?: strin
 
         <select
           value={interval}
-          onChange={(event) => setInterval(event.target.value as Intervals)}
+          onChange={(event) => {setInterval(event.target.value as Intervals); localStorage.setItem('fillInterval', event.target.value);}}
           className='border'
         >
           {INTERVALS.map((interval) => <option value={interval}>{capitalize(interval)}</option>)}

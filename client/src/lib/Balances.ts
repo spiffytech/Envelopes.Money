@@ -52,7 +52,6 @@ export function calcAmountWithDueDate(balance: BalanceEnvelope): {[key in Interv
   return fromPairs(
     INTERVALS.map((interval) => [
       interval,
-      balance.extra.interval === 'total' ? 0 :
       (
         calcRemainingBalance(balance) *
         multiplierWithDueDate(durations[interval as Intervals], daysUntilDue(due))

@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import Home from './components/Home';
 import EditAccount from './components/EditAccount';
+import EditTags from './components/EditTags';
 import EditTxn from './components/EditTxn';
 import FillEnvelopes from './components/FillEnvelopes';
 import LogIn from './components/LogIn';
@@ -73,6 +74,7 @@ function App() {
                 <div className='navRight'>
                   <Link to='/editTxn' className='link-btn link-btn-primary'>New Transaction</Link>
                   <Link to='/editAccount' className='link-btn link-btn-secondary'>New Account</Link>
+                  <Link to='/editTags' className='link-btn link-btn-secondary'>Edit Tags</Link>
                   <Link to='/fill' className='link-btn link-btn-secondary'>Fill Envelopes</Link>
                 </div>
               </div>
@@ -80,6 +82,7 @@ function App() {
               <Flash />
 
               <Switch>
+                <Route exact path='/editTags' component={EditTags} />
                 <Route exact path='/editAccount/:accountId' component={EditAccount} />
                 <Route exact path='/editAccount' component={EditAccount} />
                 <Route exact path='/editTxn/:txnId' component={EditTxn} />

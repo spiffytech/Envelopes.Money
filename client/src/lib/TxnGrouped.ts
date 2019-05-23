@@ -18,7 +18,8 @@ export function loadTransactions(userId: string, apiKey: string, searchTerm: str
             {label: {_ilike: $searchTerm}},
             {memo: {_ilike: $searchTerm}},
             {from_name: {_ilike: $searchTerm}},
-            {to_names: {_ilike: $searchTerm}}
+            {to_names: {_ilike: $searchTerm}},
+            {amount_str: {_ilike: $searchTerm}}
           ]}
         ]}) {
           ...txn_grouped

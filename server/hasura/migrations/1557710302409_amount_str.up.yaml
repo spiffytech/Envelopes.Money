@@ -1,0 +1,21 @@
+- args:
+    cascade: false
+    sql: "CREATE OR REPLACE VIEW \"public\".\"txns_grouped\" AS \n SELECT t1.to_names,\n
+      \   t1.to_ids,\n    t1.amount,\n    transactions.txn_id,\n    transactions.user_id,\n
+      \   transactions.label,\n    transactions.date,\n    transactions.memo,\n    transactions.type,\n
+      \   transactions.from_id,\n    transactions.from_name,\n    round(t1.amount
+      / 100.0, 2) as amount_str\n   FROM (( SELECT transactions_1.txn_id,\n            string_agg(accounts.name,
+      ', '::text ORDER BY accounts.name) AS to_names,\n            string_agg(transactions_1.id,
+      ','::text) AS to_ids,\n            sum((- transactions_1.amount)) AS amount\n
+      \          FROM (transactions transactions_1\n             JOIN accounts ON
+      ((transactions_1.to_id = accounts.id)))\n          GROUP BY transactions_1.txn_id)
+      t1\n     LEFT JOIN ( SELECT transactions_1.txn_id,\n            transactions_1.user_id,\n
+      \           transactions_1.label,\n            transactions_1.date,\n            transactions_1.memo,\n
+      \           transactions_1.type,\n            transactions_1.from_id,\n            accounts.name
+      AS from_name,\n            row_number() OVER (PARTITION BY transactions_1.txn_id)
+      AS rn,\n            transactions_1.insertion_order\n           FROM (transactions
+      transactions_1\n             JOIN accounts ON (((transactions_1.from_id = accounts.id)
+      AND (transactions_1.user_id = accounts.user_id))))) transactions USING (txn_id))\n
+      \ WHERE (transactions.rn = 1)\n  ORDER BY transactions.date DESC, transactions.insertion_order
+      DESC;"
+  type: run_sql

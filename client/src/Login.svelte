@@ -26,7 +26,7 @@
 <form on:submit|preventDefault={handleSubmit}>
     <header class="font-bold">Log In</header>
 
-    {#if error}<p>{error}</p>{/if}
+    {#if error}<p class='error'>{error}</p>{/if}
 
     <label>
         Username:

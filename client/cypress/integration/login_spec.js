@@ -1,4 +1,7 @@
 describe('Visiting the home page', () => {
+    before(() => {
+        cy.register();
+    });
     beforeEach(() => {
         cy.visit('/');
     });
@@ -14,7 +17,7 @@ describe('Visiting the home page', () => {
         cy.get('button[type=submit]').click();
 
         // Still on the login page
-        cy.url().should('include', '#!/login');
+        cy.hash().should('eq', '#!/login');
 
         // We didn't reset the form
         cy.get('input[type=email').should('have.value', 'foo')
@@ -42,17 +45,46 @@ describe('Visiting the home page', () => {
         cy.url().should('include', '#!/login');
 
         // We didn't reset the form
-        cy.get('input[type=email').should('have.value', 'foo@example.com')
-        cy.get('input[type=password').should('have.value', 'bar')
+        cy.get('input[type=email').should('have.value', 'foo@example.com');
+        cy.get('input[type=password').should('have.value', 'bar');
 
-        cy.get('.error').should('have.text', 'Invalid credentials')
+        cy.get('.error').should('have.text', 'Invalid credentials');
     });
 
-    it('should redirect on login', () => {
-        cy.get('input[type=email').type(Cypress.env('username'));
+    it('should present an error if the password is valid but the email doesn\'t match', () => {
+        cy.get('input[type=email').type('foo@example.com');
         cy.get('input[type=password').type(Cypress.env('password'));
         cy.get('button[type=submit]').click();
 
-        cy.url().should('include', '#!/home');
+        // Still on the login page
+        cy.url().should('include', '#!/login');
+
+        // We didn't reset the form
+        cy.get('input[type=email').should('have.value', 'foo@example.com');
+        cy.get('input[type=password').should('have.value', Cypress.env('password'));
+
+        cy.get('.error').should('have.text', 'Invalid credentials');
+    });
+
+    it('should redirect on login', () => {
+        cy.get('input[type=email').type(Cypress.env('email'));
+        cy.get('input[type=password').type(Cypress.env('password'));
+        cy.get('button[type=submit]').click();
+
+        cy.hash().should('eq', '#!/home');
+    });
+
+    it('should store API credentials in localstorage when we log in', () => {
+        cy.get('input[type=email').type(Cypress.env('email'));
+        cy.get('input[type=password').type(Cypress.env('password'));
+        cy.get('button[type=submit]').click();
+
+        cy.window().then((window) => {
+            const credsJSON = window.localStorage.getItem('creds');
+            const creds = JSON.parse(credsJSON);
+            console.log(creds);
+            expect(creds.userId).to.not.be.empty;
+            expect(creds.apikey).to.not.be.empty;
+        })
     });
 });

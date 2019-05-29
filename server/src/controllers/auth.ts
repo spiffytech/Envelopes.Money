@@ -63,7 +63,7 @@ export async function signUp(req: express.Request, res: express.Response) {
     }));
     console.log(`Signed up ${req.body.email}`);
     setCookie(res, apikey, userId);
-    res.send({success: true});
+    res.send({success: true, userId, apikey});
   } catch(ex) {
     console.error(ex);
   }

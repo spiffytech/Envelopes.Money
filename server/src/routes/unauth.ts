@@ -7,6 +7,6 @@ const router = express.Router();
 export default router;
 
 router.
-  post('/signup', auth.signUp).
+  post('/signup', express.json(), auth.signUp).
   post('/login', express.json(), auth.logIn).
   get('/hasura_auth', hasura.authHook);

@@ -23,3 +23,13 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('register', () => {
+    cy.exec('npm run --silent generate_test_credentials').then((result) => {
+        const [email, password] = result.stdout.trim().split(',');
+        Cypress.env('email', email);
+        Cypress.env('password', password);
+
+        cy.request({url: '/signup', method: 'POST', body: {email, password}});
+    });
+});

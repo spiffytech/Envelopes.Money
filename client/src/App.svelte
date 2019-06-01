@@ -1,5 +1,6 @@
 <script>
 	import checkOnline from 'is-online';
+	import page from 'page';
 	import {getContext, setContext} from 'svelte';
 
   import {endpoint} from './lib/config';
@@ -9,14 +10,10 @@
 	import FillEnvelopes from './FillEnvelopes.svelte';
 	import Home from './Home.svelte';
 	import Login from './Login.svelte';
+	import mkApollo from './lib/apollo';
   let route;
   let routeParams;
-	import page from 'page';
 
-	setContext('endpoint', endpoint)
-	setContext('creds', JSON.parse(localStorage.getItem('creds')));
-  const creds = getContext('creds');
-  
   function setRoute(r) {
     return function({params}) {
       route = r;
@@ -24,16 +21,29 @@
     }
   }
 
-	page('/', () => route = Home);
-	page('/home', () => route = Home);
-	page('/login', () => route = Login);
-	page('/fill', () => route = FillEnvelopes);
+	page('/', setRoute(Home));
+	page('/home', setRoute(Home));
+	page('/login', setRoute(Login));
+	page('/fill', setRoute(FillEnvelopes));
 	page('/editTags', setRoute(EditTags));
 	page('/editTxn', setRoute(EditTxn));
 	page('/editTxn/:txnId', setRoute(EditTxn));
 	page('/editAccount', setRoute(EditAccount));
   page('/editAccount/:accountId', setRoute(EditAccount));
-  page({hashbang: true});
+	page({hashbang: true});
+
+	setContext('endpoint', endpoint)
+	const creds = JSON.parse(localStorage.getItem('creds'));
+	if (!creds) {
+		page('/login');
+	} else {
+		setContext('creds', creds);
+		const graphql = {apollo: mkApollo(creds.apikey), userId: creds.userId, apikey: creds.apikey};
+		setContext('graphql', graphql);
+		if (window.Cypress) {
+			window.graphql = graphql;
+		}
+	}
 
 	let onlineStatus = undefined;
 
@@ -45,8 +55,6 @@
       watchOnlineStatus();
     }
     watchOnlineStatus();
-
-	if (!creds) page('/login');
 </script>
 
 {#if onlineStatus || onlineStatus === undefined}

@@ -1,13 +1,12 @@
 <script>
   import fromPairs from 'lodash/fromPairs';
   import page from 'page';
-  import {onMount} from 'svelte';
+  import {getContext, onMount} from 'svelte';
   
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
-  import {guardCreds} from './lib/utils';
 
-  const creds = guardCreds();
+  const graphql = getContext('graphql');
   let initializeP = new Promise(() => null);
   let allTags = [];
   let accounts = [];
@@ -16,10 +15,10 @@
 
   onMount(() => {
     async function initialize() {
-      const {data: tags} = await Tags.loadTags(creds);
+      const {data: tags} = await Tags.loadTags(graphql);
       allTags = tags.tags.map(({tag}) => tag);
 
-      const {data: accountsData} = await Accounts.loadAccounts(creds);
+      const {data: accountsData} = await Accounts.loadAccounts(graphql);
       accounts =
         accountsData.accounts.
         filter(Accounts.isEnvelope).
@@ -42,8 +41,8 @@
       map((account) => account.id);
   
     try {
-      await Tags.updateAccountsTags(creds, accountsWithSelectedTag)
-      await Tags.deleteTagFromAccounts(creds, selectedTag, accountsWithoutSelectedTag);
+      await Tags.updateAccountsTags(graphql, accountsWithSelectedTag)
+      await Tags.deleteTagFromAccounts(graphql, selectedTag, accountsWithoutSelectedTag);
       error = null;
       page('/home');
     } catch (ex) {

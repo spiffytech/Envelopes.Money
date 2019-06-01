@@ -1,4 +1,4 @@
-describe('Visiting the home page', () => {
+describe('Visiting the login page', () => {
     before(() => {
         cy.register();
     });

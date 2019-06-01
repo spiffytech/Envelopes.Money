@@ -3,26 +3,25 @@
   import moment from 'moment';
   import page from 'page';
   import * as shortid from 'shortid';
-  import {onMount} from 'svelte';
+  import {getContext, onMount} from 'svelte';
 
+  import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
 
-  import {guardCreds} from './lib/utils';
-
-  const creds = guardCreds();
+  const graphql = getContext('graphql');
 
   export let params;
 
   let accountId;
   $: accountId = params.accountId ? Base64.decode(params.accountId) : null;
-  let account = Accounts.mkEmptyEnvelope(creds.userId);
+  let account = Accounts.mkEmptyEnvelope(graphql.userId);
   let canChangeType = true;
   let tags = [];
   let newTag = {key: '', value: ''};
 
   $: if (accountId) {
-    Accounts.loadAccount(creds, accountId).
+    Accounts.loadAccount(graphql, accountId).
     then(({data}) => {
       if (data.accounts.length === 0) {
         page('/404');
@@ -35,7 +34,7 @@
   }
 
   onMount(async () => {
-    const {data} = await Tags.loadTags(creds);
+    const {data} = await Tags.loadTags(graphql);
     tags = data.tags.map(({tag}) => tag);
   });
 
@@ -43,7 +42,7 @@
     const {__typename, ...rest} = account;
     const accountWithId =
       {...rest, id: rest.id || `${rest.type}/${shortid.generate()}`}
-    await Accounts.saveAccount(creds, accountWithId);
+    await accountsStore.saveAccount(graphql, accountWithId);
     page('/');
   }
 </script>
@@ -55,6 +54,7 @@
     placeholder='Name'
     bind:value={account.name}
     class='border'
+    data-cy='name'
   />
 
   <select
@@ -70,7 +70,12 @@
       type='date'
       class='border'
       value={account.extra.due ? moment(account.extra.due).toISOString(false).slice(0, 10) : ''}
-      on:input={(event) => account.extra.due = new Date(event.target.value)}
+      on:input={(event) => {
+        const newDate = new Date(event.target.value);
+        if (isNaN(newDate.getTime())) return;  // Cypress triggers this while typing dates
+        account.extra.due = newDate;
+      }}
+      data-cy='due-date'
     />
 
     <button
@@ -83,9 +88,10 @@
     <input
       type='number'
       step='0.01'
-      value={account.extra.target / 100}
+      value={(account.extra.target / 100) || ''}
       on:input={(event) => account.extra.target = Math.round(parseFloat(event.target.value) * 100)}
       class='border'
+      data-cy='target'
     />
 
     <select bind:value={account.extra.interval}>
@@ -116,11 +122,13 @@
         placeholder='New tag name'
         bind:value={newTag.key}
         class='border'
+        data-cy='new-tag-name'
       />
       <input
         placeholder='New tag value'
         bind:value={newTag.value}
         class='border'
+        data-cy='new-tag-value'
       />
 
       <button
@@ -131,6 +139,7 @@
           newTag.value = '';
         }}
         class='btn btn-secondary'
+        data-cy='add-tag'
       >
         Add Tag
       </button>

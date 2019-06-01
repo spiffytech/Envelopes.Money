@@ -1,14 +1,12 @@
 import gql from 'graphql-tag';
 
-import mkApollo from './apollo';
 import {fragments} from './apollo';
 
 export function isEnvelope(account) {
   return account.type === 'envelope';
 }
 
-export function loadAccounts({userId, apikey}) {
-  const apollo = mkApollo(apikey);
+export function loadAccounts({userId, apollo}) {
   return apollo.query({
     query: gql`
       ${fragments}
@@ -22,8 +20,7 @@ export function loadAccounts({userId, apikey}) {
   });
 }
 
-export function loadAccount({userId, apikey}, accountId) {
-  const apollo = mkApollo(apikey);
+export function loadAccount({userId, apollo}, accountId) {
   return apollo.query({
     query: gql`
       ${fragments}
@@ -37,8 +34,7 @@ export function loadAccount({userId, apikey}, accountId) {
   });
 }
 
-export function saveAccount({userId, apikey}, account) {
-  const apollo = mkApollo(apikey);
+export function saveAccount({apollo}, account) {
   return apollo.mutate({
     mutation: gql`
       ${fragments}

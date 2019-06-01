@@ -129,8 +129,8 @@
 {#await initializeP}
   <p>Loading...</p>
 {:then}
-  {#if from.length === 0 || to.length === 0 }
-    <p>Go create some accounts and envelopes before trying to do this</p>
+  {#if from === undefined || to === undefined || from.length === 0 || to.length === 0 }
+    <p data-cy=no-data>Go create some accounts and envelopes before trying to do this</p>
   {:else}
     {#if error}<p>Error! {error}</p>{/if}
     <div class="flex justify-around">

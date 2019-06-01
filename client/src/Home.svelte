@@ -48,17 +48,30 @@
   }
 </script>
 
-<button class="btn btn-tertiary" on:click={() => activeTab = 'transactions'}>Transactions</button>
-<button class="btn btn-tertiary" on:click={() => activeTab = 'accounts'}>Accounts</button>
+<button class="btn btn-tertiary" on:click={() => activeTab = 'transactions'} data-cy='transactions'>
+  Transactions
+</button>
+<button class="btn btn-tertiary" on:click={() => activeTab = 'accounts'} data-cy='accounts'>
+  Accounts
+</button>
 {#if activeTab === 'transactions'}
-  <input class='border w-full' bind:value={searchTerm} placeholder='Search for transactions' />
+  <input
+    class='border w-full'
+    bind:value={searchTerm}
+    placeholder='Search for transactions'
+    data-cy='transactions-search'
+  />
 
   {#await txnsGrouped}
       Loading transactions...
   {:then txns}
-    <button class='btn btn-tertiary' on:click={exportTxns} type='button'>
+    <button class='btn btn-tertiary' on:click={exportTxns} type='button' data-cy='export-transactions'>
       Export Transactions
     </button>
+
+    {#if txns.data.txns_grouped.length === 0}
+      <p data-cy='no-transactions'>You don't have any transactions yet! Go create some by clicking the button in the top-right.</p>
+    {/if}
 
     {#each txns.data.txns_grouped.slice(page * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
       <div

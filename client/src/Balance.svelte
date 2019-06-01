@@ -42,7 +42,7 @@
 </style>
 
 <div class="font-bold">
-  <div>{balance.name}</div>
+  <div data-cy='balance-name'>{balance.name}</div>
   {#if Balances.isBalanceEnvelope(balance)}
     <progress
       class={(balance.balance + adjustment) < 0 ? 'progress-flipped' : 'progress'}
@@ -52,11 +52,11 @@
   {/if}
 </div>
 
-<div>
+<div data-cy='balance-fill-stuff'>
   <div class="text-right">{toDollars(balance.balance + adjustment)}</div>
   {#if Balances.isBalanceEnvelope(balance)}
     <div class="text-right text-xs italic">
-      {toDollars(prorated)} / {interval}
+      <span data-cy='fill-per-period'>{toDollars(prorated)}</span> / {interval}
     </div>
   {/if}
 </div>

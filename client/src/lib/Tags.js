@@ -3,8 +3,7 @@ import gql from 'graphql-tag';
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 
-export function loadTags({userId, apikey}) {
-  const apollo = mkApollo(apikey);
+export function loadTags({userId, apollo}) {
   return apollo.query({
     query: gql`
       ${fragments}
@@ -22,8 +21,7 @@ export function loadTags({userId, apikey}) {
  * Sets the given tag from the given accounts
  * @param {{accountId: string]: {[tag: string]: any}}} accounts 
  */
-export function updateAccountsTags({userId, apikey}, accounts) {
-  const apollo = mkApollo(apikey);
+export function updateAccountsTags({userId, apollo}, accounts) {
   const promises = Object.entries(accounts).map(([account, tags]) => {
     return apollo.mutate({
       mutation: gql`
@@ -48,8 +46,7 @@ export function updateAccountsTags({userId, apikey}, accounts) {
  * @param {string} tag
  * @param {string[]} accounts
  */
-export function deleteTagFromAccounts({userId, apikey}, tag, accounts) {
-  const apollo = mkApollo(apikey);
+export function deleteTagFromAccounts({userId, apollo}, tag, accounts) {
   return apollo.mutate({
     mutation: gql`
       mutation DeleteTags($user_id: String!, $tag: String!, $accounts: [String!]!) {

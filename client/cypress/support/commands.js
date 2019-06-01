@@ -30,6 +30,33 @@ Cypress.Commands.add('register', () => {
         Cypress.env('email', email);
         Cypress.env('password', password);
 
-        cy.request({url: '/signup', method: 'POST', body: {email, password}});
+        cy.request({url: '/signup', method: 'POST', body: {email, password}}).
+        then((response) => {
+            Cypress.env('userId', response.body.userId);
+            Cypress.env('apikey', response.body.apikey);
+            window.localStorage.setItem('creds', JSON.stringify({userId: response.body.userId, apikey: response.body.apikey}))
+            cy.setCookie('apikey', response.body.apikey);
+        });
+    });
+});
+
+Cypress.Commands.add('login', () => {
+    cy.request({
+        url: '/login',
+        method: 'POST',
+        body: {email: Cypress.env('email'), password: Cypress.env('password')}
+    }).then((response) => {
+        Cypress.env('userId', response.body.userId);
+        Cypress.env('apikey', response.body.apikey);
+        window.localStorage.setItem('creds', JSON.stringify({userId: response.body.userId, apikey: response.body.apikey}));
+    });
+});
+
+Cypress.Commands.add('setLogin', () => {
+    cy.window().then((window) => {
+        window.localStorage.setItem(
+            'creds', JSON.stringify({userId: Cypress.env('userId'), apikey: Cypress.env('apikey')})
+        );
+        cy.setCookie('apikey', Cypress.env('apikey'));
     });
 });

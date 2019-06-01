@@ -79,6 +79,8 @@
           <a
             href={`/editAccount/${Base64.encode(envelope.id)}`}
             class="flex justify-between p-3 border rounded border-grey-light no-underline text-black"
+            data-cy='account'
+            data-account-name={envelope.name}
           >
             <Balance balance={envelope} interval={interval} />
           </a>

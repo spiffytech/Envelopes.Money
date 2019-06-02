@@ -5,12 +5,10 @@
   import Accounts from './Accounts.svelte';
   import {toDollars} from './lib/pennies';
   import * as TxnGrouped from './lib/TxnGrouped';
-  import {arrays as store} from './stores/main';
-
-  let searchTerm = '';
+  import {arrays as derivedStore, store} from './stores/main';
 
   let txnsGrouped;
-  $: txnsGrouped = $store.txnsGrouped;
+  $: txnsGrouped = $derivedStore.txnsGrouped;
   const numItemsPerPage = 100;
   let pageNum = 0;
 
@@ -53,7 +51,7 @@
 {#if activeTab === 'transactions'}
   <input
     class='border w-full'
-    bind:value={searchTerm}
+    bind:value={$store.searchTerm}
     placeholder='Search for transactions'
     data-cy='transactions-search'
   />

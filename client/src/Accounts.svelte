@@ -7,12 +7,13 @@
 
   import Balance from './Balance.svelte';
   import * as Balances from './lib/Balances';
+  import {arrays as store} from './stores/main';
   import {toDollars} from './lib/pennies';
   import {guardCreds} from './lib/utils';
 
   const creds = guardCreds();
 
-  let balances = [];
+  let balances = $store.balances;
 
   // Default for if the user hasn't selected a fill interval yet.
   let interval = localStorage.getItem('fillInterval') || 'monthly';
@@ -33,13 +34,8 @@
       map((envelope) => Object.keys(envelope.tags))
   ))).sort((a, b) => !a ? 1 : a < b ? -1 : 1);
   
-  let balancesP = new Promise(() => null);
-  
   onMount(() => {
-    balancesP = (async () => {
-      const {data} = await Balances.loadBalances(creds);
-      balances = data.balances;
-
+    (async () => {
       selectedTag = await localforage.getItem('selectedTag');
     })();
   });

@@ -5,7 +5,7 @@
   import Accounts from './Accounts.svelte';
   import {toDollars} from './lib/pennies';
   import * as TxnGrouped from './lib/TxnGrouped';
-  import {store} from './stores/main';
+  import {arrays as store} from './stores/main';
 
   let searchTerm = '';
 

@@ -97,3 +97,17 @@ export function loadBalances({userId, apikey}) {
     variables: {user_id: userId},
   });
 }
+
+export async function subscribe({userId, apollo}, onData) {
+  return apollo.subscribe({
+    query: gql`
+      ${fragments}
+      subscription SubscribeBalances($user_id: String!) {
+        balances(where: {user_id: {_eq: $user_id}}) {
+          ...balance
+        }
+      }
+    `,
+    variables: {user_id: userId},
+  }).subscribe({next: onData});
+}

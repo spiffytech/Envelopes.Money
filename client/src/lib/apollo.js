@@ -12,7 +12,6 @@ function mkClient(token, isAdmin=false) {
   const httpUri = process.env.GRAPHQL_HTTP_HOST;
   if (!httpUri) throw new Error('Missing Apollo GraphQL endpoint');
   const wssUri = process.env.GRAPHQL_WSS_HOST;
-  console.log(wssUri);
   if (!wssUri) throw new Error('Missing Apollo GraphQL endpoint');
   const httpLink = createHttpLink({uri: httpUri});
   const wssLink = new WebSocketLink({

@@ -9,6 +9,8 @@
   import EditTxn from './EditTxn.svelte';
 	import FillEnvelopes from './FillEnvelopes.svelte';
 	import Home from './Home.svelte';
+	import * as mainStore from './stores/main';
+	import {store} from './stores/main';
 	import Login from './Login.svelte';
 	import mkApollo from './lib/apollo';
   let route;
@@ -43,6 +45,8 @@
 		if (window.Cypress) {
 			window.graphql = graphql;
 		}
+
+		mainStore.subscribe(graphql);
 	}
 
 	let onlineStatus = undefined;

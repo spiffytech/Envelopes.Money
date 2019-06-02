@@ -26,7 +26,7 @@ export function loadTransactions({userId, apikey}, searchTerm) {
   });
 }
 
-export async function subscribeTransactions({userId, apollo}) {
+export async function subscribeTransactions({userId, apollo}, onData) {
   return apollo.subscribe({
     query: gql`
       ${fragments}
@@ -39,5 +39,5 @@ export async function subscribeTransactions({userId, apollo}) {
       }
     `,
     variables: {user_id: userId},
-  }).subscribe({next: console.log});
+  }).subscribe({next: onData});
 }

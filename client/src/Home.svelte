@@ -1,20 +1,26 @@
 <script>
-    import page from 'page';
-    import {getContext} from 'svelte';
+  import page from 'page';
+  import {getContext} from 'svelte';
 
-    import Accounts from './Accounts.svelte';
-    import {toDollars} from './lib/pennies';
-    import * as TxnGrouped from './lib/TxnGrouped';
+  import Accounts from './Accounts.svelte';
+  import {toDollars} from './lib/pennies';
+  import * as TxnGrouped from './lib/TxnGrouped';
 
-    const creds = getContext('creds');
-    let searchTerm = '';
+  const creds = getContext('creds');
+  const graphql = getContext('graphql');
+  let searchTerm = '';
 
-    let txnsGrouped;
-    $: txnsGrouped = TxnGrouped.loadTransactions(creds, searchTerm);
-    const numItemsPerPage = 100;
-    let pageNum = 0;
+  let txnsGrouped;
+  $: txnsGrouped = TxnGrouped.loadTransactions(creds, searchTerm);
+  const numItemsPerPage = 100;
+  let pageNum = 0;
 
-    let activeTab = 'transactions';
+  let activeTab = 'transactions';
+
+  function doSubscription() {
+    TxnGrouped.subscribeTransactions(graphql);
+  }
+  doSubscription();
 
   function triggerDownload(data) {
     var a = document.createElement("a");

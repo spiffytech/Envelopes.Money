@@ -25,3 +25,19 @@ export function loadTransactions({userId, apikey}, searchTerm) {
     variables: {user_id: userId, searchTerm: `%${searchTerm}%`},
   });
 }
+
+export async function subscribeTransactions({userId, apollo}) {
+  return apollo.subscribe({
+    query: gql`
+      ${fragments}
+      subscription GetTxnsGrouped($user_id: String!) {
+        txns_grouped(where: 
+          {user_id: {_eq: $user_id}}
+        ) {
+          ...txn_grouped
+        }
+      }
+    `,
+    variables: {user_id: userId},
+  }).subscribe({next: console.log});
+}

@@ -2,15 +2,30 @@ import {InMemoryCache} from 'apollo-cache-inmemory';
 import {ApolloClient} from 'apollo-client';
 import {setContext} from 'apollo-link-context';
 import {onError} from 'apollo-link-error';
+import {split} from 'apollo-link';
 import {createHttpLink} from 'apollo-link-http';
+import {WebSocketLink} from 'apollo-link-ws';
+import {getMainDefinition} from 'apollo-utilities';
 import gql from 'graphql-tag';
 
-import {endpoint} from './config';
-
 function mkClient(token, isAdmin=false) {
-  const uri = process.env.GRAPHQL_HTTP_HOST;
-  if (!uri) throw new Error('Missing Apollo GraphQL endpoint');
-  const httpLink = createHttpLink({uri});
+  const httpUri = process.env.GRAPHQL_HTTP_HOST;
+  if (!httpUri) throw new Error('Missing Apollo GraphQL endpoint');
+  const wssUri = process.env.GRAPHQL_WSS_HOST;
+  console.log(wssUri);
+  if (!wssUri) throw new Error('Missing Apollo GraphQL endpoint');
+  const httpLink = createHttpLink({uri: httpUri});
+  const wssLink = new WebSocketLink({
+    uri: wssUri,
+    options: {
+      reconnect: true,
+      connectionParams: {
+        headers: {
+          ...(isAdmin ? {'x-hasura-access-key': token} : {'Authorization': `Bearer ${token}`}),
+        }
+      },
+    }
+  });
   const authLink = setContext((_, {headers}) => {
     return {
       headers: {
@@ -30,12 +45,21 @@ function mkClient(token, isAdmin=false) {
       );
     }
 
-    if (networkError) console.error(`[Network error]: ${networkError}`);
+    if (networkError) console.error(`[Network error]: ${JSON.stringify(networkError)}`);
   });
+
+  const primaryLink = split(
+    ({query}) => {
+      const {kind, operation} = getMainDefinition(query);
+      return kind === 'OperationDefinition' && operation === 'subscription';
+    },
+    wssLink,
+    httpLink
+  );
 
   const client = new ApolloClient({
     cache: new InMemoryCache(),
-    link: authLink.concat(errorLink).concat(httpLink),
+    link: authLink.concat(errorLink).concat(primaryLink),
   });
 
   return client;

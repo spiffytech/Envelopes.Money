@@ -60,3 +60,20 @@ Cypress.Commands.add('setLogin', () => {
         cy.setCookie('apikey', Cypress.env('apikey'));
     });
 });
+
+Cypress.Commands.add('loadAccounts', (envelopeId) => {
+    // This `visit` is necessary, otherwise we have a window object from a
+    // previous test
+    cy.visit('/');
+    cy.window().then(async (window) => {
+        console.log('Creating a test envelope');
+        const graphql = window.graphql;
+        let envelope = window.Envelope.mkEmptyEnvelope(graphql.userId);
+        envelope = window.Envelope.setId(envelope, envelopeId);
+        envelope = window.Envelope.setName(envelope, 'Existing Test Envelope');
+        envelope = window.Envelope.setTarget(envelope, 2500);
+        envelope = window.Envelope.setDueDate(envelope, '2019-06-15');
+
+        await window.accountsStore.saveAccount(graphql, envelope);
+    });
+});

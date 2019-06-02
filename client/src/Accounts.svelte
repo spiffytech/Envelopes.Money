@@ -13,13 +13,11 @@
 
   const creds = guardCreds();
 
-  let balances = $store.balances;
-
   // Default for if the user hasn't selected a fill interval yet.
   let interval = localStorage.getItem('fillInterval') || 'monthly';
 
-  $: envelopes = groupBy(balances, (balance) => balance.type)['envelope'] || [];
-  $: accounts = groupBy(balances, (balance) => balance.type)['account'] || [];
+  $: envelopes = groupBy($store.balances, (balance) => balance.type)['envelope'] || [];
+  $: accounts = groupBy($store.balances, (balance) => balance.type)['account'] || [];
 
   let selectedTag = null;
 

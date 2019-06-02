@@ -8,7 +8,7 @@ import gql from 'graphql-tag';
 import {endpoint} from './config';
 
 function mkClient(token, isAdmin=false) {
-  const uri = `${endpoint}/v1alpha1/graphql`;
+  const uri = process.env.GRAPHQL_HTTP_HOST;
   if (!uri) throw new Error('Missing Apollo GraphQL endpoint');
   const httpLink = createHttpLink({uri});
   const authLink = setContext((_, {headers}) => {

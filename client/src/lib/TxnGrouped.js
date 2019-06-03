@@ -27,13 +27,12 @@ export function loadTransactions({userId, apikey}, searchTerm) {
 }
 
 export async function subscribe({userId, apollo}, onData) {
+  console.log(userId);
   return apollo.subscribe({
     query: gql`
       ${fragments}
       subscription SubscribeTxnsGrouped($user_id: String!) {
-        txns_grouped(where: 
-          {user_id: {_eq: $user_id}}
-        ) {
+        txns_grouped(where: {user_id: {_eq: $user_id}}) {
           ...txn_grouped
         }
       }

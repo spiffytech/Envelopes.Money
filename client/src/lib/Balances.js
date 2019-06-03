@@ -98,7 +98,9 @@ export function loadBalances({userId, apikey}) {
   });
 }
 
-export async function subscribe({userId, apollo}, onData) {
+export async function subscribe({userId, apikey}, onData) {
+  console.log('userid', userId);
+  const apollo = mkApollo(apikey);
   return apollo.subscribe({
     query: gql`
       ${fragments}

@@ -1,0 +1,14 @@
+[
+    {
+        "name": "Groceries",
+        "type": "envelope",
+        "extra": { "due": "2019-06-15", "target": 2500, "interval": "monthly" },
+        "tags": {}
+    },
+    {
+        "name": "Bank",
+        "type": "account",
+        "extra": {},
+        "tags": {}
+    }
+]

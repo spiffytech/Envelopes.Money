@@ -39,6 +39,9 @@ function subscribeModule(graphql, module, storeKey, dataKey) {
 }
 
 export function subscribe(graphql) {
+    window.dostuff = () => Balances.subscribe(graphql, console.log);
     subscribeModule(graphql, TxnGrouped, 'txnsGrouped', 'txns_grouped');
     subscribeModule(graphql, Balances, 'balances', 'balances');
 }
+
+store.subscribe(console.log);

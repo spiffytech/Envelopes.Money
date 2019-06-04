@@ -1,7 +1,4 @@
 describe('Visiting the login page', () => {
-    before(() => {
-        cy.register();
-    });
     beforeEach(() => {
         cy.visit('/');
     });
@@ -78,11 +75,13 @@ describe('Visiting the login page', () => {
         cy.get('input[type=email').type(Cypress.env('email'));
         cy.get('input[type=password').type(Cypress.env('password'));
         cy.get('button[type=submit]').click();
+        cy.wait(1000);
 
         cy.window().then((window) => {
             const credsJSON = window.localStorage.getItem('creds');
             const creds = JSON.parse(credsJSON);
-            console.log(creds);
+            expect(creds).to.exist;
+            console.log('credentials', creds);
             expect(creds.userId).to.not.be.empty;
             expect(creds.apikey).to.not.be.empty;
         })

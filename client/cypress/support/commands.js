@@ -67,7 +67,7 @@ Cypress.Commands.add('loadAccounts', (suffix) => {
     // This `visit` is necessary, otherwise we have a window object from a
     // previous test
     cy.fixture('accounts').then((fixture) => {
-        cy.visit('/').then(async (window) => {
+        cy.window().then(async (window) => {
             console.log('Creating a test envelope');
             const graphql = window.graphql;
             for(let account of fixture) {

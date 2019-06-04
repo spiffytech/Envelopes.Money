@@ -43,6 +43,7 @@
 		const graphql = {apollo: mkApollo(creds.apikey), userId: creds.userId, apikey: creds.apikey};
 		setContext('graphql', graphql);
 		if (window.Cypress) {
+      window.creds = creds;
 			window.graphql = graphql;
 		}
 

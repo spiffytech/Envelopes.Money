@@ -41,6 +41,8 @@ describe('Editing an existing account', () => {
     const suffix = shortid.generate();
     before(() => {
         cy.register();
+        // Necessary for us to have the right window object when loading fixtures
+        cy.visit('/');
         cy.loadAccounts(suffix);
     });
     beforeEach(() => {

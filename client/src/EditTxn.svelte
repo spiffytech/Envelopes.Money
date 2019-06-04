@@ -137,6 +137,7 @@
       <form
         class="content"
         on:submit|preventDefault={handleSubmit}
+        data-cy='edittxn-form'
       >
         <div>
           <label class='label'>

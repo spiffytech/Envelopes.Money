@@ -38,20 +38,20 @@ describe('Creating a new account', () => {
     });
 });
 describe('Editing an existing account', () => {
-    let envelopeId = `envelope/${shortid.generate()}`;
+    const suffix = shortid.generate();
     before(() => {
         cy.register();
-        cy.loadAccounts(envelopeId);
+        cy.loadAccounts(suffix);
     });
     beforeEach(() => {
         cy.setLogin();
-        cy.visit(`#!/editAccount/${Base64.encode(envelopeId)}`);
+        cy.visit(`#!/editAccount/${encodeURIComponent(encodeURIComponent(`envelope/QdIXTLRgc${suffix}`))}`);
         // Page.js isn't detecting hashbang changes
         cy.reload();
     });
 
-    it('loads the transaction', () => {
-        cy.get('input[data-cy=name]').should('have.value', 'Existing Test Envelope');
+    it('loads the envelope', () => {
+        cy.get('input[data-cy=name]').should('have.value', 'Groceries');
         cy.get('input[data-cy=due-date]').should('have.value', '2019-06-15');
         cy.get('input[data-cy=target]').should('have.value', '25');
     });

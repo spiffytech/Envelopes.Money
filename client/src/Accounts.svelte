@@ -1,5 +1,4 @@
 <script>
-  import {Base64} from 'js-base64';
   import localforage from 'localforage';
   import flatten from 'lodash/flatten';
   import groupBy from 'lodash/groupBy';
@@ -44,7 +43,7 @@
     <header class="font-bold text-base lg:textt-lg">Accounts</header>
     {#each accounts as account}
       <a
-        href={`./editAccount/${Base64.encode(account.id)}`}
+        href={`/editAccount/${encodeURIComponent(encodeURIComponent(account.id))}`}
         class="flex justify-between p-3 border rounded border-grey-light no-underline text-black"
       >
         <Balance balance={account} interval={interval} />
@@ -71,7 +70,7 @@
 
         {#each envelopes as envelope}
           <a
-            href={`/editAccount/${Base64.encode(envelope.id)}`}
+            href={`/editAccount/${encodeURIComponent(encodeURIComponent(envelope.id))}`}
             class="flex justify-between p-3 border rounded border-grey-light no-underline text-black"
             data-cy='account'
             data-account-name={envelope.name}

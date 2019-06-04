@@ -1,5 +1,4 @@
 <script>
-  import {Base64} from 'js-base64';
   import moment from 'moment';
   import page from 'page';
   import * as shortid from 'shortid';
@@ -14,7 +13,7 @@
   export let params;
 
   let accountId;
-  $: accountId = params.accountId ? Base64.decode(params.accountId) : null;
+  $: accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
   let account = Accounts.mkEmptyEnvelope(graphql.userId);
   let canChangeType = true;
   let tags = [];

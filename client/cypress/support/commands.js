@@ -63,7 +63,7 @@ Cypress.Commands.add('setLogin', () => {
     });
 });
 
-Cypress.Commands.add('loadAccounts', (envelopeId) => {
+Cypress.Commands.add('loadAccounts', (suffix) => {
     // This `visit` is necessary, otherwise we have a window object from a
     // previous test
     cy.fixture('accounts').then((fixture) => {
@@ -75,7 +75,7 @@ Cypress.Commands.add('loadAccounts', (envelopeId) => {
                     graphql,
                     {
                         ...account,
-                        id: `${account.type}/${shortid.generate()}`,
+                        id: `${account.id}${suffix}`,
                         user_id: graphql.userId,
                     },
                 );

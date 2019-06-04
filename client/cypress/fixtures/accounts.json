@@ -1,11 +1,13 @@
 [
     {
+        "id": "envelope/QdIXTLRgc",
         "name": "Groceries",
         "type": "envelope",
         "extra": { "due": "2019-06-15", "target": 2500, "interval": "monthly" },
         "tags": {}
     },
     {
+        "id": "acocunt/KpiHPFy42",
         "name": "Bank",
         "type": "account",
         "extra": {},

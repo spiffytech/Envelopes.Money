@@ -7,6 +7,10 @@ describe('Visiting the login page', () => {
         cy.url().should('include', '#!/login');
     });
 
+    it('should not include the nav bar', () => {
+        cy.get('[data-cy=nav-buttons').should('not.exist');
+    });
+
     // Browser will handle rejecting for us, validate that we set that up right
     it('should reject non-emails', () => {
         cy.get('input[type=email').type('foo');

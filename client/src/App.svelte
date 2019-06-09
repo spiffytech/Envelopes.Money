@@ -66,12 +66,14 @@
   <div class='stripe bg-orange h-1'></div>
 	<div class="bg-white border border-grey-light rounded flex justify-between flex-wrap nav mb-2">
 		<a class="btn font-bold" href="/home">HackerBudget</a>
-		<div>
-			<a class="btn btn-primary" href="/editTxn">New Transaction</a>
-			<a class="btn btn-secondary" href="/editAccount">New Account</a>
-			<a class="btn btn-secondary" href="/fill">Fill Envelopes</a>
-			<a class="btn btn-secondary" href="/editTags">Edit Tags</a>
-		</div>
+    {#if creds}
+      <div data-cy='nav-buttons'>
+        <a class="btn btn-primary" href="/editTxn" data-cy='new-transaction'>New Transaction</a>
+        <a class="btn btn-secondary" href="/editAccount" data-cy='new-account'>New Account</a>
+        <a class="btn btn-secondary" href="/fill" data-cy='fill-envelopes'>Fill Envelopes</a>
+        <a class="btn btn-secondary" href="/editTags" data-cy='edit-tags'>Edit Tags</a>
+      </div>
+    {/if}
 	</div>
 	<svelte:component this={route} bind:params={routeParams} />
 {:else}

@@ -1,31 +1,31 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
+  <div class="bg-gray-300">
+    <nav>
+      <router-link to="/">Home</router-link>|
       <router-link to="/about">About</router-link>
-    </div>
-    <router-view />
+    </nav>
+    <router-view/>
   </div>
 </template>
 
-<style>
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-#nav {
-  padding: 30px;
+<script lang="ts">
+import Vue from 'vue';
+
+import mkApollo from './lib/apollo';
+import store from './store';
+
+(window as any).store = store;
+
+const credsJSON = localStorage.getItem('creds');
+if (credsJSON) {
+  const creds = JSON.parse(credsJSON);
+  const graphql = {
+    apollo: mkApollo(creds.apikey),
+    userId: creds.userId,
+    apikey: creds.apikey
+  };
+  store.dispatch('subscribeAll', graphql);
 }
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+export default Vue.extend({});
+</script>

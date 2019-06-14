@@ -1,4 +1,10 @@
-export type TxnTypes = 'banktxn' | 'accountTransfer' | 'envelopeTransfer' | 'fill';
+import ApolloClient from 'apollo-client';
+
+export type TxnTypes =
+  | 'banktxn'
+  | 'accountTransfer'
+  | 'envelopeTransfer'
+  | 'fill';
 export interface ITransaction {
   id: string;
   user_id: string;
@@ -20,9 +26,15 @@ export interface Envelope {
   extra: {
     due: Date | null;
     target: number;
-    interval: 'total' | 'weekly' | 'biweekly' | 'bimonthly' | 'monthly' | 'annually'
+    interval:
+      | 'total'
+      | 'weekly'
+      | 'biweekly'
+      | 'bimonthly'
+      | 'monthly'
+      | 'annually';
   };
-  tags: {[key: string]: string};
+  tags: { [key: string]: string };
 }
 
 export interface BankAccount {
@@ -54,6 +66,12 @@ export interface Balance {
   user_id: string;
   name: string;
   type: string;
-  extra: {[key: string]: any};
+  extra: { [key: string]: any };
   balance: number;
+}
+
+export interface GraphqlParams {
+  userId: string;
+  apikey: string;
+  apollo: ApolloClient<any>;
 }

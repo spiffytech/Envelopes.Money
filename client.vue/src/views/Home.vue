@@ -1,18 +1,148 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
+  <div>
+    <div>
+      Sort by:
+      <select v-model="sortBy">
+        <option value="name">Name</option>
+        <option value="balance">Balance</option>
+        <option value="period-over-period">Period-Over-Period</option>
+      </select>
+    </div>
+
+    <div class="bg-gray-100 p-3 border border-black rounded-lg m-3">
+      <header class="font-bold text-lg cursor-pointer" @click="toggleShowAccounts">
+        <span>›</span> Accounts
+      </header>
+      <div v-if="showAccounts" class="flex flex-wrap">
+        <Balance
+          v-for="{account, balances} in accountBalances"
+          :key="account.id"
+          :amounts="balances"
+          :name="account.name"
+          :daysToRender="16"
+        />
+      </div>
+    </div>
+
+    <div>
+      Group by:
+      <select v-model="sortTag">
+        <option :value="null">No Tag</option>
+        <option v-for="tag in this.allTags" :key="tag" :value="tag">{{tag}}</option>
+      </select>
+    </div>
+
+    <div v-for="tagValue in envelopeTagValues" :key="tagValue">
+      <header>
+        {{sortTag || 'No tag selected'}}:
+        <span class="font-bold">{{tagValue === 'null' ? 'No Value' : tagValue}}</span>
+      </header>
+      <div class="home flex flex-wrap">
+        <Balance
+          v-for="{account, balances} in envelopesByTag[tagValue]"
+          :key="account.id"
+          :amounts="balances"
+          :name="account.name"
+          :daysToRender="16"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
+import tinydate from 'tinydate';
+import flatten from 'lodash/flatten';
+import fromPairs from 'lodash/fromPairs';
+import groupBy from 'lodash/groupBy';
+import uniq from 'lodash/uniq';
+import Vue from 'vue';
+
+import { Balance as BalanceT, TxnGrouped } from '../lib/types';
+import Balance from '../components/Balance.vue';
+
+function calcDaysInPeriod(
+  periodStart: Date,
+  days = [],
+  periodEnd = new Date()
+) {
+  const nextDate = new Date(periodStart.getTime() + 86400000);
+  if (nextDate > periodEnd) return days;
+  return calcDaysInPeriod(nextDate, [...days, nextDate], periodEnd);
+}
 
 export default Vue.extend({
-  name: "home",
+  name: 'home',
   components: {
-    HelloWorld
+    Balance
+  },
+  computed: {
+    daysToRender() {
+      return 16;
+    },
+
+    sortFn() {
+      const currentDateStr = tinydate('{YYYY}-{MM}-{DD}')(new Date());
+      return {
+        name: (a, b) => (a.account.name < b.account.name ? -1 : 1),
+        balance: (a, b) =>
+          a.balances[currentDateStr] < b.balances[currentDateStr] ? -1 : 1,
+        'period-over-period': (a, b) => {
+          const datesToRender = calcDaysInPeriod(
+            new Date(new Date().getTime() - 86400000 * this.daysToRender)
+          );
+          const amountsArrA = datesToRender.map(
+            date => a.balances[tinydate('{YYYY}-{MM}-{DD}')(date)] || 0
+          );
+          const diffA = amountsArrA[amountsArrA.length - 1] - amountsArrA[0];
+
+          const amountsArrB = datesToRender.map(
+            date => b.balances[tinydate('{YYYY}-{MM}-{DD}')(date)] || 0
+          );
+          const diffB = amountsArrB[amountsArrB.length - 1] - amountsArrB[0];
+
+          console.log(diffA, diffB);
+          return diffA < diffB ? -1 : 1;
+        }
+      }[this.sortBy];
+    },
+
+    accountBalances() {
+      return this.$store.getters.accountBalances.slice().sort(this.sortFn);
+    },
+    envelopeBalances() {
+      return this.$store.getters.envelopeBalances.slice().sort(this.sortFn);
+    },
+
+    allTags() {
+      return uniq(
+        flatten(
+          this.envelopeBalances.map(envelope =>
+            Object.keys(envelope.account.tags)
+          )
+        ).sort()
+      );
+    },
+    envelopesByTag() {
+      return groupBy(this.envelopeBalances, envelope =>
+        this.sortTag ? envelope.account.tags[this.sortTag] : null
+      );
+    },
+    envelopeTagValues() {
+      return Object.keys(this.envelopesByTag).sort();
+    }
+  },
+  data() {
+    return {
+      showAccounts: false,
+      sortBy: 'name',
+      sortTag: null
+    };
+  },
+  methods: {
+    toggleShowAccounts() {
+      this.showAccounts = !this.showAccounts;
+    }
   }
 });
 </script>

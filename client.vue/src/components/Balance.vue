@@ -1,12 +1,12 @@
 <template>
   <div
-    class="item border-black flex-grow p-3 border border-black rounded-lg m-3 bg-gray-100"
+    class="item flex-grow p-3 border border-gray-100 shadow-md rounded-lg m-3 bg-white"
     style="min-width:0"
   >
     <div class="flex justify-between">
       <div>
-        <div class="text-sm">{{name}}</div>
-        <div class="text-lg font-bold">{{currentBalance}}</div>
+        <div class="text-sm small-caps">{{name}}</div>
+        <div class="text-xl font-bold">{{currentBalance}}</div>
       </div>
       <div>
         <span

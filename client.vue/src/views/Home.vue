@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div>
+  <div class="m-3">
+    <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
       Sort by:
       <select v-model="sortBy">
         <option value="name">Name</option>
@@ -9,22 +9,23 @@
       </select>
     </div>
 
-    <div class="bg-gray-100 p-3 border border-black rounded-lg m-3">
-      <header class="font-bold text-lg cursor-pointer" @click="toggleShowAccounts">
+    <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
+      <header class="font-bold text-lg small-caps cursor-pointer" @click="toggleShowAccounts">
         <span>›</span> Accounts
       </header>
-      <div v-if="showAccounts" class="flex flex-wrap">
-        <Balance
-          v-for="{account, balances} in accountBalances"
-          :key="account.id"
-          :amounts="balances"
-          :name="account.name"
-          :daysToRender="16"
-        />
-      </div>
+    </div>
+    <div v-if="showAccounts" class="flex flex-wrap -m-3">
+      <Balance
+        v-for="{account, balances} in accountBalances"
+        :key="account.id"
+        :amounts="balances"
+        :name="account.name"
+        :daysToRender="16"
+      />
     </div>
 
-    <div>
+    <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
+      <header class="font-bold text-lg small-caps cursor-pointer">Envelopes</header>
       Group by:
       <select v-model="sortTag">
         <option :value="null">No Tag</option>
@@ -33,11 +34,13 @@
     </div>
 
     <div v-for="tagValue in envelopeTagValues" :key="tagValue">
-      <header>
+      <header class="small-caps">
         {{sortTag || 'No tag selected'}}:
-        <span class="font-bold">{{tagValue === 'null' ? 'No Value' : tagValue}}</span>
+        <span
+          class="font-bold small-caps"
+        >{{tagValue === 'null' ? 'No Value' : tagValue}}</span>
       </header>
-      <div class="home flex flex-wrap">
+      <div class="flex flex-wrap -m-3">
         <Balance
           v-for="{account, balances} in envelopesByTag[tagValue]"
           :key="account.id"
@@ -49,6 +52,12 @@
     </div>
   </div>
 </template>
+
+<style>
+.small-caps {
+  font-variant: small-caps;
+}
+</style>
 
 <script lang="ts">
 import tinydate from 'tinydate';

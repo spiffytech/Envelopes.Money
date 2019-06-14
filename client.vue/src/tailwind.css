@@ -7819,6 +7819,10 @@ video {
   margin: 1rem
 }
 
+.small-caps {
+  font-variant: small-caps;
+}
+
 @media (min-width: 640px) {
   .sm\:appearance-none {
     -webkit-appearance: none;

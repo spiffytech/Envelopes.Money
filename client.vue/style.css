@@ -101,3 +101,7 @@
 .content {
   @apply bg-white p-2 rounded border border-2 border-gray-300 m-4
 }
+
+.small-caps {
+  font-variant: small-caps;
+}

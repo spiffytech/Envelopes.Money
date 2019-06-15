@@ -42,7 +42,9 @@ import * as d3 from 'd3';
 import tinydate from 'tinydate';
 import Vue from 'vue';
 
+import { durations } from '../lib/utils';
 import { toDollars } from '../lib/pennies';
+import { IAccount } from '../lib/types';
 
 function calcDaysInPeriod(
   periodStart: Date,
@@ -55,8 +57,19 @@ function calcDaysInPeriod(
 }
 
 export default Vue.extend({
-  props: ['amounts', 'name', 'daysToRender'],
+  props: ['amounts', 'name', 'account', 'defaultDaysToRender'],
   computed: {
+    daysToRender() {
+      const account: IAccount = this.account;
+      if (account.type === 'envelope') {
+        console.log(durations);
+        if (account.extra.interval === 'total') {
+          return this.defaultDaysToRender + 1;
+        }
+        return durations[account.extra.interval] + 1;
+      }
+      return this.defaultDaysToRender + 1;
+    },
     periodOverPeriod() {
       return (
         this.renderableDatapoints[this.renderableDatapoints.length - 1] -

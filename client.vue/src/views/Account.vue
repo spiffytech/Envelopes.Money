@@ -3,7 +3,7 @@
     <div
       v-for="txn in transactions"
       :key="txn.id"
-      class="flex justify-between p-3 rounded m-1 shadow-md"
+      class="flex justify-between p-3 rounded m-1 shadow-md bg-white"
     >
       <div class="mr-2">{{txn.date}}</div>
       <div class="text-left flex-1 min-w-0 mr-2">

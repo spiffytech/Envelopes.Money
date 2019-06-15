@@ -101,8 +101,8 @@ export default new Vuex.Store({
       );
     },
 
-    txnsGrouped(state) {
-      return Object.values(groupBy(Object.values(state.transactions), 'txn_id'))
+    txnsGrouped(state, getters) {
+      return Object.values(groupBy(getters.transactions, 'txn_id'))
         .map(
           (txnGroup): TxnGrouped => {
             const toNames = txnGroup.map(txn =>

@@ -21,7 +21,12 @@
         :key="account.id"
         style="display: contents;"
       >
-        <Balance :amounts="balances" :name="account.name" :daysToRender="16"/>
+        <Balance
+          :amounts="balances"
+          :name="account.name"
+          :defaultDaysToRender="16"
+          :account="account"
+        />
       </router-link>
     </div>
 
@@ -47,7 +52,12 @@
           :key="account.id"
           style="display: contents;"
         >
-          <Balance :amounts="balances" :name="account.name" :daysToRender="16"/>
+          <Balance
+            :amounts="balances"
+            :name="account.name"
+            :defaultDaysToRender="16"
+            :account="account"
+          />
         </router-link>
       </div>
     </div>

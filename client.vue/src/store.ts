@@ -97,7 +97,7 @@ export default new Vuex.Store({
 
     transactions(state) {
       return Object.values(state.transactions).sort((a, b) =>
-        a.date < b.date ? -1 : 1
+        a.date < b.date ? 1 : -1
       );
     },
 

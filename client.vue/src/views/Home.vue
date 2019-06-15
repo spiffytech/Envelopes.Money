@@ -15,18 +15,18 @@
       </header>
     </div>
     <div v-if="showAccounts" class="flex flex-wrap -m-3">
-      <Balance
+      <router-link
+        :to="{name: 'account', params: {accountId: account.id}}"
         v-for="{account, balances} in accountBalances"
         :key="account.id"
-        :amounts="balances"
-        :name="account.name"
-        :daysToRender="16"
-      />
+        style="display: contents;"
+      >
+        <Balance :amounts="balances" :name="account.name" :daysToRender="16"/>
+      </router-link>
     </div>
 
     <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
-      <header class="font-bold text-lg small-caps cursor-pointer">Envelopes</header>
-      Group by:
+      <header class="font-bold text-lg small-caps cursor-pointer">Envelopes</header>Group by:
       <select v-model="sortTag">
         <option :value="null">No Tag</option>
         <option v-for="tag in this.allTags" :key="tag" :value="tag">{{tag}}</option>
@@ -41,13 +41,14 @@
         >{{tagValue === 'null' ? 'No Value' : tagValue}}</span>
       </header>
       <div class="flex flex-wrap -m-3">
-        <Balance
+        <router-link
+          :to="{name: 'account', params: {accountId: account.id}}"
           v-for="{account, balances} in envelopesByTag[tagValue]"
           :key="account.id"
-          :amounts="balances"
-          :name="account.name"
-          :daysToRender="16"
-        />
+          style="display: contents;"
+        >
+          <Balance :amounts="balances" :name="account.name" :daysToRender="16"/>
+        </router-link>
       </div>
     </div>
   </div>

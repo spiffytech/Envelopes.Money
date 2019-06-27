@@ -20,7 +20,9 @@
     "@types/d3": "^5.7.2",
     "@types/graphql": "^14.2.0",
     "@types/lodash": "^4.14.134",
+    "@types/ramda": "^0.26.9",
     "@types/shortid": "0.0.29",
+    "@types/timsort": "^0.3.0",
     "@vue/cli-plugin-eslint": "^3.8.0",
     "@vue/cli-plugin-pwa": "^3.8.0",
     "@vue/cli-plugin-typescript": "^3.8.0",
@@ -49,6 +51,7 @@
     "shortid": "^2.2.14",
     "subscriptions-transport-ws": "^0.9.16",
     "tailwindcss": "^1.0.3",
+    "timsort": "^0.3.0",
     "tinydate": "^1.1.0",
     "typescript": "^3.4.3",
     "vue-template-compiler": "^2.6.10"

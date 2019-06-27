@@ -2,7 +2,9 @@ import ApolloClient from 'apollo-client';
 import flatten from 'lodash/flatten';
 import fromPairs from 'lodash/fromPairs';
 import groupBy from 'lodash/groupBy';
+import * as R from 'ramda';
 import tinydate from 'tinydate';
+import * as Timsort from 'timsort';
 import Vue from 'vue';
 import Vuex from 'vuex';
 
@@ -96,8 +98,8 @@ export default new Vuex.Store({
     },
 
     transactions(state) {
-      return Object.values(state.transactions).sort((a, b) =>
-        a.date < b.date ? 1 : -1
+      return Object.values(state.transactions).sort(
+        R.comparator((a, b) => a.date > b.date)
       );
     },
 
@@ -130,7 +132,7 @@ export default new Vuex.Store({
             };
           }
         )
-        .sort((a, b) => (a.date < b.date ? -1 : 1));
+        .sort(R.comparator((a, b) => a.date > b.date));
     }
   },
   state: {

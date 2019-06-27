@@ -10,14 +10,17 @@
     </div>
 
     <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
-      <header class="font-bold text-lg small-caps cursor-pointer" @click="toggleShowAccounts">
+      <header
+        class="font-bold text-lg small-caps cursor-pointer"
+        @click="toggleShowAccounts"
+      >
         <span>›</span> Accounts
       </header>
     </div>
     <div v-if="showAccounts" class="flex flex-wrap -m-3">
       <router-link
-        :to="{name: 'account', params: {accountId: account.id}}"
-        v-for="{account, balances} in accountBalances"
+        :to="{ name: 'account', params: { accountId: account.id } }"
+        v-for="{ account, balances } in accountBalances"
         :key="account.id"
         style="display: contents;"
       >
@@ -31,24 +34,30 @@
     </div>
 
     <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
-      <header class="font-bold text-lg small-caps cursor-pointer">Envelopes</header>Group by:
+      <header class="font-bold text-lg small-caps cursor-pointer">
+        Envelopes
+      </header>
+      Group by:
       <select v-model="sortTag">
         <option :value="null">No Tag</option>
-        <option v-for="tag in this.allTags" :key="tag" :value="tag">{{tag}}</option>
+        <option v-for="tag in this.allTags" :key="tag" :value="tag">{{
+          tag
+        }}</option>
       </select>
     </div>
 
     <div v-for="tagValue in envelopeTagValues" :key="tagValue">
       <header class="small-caps">
-        {{sortTag || 'No tag selected'}}:
-        <span
-          class="font-bold small-caps"
-        >{{tagValue === 'null' ? 'No Value' : tagValue}}</span>
+        {{ sortTag || 'No tag selected' }}:
+        <span class="font-bold small-caps">{{
+          tagValue === 'null' ? 'No Value' : tagValue
+        }}</span>
       </header>
+      <div>Total balance: {{ toDollars(totalBalancesByTag[tagValue]) }}</div>
       <div class="flex flex-wrap -m-3">
         <router-link
-          :to="{name: 'account', params: {accountId: account.id}}"
-          v-for="{account, balances} in envelopesByTag[tagValue]"
+          :to="{ name: 'account', params: { accountId: account.id } }"
+          v-for="{ account, balances } in envelopesByTag[tagValue]"
           :key="account.id"
           style="display: contents;"
         >
@@ -78,8 +87,9 @@ import groupBy from 'lodash/groupBy';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
 
-import { Balance as BalanceT, TxnGrouped } from '../lib/types';
+import { IAccount, Balance as BalanceT, TxnGrouped } from '../lib/types';
 import Balance from '../components/Balance.vue';
+import { toDollars } from '../lib/pennies';
 
 function calcDaysInPeriod(
   periodStart: Date,
@@ -143,17 +153,43 @@ export default Vue.extend({
         ).sort()
       );
     },
-    envelopesByTag() {
+    /**
+     * Returns the envelopes grouped under their value for the active tag
+     */
+    envelopesByTag(): {[tag: string]: {account: IAccount, balances: {[date: string]: number}}} {
       return groupBy(this.envelopeBalances, envelope =>
         this.sortTag ? envelope.account.tags[this.sortTag] : null
       );
     },
-    envelopeTagValues() {
+    envelopeTagValues(): string[] {
       return Object.keys(this.envelopesByTag).sort();
+    },
+
+    totalBalancesByTag() {
+      return fromPairs(
+        Object.entries<
+          {
+            account: IAccount;
+            balances: { [date: string]: number };
+          }[]
+        >(this.envelopesByTag).map(([tag, envelopeBalances]) => {
+          const currentDateStr = tinydate('{YYYY}-{MM}-{DD}')(new Date());
+          return [
+            tag,
+            envelopeBalances
+              .map(({ balances }) => balances[currentDateStr])
+              .reduce(
+                (tagBalance, envelopeBalance) => tagBalance + envelopeBalance,
+                0
+              )
+          ];
+        })
+      );
     }
   },
   data() {
     return {
+      toDollars,
       showAccounts: false,
       sortBy: 'name',
       sortTag: null

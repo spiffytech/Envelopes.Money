@@ -62,7 +62,6 @@ export default Vue.extend({
     daysToRender() {
       const account: IAccount = this.account;
       if (account.type === 'envelope') {
-        console.log(durations);
         if (account.extra.interval === 'total') {
           return this.defaultDaysToRender + 1;
         }

@@ -5,24 +5,27 @@
       :key="txn.id"
       class="flex justify-between p-3 rounded m-1 shadow-md bg-white"
     >
-      <div class="mr-2">{{txn.date}}</div>
+      <div class="mr-2">{{ txn.date }}</div>
       <div class="text-left flex-1 min-w-0 mr-2">
         <div class="text-left font-bold">
-          <span v-if="txn.label">{{txn.label}}</span>
+          <span v-if="txn.label">{{ txn.label }}</span>
           <span v-else class="italic text-sm">No Label</span>
         </div>
 
         <div class="flex flex-1 text-xs italic">
-          <span class="whitespace-no-wrap">{{accounts[txn.from_id].name}}</span>
+          <span class="whitespace-no-wrap">{{
+            accounts[txn.from_id].name
+          }}</span>
           &nbsp;→&nbsp;
           <span
             style="text-overflow: ellipsis"
             class="whitespace-no-wrap overflow-hidden"
-          >{{accounts[txn.to_id].name}}</span>
+            >{{ accounts[txn.to_id].name }}</span
+          >
         </div>
       </div>
 
-      <div class="text-right">{{toDollars(txn.amount)}}</div>
+      <div class="text-right">{{ toDollars(txn.amount) }}</div>
     </div>
   </div>
 </template>
@@ -45,7 +48,6 @@ export default Vue.extend({
     },
 
     accounts() {
-      console.log(this.$store.state);
       return this.$store.state.accounts;
     },
 

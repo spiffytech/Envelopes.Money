@@ -39,6 +39,7 @@
     "@types/d3": "^5.7.2",
     "@types/lodash": "^4.14.135",
     "@types/ramda": "^0.26.12",
+    "@types/react-router-dom": "^4.3.4",
     "@types/shortid": "0.0.29",
     "apollo-cache-inmemory": "^1.6.2",
     "apollo-client": "^2.6.3",
@@ -55,6 +56,7 @@
     "mobx-react": "^6.1.1",
     "mobx-react-lite": "^1.4.1",
     "ramda": "^0.26.1",
+    "react-router-dom": "^5.0.1",
     "shortid": "^2.2.14",
     "subscriptions-transport-ws": "^0.9.16",
     "tinydate": "^1.1.0"

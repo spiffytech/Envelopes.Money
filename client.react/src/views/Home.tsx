@@ -2,6 +2,8 @@ import { Observer } from "mobx-react";
 import { useLocalStore } from "mobx-react-lite";
 import * as R from "ramda";
 import React, { useContext } from "react";
+import { Link } from "react-router-dom";
+
 import { formatDate } from "../lib/utils";
 import { toDollars } from "../lib/pennies";
 
@@ -39,9 +41,9 @@ const sortFns = {
 export default function Home() {
   const store = useContext(StoreContext);
   const localStore = useLocalStore(() => ({
-    sortBy: 'name' as keyof typeof sortFns,
+    sortBy: "name" as keyof typeof sortFns,
     sortTag: null as string | null,
-    showAccounts: false as boolean,
+    showAccounts: false as boolean
   }));
 
   console.log(store.transactions);
@@ -59,7 +61,8 @@ export default function Home() {
         );
 
         const envelopesByTag: { [tag: string]: AccountBalance[] } = R.groupBy(
-          envelope => (localStore.sortTag ? envelope.account.tags[localStore.sortTag] : ""),
+          envelope =>
+            localStore.sortTag ? envelope.account.tags[localStore.sortTag] : "",
           envelopeBalances
         );
 
@@ -84,14 +87,24 @@ export default function Home() {
           <div className="m-3">
             <div className="shadow-md p-3 rounded-lg mb-3 b-white max-w-sm">
               Sort by:
-              <select onChange={(event) => localStore.sortBy = event.target.value as keyof typeof sortFns}>
+              <select
+                onChange={event =>
+                  (localStore.sortBy = event.target
+                    .value as keyof typeof sortFns)
+                }
+              >
                 <option value="name">Name</option>
                 <option value="balance">Balance</option>
               </select>
             </div>
 
             <div className="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
-              <header className="font-bold text-lg small-caps cursor-pointer" onClick={() => localStore.showAccounts = !localStore.showAccounts}>
+              <header
+                className="font-bold text-lg small-caps cursor-pointer"
+                onClick={() =>
+                  (localStore.showAccounts = !localStore.showAccounts)
+                }
+              >
                 <span>›</span> Accounts
               </header>
             </div>
@@ -99,7 +112,13 @@ export default function Home() {
             {localStore.showAccounts ? (
               <div className="flex flex-wrap -m-3">
                 {accountBalances.map(balance => (
-                  <Balance balance={balance} defaultDaysToRender={15} key={balance.account.id} />
+                  <Link
+                    to={`/account/${encodeURIComponent(balance.account.id)}`}
+                    style={{ display: "contents" }}
+                    key={balance.account.id}
+                  >
+                    <Balance balance={balance} defaultDaysToRender={15} />
+                  </Link>
                 ))}
               </div>
             ) : null}
@@ -109,10 +128,14 @@ export default function Home() {
                 Envelopes
               </header>
               Group by:
-              <select onChange={(event) => localStore.sortTag = event.target.value}>
+              <select
+                onChange={event => (localStore.sortTag = event.target.value)}
+              >
                 <option value={"null"}>No Tag</option>
                 {allTags.map(tag => (
-                  <option key={tag} value={tag}>{tag}</option>
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
                 ))}
               </select>
             </div>
@@ -130,11 +153,17 @@ export default function Home() {
                 </div>
                 <div className="flex flex-wrap -m-3">
                   {envelopesByTag[tagValue].map(balance => (
-                    <Balance
-                      balance={balance}
-                      defaultDaysToRender={15}
+                    <Link
+                      to={`/account/${encodeURIComponent(balance.account.id)}`}
+                      style={{ display: "contents" }}
                       key={balance.account.id}
-                    />
+                    >
+                      <Balance
+                        balance={balance}
+                        defaultDaysToRender={15}
+                        key={balance.account.id}
+                      />
+                    </Link>
                   ))}
                 </div>
               </div>

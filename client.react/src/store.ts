@@ -7,16 +7,16 @@ import { formatDate } from "./lib/utils";
 
 import * as Accounts from "./lib/Accounts";
 import * as Transactions from "./lib/Transactions";
-import { IAccount, BankAccount, Envelope, TxnGrouped, isEnvelope, isBankAccount } from "./lib/types";
+import { IAccount, BankAccount, Envelope, TxnGrouped, isEnvelope, isBankAccount, ITransaction } from "./lib/types";
 import { GraphqlParams } from "./lib/types";
 
-interface IAccountBalance {
+export interface IAccountBalance {
   account: BankAccount;
   balances: {
     [date: string]: number;
   };
 } 
-interface EnvelopeBalance {
+export interface EnvelopeBalance {
   account: Envelope;
   balances: {
     [date: string]: number;
@@ -68,6 +68,8 @@ function calcBalancesForAccount(
 export class Store {
   @observable transactions = {} as { [id: string]: Transactions.T };
   @observable accounts = {} as { [id: string]: IAccount };
+
+  constructor(public creds: {userId: string, apikey: string}) {}
 
   @computed get periodLength() {
     return 15;
@@ -180,9 +182,13 @@ export class Store {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     this.subscribeTransactions(graphql);
   }
+
+  saveTransactions(txns: ITransaction[]) {
+    Transactions.saveTransactions(this.creds, txns);
+  }
 }
 
-const store = new Store();
+const store = new Store({userId: '', apikey: ''});
 const StoreContext = React.createContext<Store>(store);
 export const StoreProvider = StoreContext.Provider;
 export const StoreConsumer = StoreContext.Consumer;

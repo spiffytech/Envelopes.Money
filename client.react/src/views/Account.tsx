@@ -1,6 +1,6 @@
 import { useObserver } from "mobx-react-lite";
 import React, { useContext } from "react";
-import { RouteComponentProps } from "react-router-dom";
+import { Link, RouteComponentProps } from "react-router-dom";
 
 import StoreContext from "../store";
 import { toDollars } from "../lib/pennies";
@@ -23,8 +23,12 @@ export default function Account({
         <header>{store.accounts[accountId].name}</header>
 
         {transactions.map(txn => (
-          <div
+          <Link
+            to={`/transaction/${encodeURIComponent(txn.txn_id)}`}
+            style={{ display: "contents" }}
             key={txn.id}
+          >
+          <div
             className="flex justify-between p-3 rounded m-1 shadow-md bg-white"
           >
             <div className="mr-2">{txn.date}</div>
@@ -53,6 +57,7 @@ export default function Account({
 
             <div className="text-right">{toDollars(txn.amount)}</div>
           </div>
+          </Link>
         ))}
       </div>
     );

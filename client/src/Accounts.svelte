@@ -2,91 +2,131 @@
   import localforage from "localforage";
   import flatten from "lodash/flatten";
   import groupBy from "lodash/groupBy";
+  import * as R from "ramda";
   import { onMount } from "svelte";
 
   import Balance from "./Balance.svelte";
   import * as Balances from "./lib/Balances";
-  import { arrays as store } from "./stores/main";
   import { toDollars } from "./lib/pennies";
-  import { guardCreds } from "./lib/utils";
+  import { formatDate } from "./lib/utils";
+  import { arrays as derivedStore, store } from "./stores/main";
 
-  const creds = guardCreds();
+  const sortFns = {
+    name: (a, b) => (a.account.name < b.account.name ? -1 : 1),
+    balance: (a, b) => {
+      const currentDateStr = formatDate(new Date());
+      return a.balances[currentDateStr] < b.balances[currentDateStr] ? -1 : 1;
+    }
+  };
 
   // Default for if the user hasn't selected a fill interval yet.
   let interval = localStorage.getItem("fillInterval") || "monthly";
 
-  $: envelopes =
-    groupBy($store.balances, balance => balance.type)["envelope"] || [];
-  $: accounts =
-    groupBy($store.balances, balance => balance.type)["account"] || [];
-
-  let selectedTag = null;
-
-  $: envelopesByTag = groupBy(
-    envelopes.filter(Balances.isBalanceEnvelope),
-    envelope => (selectedTag ? envelope.tags[selectedTag] || "" : null)
+  let showAccounts = false;
+  let sortBy = "name";
+  $: sortFn = sortFns[sortBy];
+  let sortTag = null;
+  $: accountBalances = $derivedStore.accountBalances.slice().sort(sortFn);
+  $: envelopeBalances = $derivedStore.envelopeBalances.slice().sort(sortFn);
+  $: allTags = R.uniq(
+    R.chain(
+      envelope => Object.keys(envelope.account.tags),
+      envelopeBalances
+    ).sort()
   );
 
-  $: allTags = Array.from(
-    new Set(
-      flatten(
-        envelopes
-          .filter(Balances.isBalanceEnvelope)
-          .map(envelope => Object.keys(envelope.tags))
-      )
-    )
-  ).sort((a, b) => (!a ? 1 : a < b ? -1 : 1));
+  $: envelopesByTag = R.groupBy(
+    envelope => (sortTag ? envelope.account.tags[sortTag] : ""),
+    envelopeBalances
+  );
+
+  $: envelopeTagValues = Object.keys(envelopesByTag).sort();
+
+  $: totalBalancesByTag = R.fromPairs(
+    Object.entries(envelopesByTag).map(([tag, envelopeBalancesForTag]) => {
+      const currentDateStr = formatDate(new Date());
+      return [
+        tag,
+        envelopeBalancesForTag
+          .map(({ balances }) => balances[currentDateStr])
+          .reduce(
+            (tagBalance, envelopeBalance) => tagBalance + envelopeBalance,
+            0
+          )
+      ];
+    })
+  );
+
+  $: envelopes =
+    groupBy($derivedStore.balances, balance => balance.type)["envelope"] || [];
+  $: accounts =
+    groupBy($derivedStore.balances, balance => balance.type)["account"] || [];
 
   onMount(() => {
     (async () => {
-      selectedTag = await localforage.getItem("selectedTag");
+      sortTag = await localforage.getItem("selectedTag");
     })();
   });
 </script>
 
-<div>
-  <div>
-    <header class="font-bold text-base lg:textt-lg">Accounts</header>
-    {#each accounts as account}
-      <a
-        href={`/editAccount/${encodeURIComponent(encodeURIComponent(account.id))}`}
-        class="flex justify-between p-3 border rounded border-grey-light
-        no-underline text-black">
-        <Balance balance={account} {interval} />
-      </a>
-    {/each}
+<div class="m-3">
+  <div class="shadow-md p-3 rounded-lg mb-3 b-white max-w-sm">
+    Sort By:
+    <select on:change={event => (sortBy = event.target.value)}>
+      <option value="name">Name</option>
+      <option value="balance">Balance</option>
+    </select>
   </div>
 
-  <select bind:value={selectedTag}>
-    <option value={null}>Select a tag</option>
-    {#each allTags as tag}
-      <option value={tag}>{tag}</option>
-    {/each}
-  </select>
+  <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
+    <header
+      class="font-bold text-lg small-caps cursor-pointer"
+      on:click={() => (showAccounts = !showAccounts)}>
+      <span>›</span>
+      Accounts
+    </header>
+  </div>
 
-  <div>
-    <header class="font-bold text-base lg:text-lg">Envelopes</header>
-    {#each Object.entries(envelopesByTag) as [tagValue, envelopes]}
-      <div>
-        <header>
-           {tagValue === 'null' ? 'No Value' : tagValue}:   {toDollars(envelopes
-              .map(envelope => envelope.balance)
-              .reduce((acc, item) => acc + item, 0))} /   {toDollars(envelopes
-              .map(envelope => Balances.calcAmountForPeriod(envelope)[interval])
-              .reduce((acc, item) => acc + item, 0))}
-        </header>
+  {#if showAccounts}
+    <div class="flex flex-wrap -m-3">
+      {#each accountBalances as balance}
+        <a href={`/editAccount/${encodeURIComponent(encodeURIComponent(balance.account.id))}`} style="display: contents; color: inherit; text-decoration: inherit;">
+          <Balance {balance} defaultDaysToRender={15} />
+        </a>
+      {/each}
+    </div>
+  {/if}
 
-        {#each envelopes as envelope}
+  <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
+    <header class="font-bold text-lg small-caps cursor-pointer">
+      Envelopes
+    </header>
+    Group by:
+    <select on:change={event => (sortTag = event.target.value)}>
+      <option value={'null'}>No Tag</option>
+      {#each allTags as tag}
+        <option value={tag}> {tag} </option>
+      {/each}
+    </select>
+  </div>
+  {#each envelopeTagValues as tagValue}
+    <div>
+      <header class="small-caps">
+         {sortTag || 'No tag selected'}:
+        <span class="font-bold small-caps">
+           {tagValue === '' ? 'No Value' : tagValue}
+        </span>
+      </header>
+      <div>Total balance: {toDollars(totalBalancesByTag[tagValue])} </div>
+      <div class="flex flex-wrap -m-3">
+        {#each envelopesByTag[tagValue] as balance}
           <a
-            href={`/editAccount/${encodeURIComponent(encodeURIComponent(envelope.id))}`}
-            class="flex justify-between p-3 border rounded border-grey-light
-            no-underline text-black"
-            data-cy="account"
-            data-account-name={envelope.name}>
-            <Balance balance={envelope} {interval} />
+            href={`/editAccount/${encodeURIComponent(encodeURIComponent(balance.account.id))}`}
+            style="display: contents; color: inherit; text-decoration: inherit;">
+            <Balance {balance} defaultDaysToRender={15} />
           </a>
         {/each}
       </div>
-    {/each}
-  </div>
+    </div>
+  {/each}
 </div>

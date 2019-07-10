@@ -111,6 +111,8 @@ export const arrays = derived(store, $store => {
     })
     .sort(R.comparator((a, b) => a.date > b.date));
 
+  const balancesByAccountByDay_ = balancesByAccountByDay(txnsArr, $store.accounts);
+
   return {
     ...$store,
     txnsGrouped: txnsGrouped.filter(
@@ -122,7 +124,9 @@ export const arrays = derived(store, $store => {
         (txnGrouped.amount / 100).toFixed(2).includes($store.searchTerm)
     ),
 
-    balancesByAccountByDay: balancesByAccountByDay(txnsArr, $store.accounts),
+    balancesByAccountByDay: balancesByAccountByDay_,
+    envelopeBalances: balancesByAccountByDay_.filter((b) => b.account.type === 'envelope'),
+    accountBalances: balancesByAccountByDay_.filter((b) => b.account.type === 'account'),
   };
 });
 

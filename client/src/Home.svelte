@@ -1,11 +1,9 @@
 <script>
   import {debounce} from 'lodash';
   import page from 'page';
-  import {getContext} from 'svelte';
 
   import Accounts from './Accounts.svelte';
   import {toDollars} from './lib/pennies';
-  import * as TxnGrouped from './lib/TxnGrouped';
   import {arrays as derivedStore, store} from './stores/main';
 
   let txnsGrouped;
@@ -27,7 +25,7 @@
     window.URL.revokeObjectURL(url);
   }
 
-  async function exportTxns(event) {
+  async function exportTxns() {
     const dataStr =
       JSON.stringify(txnsGrouped.map((t) => ({
         date: t.date,

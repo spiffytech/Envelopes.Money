@@ -179,7 +179,7 @@ export function rowToTxn(
     {
       user_id: userId!,
       memo: row.Notes,
-      date: new Date(row.Date),
+      date: new Date(row.Date).toISOString(),
       label: type === 'banktxn' ? (row.Name || '[Equity]') : null,
       type,
       txn_id: txnId,

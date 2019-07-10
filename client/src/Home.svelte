@@ -1,4 +1,5 @@
 <script>
+  import {debounce} from 'lodash';
   import page from 'page';
   import {getContext} from 'svelte';
 
@@ -51,7 +52,8 @@
 {#if activeTab === 'transactions'}
   <input
     class='border w-full'
-    bind:value={$store.searchTerm}
+    value={$store.searchTerm}
+    on:input={debounce((event) => store.update(($s) => ({...$s, searchTerm: event.target.value})), 250, {trailing: true})}
     placeholder='Search for transactions'
     data-cy='transactions-search'
   />

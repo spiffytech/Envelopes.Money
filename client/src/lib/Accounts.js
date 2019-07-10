@@ -53,6 +53,25 @@ export function saveAccount({apollo}, account) {
   });
 }
 
+export async function subscribe(
+  { userId, apollo },
+  onData
+) {
+  return apollo
+    .subscribe({
+      query: gql`
+        ${fragments}
+        subscription SubscribeAccounts($user_id: String!) {
+          accounts(where: { user_id: { _eq: $user_id } }) {
+            ...account
+          }
+        }
+      `,
+      variables: { user_id: userId }
+    })
+    .subscribe({ next: onData });
+}
+
 export function mkEmptyEnvelope(userId) {
   return {
     id: '',

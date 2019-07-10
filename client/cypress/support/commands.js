@@ -36,8 +36,6 @@ Cypress.Commands.add('register', () => {
         then((response) => {
             Cypress.env('userId', response.body.userId);
             Cypress.env('apikey', response.body.apikey);
-            window.localStorage.setItem('creds', JSON.stringify({userId: response.body.userId, apikey: response.body.apikey}))
-            cy.setCookie('apikey', response.body.apikey);
         });
     });
 });

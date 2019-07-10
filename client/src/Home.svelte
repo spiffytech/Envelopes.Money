@@ -11,7 +11,7 @@
   const numItemsPerPage = 100;
   let pageNum = 0;
 
-  let activeTab = 'transactions';
+  let activeTab = 'accounts';
 
   function triggerDownload(data) {
     var a = document.createElement("a");

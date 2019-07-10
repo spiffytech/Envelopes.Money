@@ -81,7 +81,8 @@
   <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
     <header
       class="font-bold text-lg small-caps cursor-pointer"
-      on:click={() => (showAccounts = !showAccounts)}>
+      on:click={() => (showAccounts = !showAccounts)}
+      data-cy="show-accounts">
       <span>›</span>
       Accounts
     </header>
@@ -90,7 +91,9 @@
   {#if showAccounts}
     <div class="flex flex-wrap -m-3">
       {#each accountBalances as balance}
-        <a href={`/editAccount/${encodeURIComponent(encodeURIComponent(balance.account.id))}`} style="display: contents; color: inherit; text-decoration: inherit;">
+        <a
+          href={`/editAccount/${encodeURIComponent(encodeURIComponent(balance.account.id))}`}
+          style="display: contents; color: inherit; text-decoration: inherit;">
           <Balance {balance} defaultDaysToRender={15} />
         </a>
       {/each}

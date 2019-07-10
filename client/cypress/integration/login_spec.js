@@ -1,4 +1,4 @@
-describe('Visiting the login page', () => {
+describe('Visiting the login page with invalid credentials', () => {
     beforeEach(() => {
         cy.visit('/');
     });
@@ -50,6 +50,15 @@ describe('Visiting the login page', () => {
         cy.get('input[type=password').should('have.value', 'bar');
 
         cy.get('.error').should('have.text', 'Invalid credentials');
+    });
+});
+
+describe('Visiting the login page with partial credentials', () => {
+    before(() => {
+        cy.register();
+    });
+    beforeEach(() => {
+        cy.visit('/');
     });
 
     it('should present an error if the password is valid but the email doesn\'t match', () => {

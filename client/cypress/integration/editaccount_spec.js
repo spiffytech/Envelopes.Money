@@ -29,6 +29,7 @@ describe('Creating a new account', () => {
         cy.get('form').submit();
 
         cy.get('button[data-cy=accounts]').click();
+        cy.get('[data-cy=show-accounts]').click();
 
         cy.get('[data-cy=account][data-account-name="Test Account"]').
         within(() => {

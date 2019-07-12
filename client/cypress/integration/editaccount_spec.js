@@ -31,10 +31,10 @@ describe('Creating a new account', () => {
         cy.get('button[data-cy=accounts]').click();
         cy.get('[data-cy=show-accounts]').click();
 
-        cy.get('[data-cy=account][data-account-name="Test Account"]').
+        cy.get('[data-cy=envelope][data-account-name="Test Account"]', {timeout: 10000}).
         within(() => {
-            cy.get('[data-cy=balance-name]').should('have.text', 'Test Account');
-            cy.get('[data-cy=fill-per-period]').should('have.text', '15.00');
+            cy.get('[data-cy=account-name]').should('have.text', 'Test Account');
+            cy.get('[data-cy=account-balance]').should('have.text', '0.00');
         });
     });
 });
@@ -42,6 +42,7 @@ describe('Editing an existing account', () => {
     const suffix = shortid.generate();
     before(() => {
         cy.register();
+        cy.setLogin();
         // Necessary for us to have the right window object when loading fixtures
         cy.visit('/');
         cy.loadAccounts(suffix);

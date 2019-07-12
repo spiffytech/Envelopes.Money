@@ -77,8 +77,8 @@ function calcDaysInPeriod(
     >
       <div class="flex justify-between">
         <div>
-          <div class="text-sm small-caps">{balance.account.name}</div>
-          <div class="text-xl font-bold">{currentBalance}</div>
+          <div class="text-sm small-caps" data-cy="account-name">{balance.account.name}</div>
+          <div class="text-xl font-bold" data-cy="account-balance">{currentBalance}</div>
         </div>
         <div>
           <span class="p-2 border border-black rounded-lg">

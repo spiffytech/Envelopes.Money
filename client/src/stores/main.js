@@ -4,14 +4,10 @@ import { derived, writable } from "svelte/store";
 import * as Accounts from "../lib/Accounts";
 import * as Balances from "../lib/Balances";
 import * as Transactions from "../lib/Transactions";
-import {formatDate} from '../lib/utils';
+import { formatDate } from "../lib/utils";
 
 // TODO: Trampoline this because it's going to overflow
-function calcDaysInPeriod(
-  periodStart,
-  days = [],
-  periodEnd = new Date()
-) {
+function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
   // THe extra day is a hack until we figure out storing+parsing dates in a
   // consistent timezone
   if (new Date(periodEnd.getTime() + 86400000) < periodStart) return days;
@@ -19,11 +15,9 @@ function calcDaysInPeriod(
   return calcDaysInPeriod(nextDate, [...days, periodStart], periodEnd);
 }
 
-function calcBalancesForAccount(
-  amounts
-){
-  const amountsByDate = R.groupBy((amount) => amount.date, amounts);
-  const minDate = Math.min(
+function calcBalancesForAccount(amounts) {
+  const amountsByDate = R.groupBy(amount => amount.date, amounts);
+  const minDate = amounts.length === 0 ? new Date().getTime() : Math.min(
     ...amounts.map(({ date }) => new Date(date).getTime())
   );
   const dates = calcDaysInPeriod(new Date(minDate));
@@ -46,10 +40,8 @@ function calcBalancesForAccount(
   return finalRet;
 }
 
-function balancesByAccountByDay(transactionsArr, accounts)
-{
-  const accountIdWithTxnAmount
-  = R.flatten(
+function balancesByAccountByDay(transactionsArr, accounts) {
+  const txnsByAccount = R.flatten(
     transactionsArr.map(txn => [
       { accountId: txn.from_id, date: txn.date, amount: -txn.amount },
       {
@@ -60,14 +52,31 @@ function balancesByAccountByDay(transactionsArr, accounts)
     ])
   );
 
-  const txnAmountsByAccount = R.groupBy(account => account.accountId, accountIdWithTxnAmount);
-  const accountBalancesByDay = Object.entries(txnAmountsByAccount).map(
-    ([accountId, amounts]) => ({
-      account: accounts[accountId],
-      balances: calcBalancesForAccount(amounts)
-    })
+  const txnAmountsByAccount = R.groupBy(
+    account => account.accountId,
+    txnsByAccount
   );
-  return accountBalancesByDay;
+  console.log('txnsarr', transactionsArr);
+  console.log('acc', accounts);
+
+  const ret = R.fromPairs(
+    Object.values(accounts).map((account) => [account.id, {
+      account,
+      balances: calcBalancesForAccount(txnAmountsByAccount[account.id] || [])
+    }])
+  )
+
+  /*
+  const accountBalancesByDay = R.fromPairs(
+    Object.entries(txnAmountsByAccount)
+      .map(([accountId, amounts]) => ({
+        account: accounts[accountId],
+        balances: calcBalancesForAccount(amounts)
+      }))
+      .map(accountBalance => [accountBalance.account.id, accountBalance])
+  );
+  */
+  return ret;
 }
 
 export const store = writable({
@@ -75,17 +84,18 @@ export const store = writable({
   balances: [],
   searchTerm: "",
   transactions: {},
-  periodLength: 15
+  periodLength: 15,
+
+  hasLoadedTxns: false,
+  hasLoadedAccounts: false,
 });
 
 export const arrays = derived(store, $store => {
   const txnsArr = Object.values($store.transactions).sort(
-      R.comparator((a, b) => a.date > b.date)
+    R.comparator((a, b) => a.date > b.date)
   );
 
-  const txnsGrouped = Object.values(
-    R.groupBy(txn => txn.txn_id, txnsArr)
-  )
+  const txnsGrouped = Object.values(R.groupBy(txn => txn.txn_id, txnsArr))
     .map(txnGroup => {
       const toNames = txnGroup.map(txn =>
         $store.accounts[txn.to_id] ? $store.accounts[txn.to_id].name : "unknown"
@@ -111,10 +121,14 @@ export const arrays = derived(store, $store => {
     })
     .sort(R.comparator((a, b) => a.date > b.date));
 
-  const balancesByAccountByDay_ = balancesByAccountByDay(txnsArr, $store.accounts);
+  const balancesByAccountByDay_ = balancesByAccountByDay(
+    txnsArr,
+    $store.accounts
+  );
 
   return {
     ...$store,
+    isLoading: !$store.hasLoadedAccounts || !$store.hasLoadedTxns,
     txnsGrouped: txnsGrouped.filter(
       txnGrouped =>
         (txnGrouped.label || "").toLowerCase().includes($store.searchTerm) ||
@@ -125,8 +139,10 @@ export const arrays = derived(store, $store => {
     ),
 
     balancesByAccountByDay: balancesByAccountByDay_,
-    envelopeBalances: balancesByAccountByDay_.filter((b) => b.account.type === 'envelope'),
-    accountBalances: balancesByAccountByDay_.filter((b) => b.account.type === 'account'),
+    envelopes: Object.values($store.accounts).filter(
+      b => b.type === "envelope"
+    ),
+    accounts: Object.values($store.accounts).filter(b => b.type === "account")
   };
 });
 
@@ -144,20 +160,27 @@ function subscribeModule(graphql, module, storeKey, dataKey) {
 }
 
 export function subscribe(graphql) {
-  window.dostuff = () => Balances.subscribe(graphql, console.log);
-  Accounts.subscribe(graphql, ({ data }) =>
+  Accounts.subscribe(graphql, ({ data }) => {
+    const firstRun = !store.hasLoadedAccounts;
+
     store.update($store => ({
       ...$store,
+      hasLoadedAccounts: true,
       accounts: R.fromPairs(data.accounts.map(account => [account.id, account]))
-    }))
-  );
+    }));
+
+    if (firstRun) {
+      Transactions.subscribe(graphql, ({ data }) =>
+        store.update($store => ({
+          ...$store,
+          hasLoadedTxns: true,
+          transactions: R.fromPairs(data.transactions.map(txn => [txn.id, txn]))
+        }))
+      );
+    }
+  });
   subscribeModule(graphql, Balances, "balances", "balances");
-  Transactions.subscribe(graphql, ({ data }) =>
-    store.update($store => ({
-      ...$store,
-      transactions: R.fromPairs(data.transactions.map(txn => [txn.id, txn]))
-    }))
-  );
 }
 
-store.subscribe(console.log);
+arrays.subscribe(console.log);
+window.store = arrays;

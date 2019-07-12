@@ -54,7 +54,7 @@ module.exports = {
 		new MiniCssExtractPlugin({
 			filename: '[name].css'
 		}),
-		new DotEnv(),
+		new DotEnv({systemvars: true}),
 	],
 	devtool: prod ? false: 'source-map'
 };

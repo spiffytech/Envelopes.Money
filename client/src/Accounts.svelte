@@ -1,21 +1,19 @@
 <script>
   import localforage from "localforage";
-  import flatten from "lodash/flatten";
   import groupBy from "lodash/groupBy";
   import * as R from "ramda";
   import { onMount } from "svelte";
 
   import Balance from "./Balance.svelte";
-  import * as Balances from "./lib/Balances";
   import { toDollars } from "./lib/pennies";
   import { formatDate } from "./lib/utils";
-  import { arrays as derivedStore, store } from "./stores/main";
+  import { arrays as derivedStore} from "./stores/main";
 
-  const sortFns = {
-    name: (a, b) => (a.account.name < b.account.name ? -1 : 1),
+  $: sortFns = {
+    name: (a, b) => (a.name < b.name ? -1 : 1),
     balance: (a, b) => {
       const currentDateStr = formatDate(new Date());
-      return a.balances[currentDateStr] < b.balances[currentDateStr] ? -1 : 1;
+      return $derivedStore.balancesByAccountByDay[a.account.id].balances[currentDateStr] < $derivedStore.balancesByAccountByDay[b.account.id][currentDateStr] ? -1 : 1;
     }
   };
 
@@ -26,18 +24,18 @@
   let sortBy = "name";
   $: sortFn = sortFns[sortBy];
   let sortTag = null;
-  $: accountBalances = $derivedStore.accountBalances.slice().sort(sortFn);
-  $: envelopeBalances = $derivedStore.envelopeBalances.slice().sort(sortFn);
+  $: accounts = $derivedStore.accounts.slice().sort(sortFn);
+  $: envelopes = $derivedStore.envelopes.slice().sort(sortFn);
   $: allTags = R.uniq(
     R.chain(
-      envelope => Object.keys(envelope.account.tags),
-      envelopeBalances
+      envelope => Object.keys(envelope.tags),
+      envelopes
     ).sort()
   );
 
   $: envelopesByTag = R.groupBy(
-    envelope => (sortTag ? envelope.account.tags[sortTag] : ""),
-    envelopeBalances
+    envelope => (sortTag ? envelope.tags[sortTag] : ""),
+    envelopes
   );
 
   $: envelopeTagValues = Object.keys(envelopesByTag).sort();
@@ -48,7 +46,7 @@
       return [
         tag,
         envelopeBalancesForTag
-          .map(({ balances }) => balances[currentDateStr])
+          .map(({ id }) => $derivedStore.balancesByAccountByDay[id][currentDateStr])
           .reduce(
             (tagBalance, envelopeBalance) => tagBalance + envelopeBalance,
             0
@@ -90,11 +88,11 @@
 
   {#if showAccounts}
     <div class="flex flex-wrap -m-3">
-      {#each accountBalances as balance}
+      {#each accounts as account}
         <a
-          href={`/editAccount/${encodeURIComponent(encodeURIComponent(balance.account.id))}`}
+          href={`/editAccount/${encodeURIComponent(encodeURIComponent(account.id))}`}
           style="display: contents; color: inherit; text-decoration: inherit;">
-          <Balance {balance} defaultDaysToRender={15} />
+          <Balance balance={$derivedStore.balancesByAccountByDay[account.id]} defaultDaysToRender={15} />
         </a>
       {/each}
     </div>
@@ -122,11 +120,13 @@
       </header>
       <div>Total balance: {toDollars(totalBalancesByTag[tagValue])} </div>
       <div class="flex flex-wrap -m-3">
-        {#each envelopesByTag[tagValue] as balance}
+        {#each envelopesByTag[tagValue] as envelope}
           <a
-            href={`/editAccount/${encodeURIComponent(encodeURIComponent(balance.account.id))}`}
-            style="display: contents; color: inherit; text-decoration: inherit;">
-            <Balance {balance} defaultDaysToRender={15} />
+            href={`/editAccount/${encodeURIComponent(encodeURIComponent(envelope.id))}`}
+            style="display: contents; color: inherit; text-decoration: inherit;"
+            data-cy="envelope"
+            data-account-name={envelope.name}>
+            <Balance balance={$derivedStore.balancesByAccountByDay[envelope.id]} defaultDaysToRender={15} />
           </a>
         {/each}
       </div>

@@ -1,5 +1,8 @@
 FROM node:11
 
+ARG GRAPHQL_HTTP_HOST
+ARG GRAPHQL_WSS_HOST
+
 RUN mkdir -p /workdir/server
 RUN mkdir -p /workdir/client
 

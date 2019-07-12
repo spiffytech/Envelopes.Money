@@ -1,3 +1,6 @@
 build:
+    config:
+        GRAPHQL_HTTP_HOST: https://hackerbudget-hasura-prod.herokuapp.com/v1alpha1/graphql
+        GRAPHQL_WSS_HOST: wss://hackerbudget-hasura-prod.herokuapp.com/v1alpha1/graphql
     docker:
         web: Dockerfile

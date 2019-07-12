@@ -1,5 +1,5 @@
 <script>
-  import {debounce} from 'lodash';
+  import debounce from 'lodash/debounce';
   import page from 'page';
 
   import Accounts from './Accounts.svelte';

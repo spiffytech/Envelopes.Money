@@ -1,6 +1,5 @@
 <script>
   import localforage from "localforage";
-  import groupBy from "lodash/groupBy";
   import * as R from "ramda";
   import { onMount } from "svelte";
 
@@ -56,9 +55,9 @@
   );
 
   $: envelopes =
-    groupBy($derivedStore.balances, balance => balance.type)["envelope"] || [];
+    R.groupBy(balance => balance.type, $derivedStore.balances)["envelope"] || [];
   $: accounts =
-    groupBy($derivedStore.balances, balance => balance.type)["account"] || [];
+    R.groupBy(balance => balance.type, $derivedStore.balances)["account"] || [];
 
   onMount(() => {
     (async () => {

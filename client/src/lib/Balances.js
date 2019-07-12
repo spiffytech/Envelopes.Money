@@ -1,5 +1,5 @@
-import fromPairs from 'lodash/fromPairs';
 import gql from 'graphql-tag';
+import * as R from 'ramda';
 
 import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
@@ -39,7 +39,7 @@ export function calcAmountWithDueDate(balance) {
   const due = balance.extra.due;
   if (!due) throw new Error('Should always have a due date when calling this function');
 
-  return fromPairs(
+  return R.fromPairs(
     ['weekly', 'biweekly', 'bimonthly', 'monthly', 'annually', 'total'].
     map((interval) => [
       interval,
@@ -55,7 +55,7 @@ export function calcAmountRegularInterval(balance) {
   const due = balance.extra.due;
   if (due) throw new Error('Should never have a due date when calling this function');
 
-  return fromPairs(
+  return R.fromPairs(
     ['weekly', 'biweekly', 'bimonthly', 'monthly', 'annually', 'total'].
     map((interval) => [
       interval,

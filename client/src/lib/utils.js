@@ -1,4 +1,3 @@
-const tinydate = require('tinydate').default;
 import {getContext, setContext} from 'svelte';
 
 export function guardCreds() {
@@ -19,5 +18,6 @@ export const durations = {
 };
 
 export function formatDate(date) {
-  return tinydate('{YYYY}-{MM}-{DD}')(date);
+  if (typeof date === 'string') date = new Date(date + 'T00:00');
+  return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
 }

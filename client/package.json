@@ -31,7 +31,6 @@
     "js-base64": "^2.5.1",
     "localforage": "^1.7.3",
     "mini-css-extract-plugin": "^0.6.0",
-    "moment": "^2.24.0",
     "page": "^1.11.4",
     "ramda": "^0.26.1",
     "serve": "^11.0.0",
@@ -41,8 +40,8 @@
     "svelte": "^3.6.7",
     "svelte-loader": "2.13.3",
     "tailwindcss": "^0.7.4",
-    "tinydate": "^1.1.0",
     "webpack": "^4.30.0",
+    "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.3.0",
     "webpack-dev-server": "^3.3.1"
   },

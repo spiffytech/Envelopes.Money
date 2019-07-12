@@ -1,5 +1,4 @@
 <script>
-  import moment from 'moment';
   import page from 'page';
   import * as shortid from 'shortid';
   import {getContext, onMount} from 'svelte';
@@ -7,6 +6,7 @@
   import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
+  import {formatDate} from './lib/utils';
 
   const graphql = getContext('graphql');
 
@@ -68,7 +68,7 @@
     <input
       type='date'
       class='border'
-      value={account.extra.due ? moment(account.extra.due).toISOString(false).slice(0, 10) : ''}
+      value={account.extra.due ? formatDate(account.extra.due) : ''}
       on:input={(event) => {
         const newDate = new Date(event.target.value);
         if (isNaN(newDate.getTime())) return;  // Cypress triggers this while typing dates

@@ -1,8 +1,6 @@
 <script>
-  import fromPairs from 'lodash/fromPairs';
+  import * as R from 'ramda'
   import fuzzySort from 'fuzzysort';
-  import groupBy from 'lodash/groupBy';
-  import moment from 'moment';
   import page from 'page';
   import * as shortid from 'shortid';
   import {onMount} from 'svelte';
@@ -12,7 +10,7 @@
   import {toDollars} from './lib/pennies';
   import * as TopLabels from './lib/TopLabels';
   import * as Transactions from './lib/Transactions';
-  import {guardCreds} from './lib/utils';
+  import {formatDate, guardCreds} from './lib/utils';
 
   export let params;
   let txnId;
@@ -62,7 +60,7 @@
 
   let balances = [];
   let accounts;
-  $: accounts = groupBy(balances, 'type');
+  $: accounts = R.groupBy((b) => b.type, balances);
   let from;
   $: from =
     type === 'banktxn' ? accounts['account'] :
@@ -83,7 +81,7 @@
       const [{data: balances_}, {data: labels_}] =
         await Promise.all([balancesP, labelsP]);
       balances = balances_.balances;
-      allLabels = fromPairs(labels_.top_labels.map((label) => [label.label, label]));
+      allLabels = R.fromPairs(labels_.top_labels.map((label) => [label.label, label]));
     }
 
     initializeP = initialize();
@@ -189,7 +187,7 @@
             Date
             <input
               type="date"
-              value={moment(txns[0].date).toISOString(false).slice(0, 10)}
+              value={formatDate(txns[0].date)}
               class='input'
               on:input={(event) => txns[0].date = new Date(event.target.value)}
             />

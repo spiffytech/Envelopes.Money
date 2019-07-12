@@ -22,4 +22,15 @@ describe('Hitting an empty user account', () => {
             cy.get('[data-cy=edittxn-form]');
         });
     });
+
+    describe('and creating a transaction', () => {
+        const inputSelector = '[data-cy=split-data-entry] input';
+        it('supports entering negative numbers (credits)', () => {
+            cy.get(inputSelector).type('-9');
+            cy.get(inputSelector).should('have.value', '-9');
+            // Sum of Splits won't show unless we have an envelope selected
+            cy.get('[data-cy=split-data-entry] select').select('Groceries: 0.00');
+            cy.get('[data-cy=sum-of-splits]').should('have.text', 'Sum of splits: -9.00');
+        });
+    });
 });

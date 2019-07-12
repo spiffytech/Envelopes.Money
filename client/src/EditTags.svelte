@@ -1,6 +1,6 @@
 <script>
-  import * as R from 'ramda';
   import page from 'page';
+  import fromPairs from 'ramda/es/fromPairs';
   import {getContext, onMount} from 'svelte';
   
   import * as Accounts from './lib/Accounts';
@@ -29,7 +29,7 @@
   });
 
   async function handleSubmit() {
-    const accountsWithSelectedTag = R.fromPairs(
+    const accountsWithSelectedTag = fromPairs(
       accounts.
       filter((account) => account.tags[selectedTag]).
       map((account) => [account.id, {[selectedTag]: account.tags[selectedTag]}])

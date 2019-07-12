@@ -1,4 +1,7 @@
-import * as R from "ramda";
+import comparator from 'ramda/es/comparator';
+import flatten from 'ramda/es/flatten';
+import fromPairs from 'ramda/es/fromPairs';
+import groupBy from 'ramda/es/groupBy';
 import { derived, writable } from "svelte/store";
 
 import * as Accounts from "../lib/Accounts";
@@ -16,7 +19,7 @@ function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
 }
 
 function calcBalancesForAccount(amounts) {
-  const amountsByDate = R.groupBy(amount => amount.date, amounts);
+  const amountsByDate = groupBy(amount => amount.date, amounts);
   const minDate = amounts.length === 0 ? new Date().getTime() : Math.min(
     ...amounts.map(({ date }) => new Date(date).getTime())
   );
@@ -41,7 +44,7 @@ function calcBalancesForAccount(amounts) {
 }
 
 function balancesByAccountByDay(transactionsArr, accounts) {
-  const txnsByAccount = R.flatten(
+  const txnsByAccount = flatten(
     transactionsArr.map(txn => [
       { accountId: txn.from_id, date: txn.date, amount: -txn.amount },
       {
@@ -52,30 +55,20 @@ function balancesByAccountByDay(transactionsArr, accounts) {
     ])
   );
 
-  const txnAmountsByAccount = R.groupBy(
+  const txnAmountsByAccount = groupBy(
     account => account.accountId,
     txnsByAccount
   );
   console.log('txnsarr', transactionsArr);
   console.log('acc', accounts);
 
-  const ret = R.fromPairs(
+  const ret = fromPairs(
     Object.values(accounts).map((account) => [account.id, {
       account,
       balances: calcBalancesForAccount(txnAmountsByAccount[account.id] || [])
     }])
   )
 
-  /*
-  const accountBalancesByDay = R.fromPairs(
-    Object.entries(txnAmountsByAccount)
-      .map(([accountId, amounts]) => ({
-        account: accounts[accountId],
-        balances: calcBalancesForAccount(amounts)
-      }))
-      .map(accountBalance => [accountBalance.account.id, accountBalance])
-  );
-  */
   return ret;
 }
 
@@ -92,10 +85,10 @@ export const store = writable({
 
 export const arrays = derived(store, $store => {
   const txnsArr = Object.values($store.transactions).sort(
-    R.comparator((a, b) => a.date > b.date)
+    comparator((a, b) => a.date > b.date)
   );
 
-  const txnsGrouped = Object.values(R.groupBy(txn => txn.txn_id, txnsArr))
+  const txnsGrouped = Object.values(groupBy(txn => txn.txn_id, txnsArr))
     .map(txnGroup => {
       const toNames = txnGroup.map(txn =>
         $store.accounts[txn.to_id] ? $store.accounts[txn.to_id].name : "unknown"
@@ -119,7 +112,7 @@ export const arrays = derived(store, $store => {
         type: txnGroup[0].type
       };
     })
-    .sort(R.comparator((a, b) => a.date > b.date));
+    .sort(comparator((a, b) => a.date > b.date));
 
   const balancesByAccountByDay_ = balancesByAccountByDay(
     txnsArr,
@@ -166,7 +159,7 @@ export function subscribe(graphql) {
     store.update($store => ({
       ...$store,
       hasLoadedAccounts: true,
-      accounts: R.fromPairs(data.accounts.map(account => [account.id, account]))
+      accounts: fromPairs(data.accounts.map(account => [account.id, account]))
     }));
 
     if (firstRun) {
@@ -174,7 +167,7 @@ export function subscribe(graphql) {
         store.update($store => ({
           ...$store,
           hasLoadedTxns: true,
-          transactions: R.fromPairs(data.transactions.map(txn => [txn.id, txn]))
+          transactions: fromPairs(data.transactions.map(txn => [txn.id, txn]))
         }))
       );
     }

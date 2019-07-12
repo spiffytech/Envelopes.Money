@@ -1,6 +1,7 @@
 <script>
-  import * as d3 from 'd3';
-  import * as R from 'ramda';
+  import {line, scaleLinear, scaleSqrt} from 'd3';
+  import head from 'ramda/es/head'
+  import last from 'ramda/es/last';
 
   import {toDollars} from './lib/pennies';
   import {durations, formatDate} from './lib/utils';
@@ -39,13 +40,13 @@ function calcDaysInPeriod(
   const currentDateStr = formatDate(new Date());
   $: currentBalance = toDollars(balance.balances[currentDateStr]);
   $: periodOverPeriod =
-    (R.last(renderableDatapoints) || 0) - (R.head(renderableDatapoints) || 0);
-  $: xScale = d3
-    .scaleLinear()
+    (last(renderableDatapoints) || 0) - (head(renderableDatapoints) || 0);
+  $: xScale = 
+    scaleLinear()
     .domain([0, renderableDatapoints.length])
     .range([0 + 10, 400 - 10]);
-  $: yScale = d3
-    .scaleSqrt()
+  $: yScale =
+    scaleSqrt()
     .domain([
       Math.max(0, ...renderableDatapoints),
       Math.min(0, ...renderableDatapoints)
@@ -60,13 +61,13 @@ function calcDaysInPeriod(
     date: datesToRender[i]
   }));
 
-  $: d = d3
-    .line()
+  $: d =
+    line()
     .x((_item, i) => xScale(i))
     .y(item => yScale(item))(renderableDatapoints);
 
-  $: dZero = d3
-    .line()
+  $: dZero =
+    line()
     .x((_item, i) => xScale(i))
     .y(() => yScale(0))(renderableDatapoints);
 </script>

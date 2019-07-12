@@ -58,5 +58,8 @@ module.exports = {
 		new DotEnv({systemvars: true}),
         new BundleAnalyzerPlugin(),
 	],
-	devtool: prod ? false: 'source-map'
+	devtool: prod ? false: 'source-map',
+	optimization: {
+	  usedExports: true
+	},
 };

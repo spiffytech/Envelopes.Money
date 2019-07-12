@@ -1,6 +1,9 @@
 <script>
   import localforage from "localforage";
-  import * as R from "ramda";
+  import chain from 'ramda/es/chain';
+  import fromPairs from 'ramda/es/chain';
+  import groupBy from 'ramda/es/groupBy';
+  import uniq from 'ramda/es/uniq';
   import { onMount } from "svelte";
 
   import Balance from "./Balance.svelte";
@@ -25,21 +28,21 @@
   let sortTag = null;
   $: accounts = $derivedStore.accounts.slice().sort(sortFn);
   $: envelopes = $derivedStore.envelopes.slice().sort(sortFn);
-  $: allTags = R.uniq(
-    R.chain(
+  $: allTags = uniq(
+    chain(
       envelope => Object.keys(envelope.tags),
       envelopes
     ).sort()
   );
 
-  $: envelopesByTag = R.groupBy(
+  $: envelopesByTag = groupBy(
     envelope => (sortTag ? envelope.tags[sortTag] : ""),
     envelopes
   );
 
   $: envelopeTagValues = Object.keys(envelopesByTag).sort();
 
-  $: totalBalancesByTag = R.fromPairs(
+  $: totalBalancesByTag = fromPairs(
     Object.entries(envelopesByTag).map(([tag, envelopeBalancesForTag]) => {
       const currentDateStr = formatDate(new Date());
       return [
@@ -55,9 +58,9 @@
   );
 
   $: envelopes =
-    R.groupBy(balance => balance.type, $derivedStore.balances)["envelope"] || [];
+    groupBy(balance => balance.type, $derivedStore.balances)["envelope"] || [];
   $: accounts =
-    R.groupBy(balance => balance.type, $derivedStore.balances)["account"] || [];
+    groupBy(balance => balance.type, $derivedStore.balances)["account"] || [];
 
   onMount(() => {
     (async () => {

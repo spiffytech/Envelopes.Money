@@ -52,6 +52,7 @@
     "generate_test_credentials": "node scripts/generate_test_credentials.js"
   },
   "dependencies": {
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.11",
+    "logrocket": "^1.0.1"
   }
 }

@@ -15,7 +15,7 @@
     name: (a, b) => (a.name < b.name ? -1 : 1),
     balance: (a, b) => {
       const currentDateStr = formatDate(new Date());
-      return $derivedStore.balancesByAccountByDay[a.account.id].balances[currentDateStr] < $derivedStore.balancesByAccountByDay[b.account.id][currentDateStr] ? -1 : 1;
+      return $derivedStore.balancesByAccountByDay[a.id].balances[currentDateStr] < $derivedStore.balancesByAccountByDay[b.id].balances[currentDateStr] ? 1 : -1;
     }
   };
 

@@ -59,9 +59,6 @@ function balancesByAccountByDay(transactionsArr, accounts) {
     account => account.accountId,
     txnsByAccount
   );
-  console.log('txnsarr', transactionsArr);
-  console.log('acc', accounts);
-
   const ret = fromPairs(
     Object.values(accounts).map((account) => [account.id, {
       account,
@@ -175,5 +172,4 @@ export function subscribe(graphql) {
   subscribeModule(graphql, Balances, "balances", "balances");
 }
 
-arrays.subscribe(console.log);
 window.store = arrays;

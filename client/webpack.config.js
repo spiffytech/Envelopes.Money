@@ -56,7 +56,7 @@ module.exports = {
 			filename: '[name].css'
 		}),
 		new DotEnv({systemvars: true}),
-        new BundleAnalyzerPlugin(),
+        ...(prod ? [] : [new BundleAnalyzerPlugin()]),
 	],
     //devtool: prod ? false: 'source-map',
 	devtool: 'source-map',

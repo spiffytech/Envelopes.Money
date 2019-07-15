@@ -45,6 +45,12 @@ describe('Hitting an empty user account', () => {
             cy.get('[data-cy=transaction] [data-cy=transaction-label]').first().should('contain.text', 'FooCo');
         });
 
+        it('updates the home screen with the new envelope group balance', () => {
+            cy.get('[data-cy=home-button]').click();
+            cy.get('button[data-cy=accounts]', {timeout: 5000}).click();
+            cy.get('[data-cy=envelope-group-null] [data-cy=total-balance]').should('have.text', 'Total balance: -20.00');
+        });
+
         it('lets us reuse a previous payee', () => {
             cy.get('input[data-cy=label]').type('Foo');
             cy.get('[data-cy=suggested-payee]').first().click();

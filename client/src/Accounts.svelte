@@ -1,7 +1,7 @@
 <script>
   import localforage from "localforage";
   import chain from 'ramda/es/chain';
-  import fromPairs from 'ramda/es/chain';
+  import fromPairs from 'ramda/es/fromPairs';
   import groupBy from 'ramda/es/groupBy';
   import uniq from 'ramda/es/uniq';
   import { onMount } from "svelte";
@@ -48,7 +48,7 @@
       return [
         tag,
         envelopeBalancesForTag
-          .map(({ id }) => $derivedStore.balancesByAccountByDay[id][currentDateStr])
+          .map(({ id }) => $derivedStore.balancesByAccountByDay[id].balances[currentDateStr])
           .reduce(
             (tagBalance, envelopeBalance) => tagBalance + envelopeBalance,
             0
@@ -113,14 +113,14 @@
     </select>
   </div>
   {#each envelopeTagValues as tagValue}
-    <div>
+    <div data-cy={`envelope-group-${tagValue || 'null'}`}>
       <header class="small-caps">
          {sortTag || 'No tag selected'}:
         <span class="font-bold small-caps">
            {tagValue === '' ? 'No Value' : tagValue}
         </span>
       </header>
-      <div>Total balance: {toDollars(totalBalancesByTag[tagValue])} </div>
+      <div data-cy='total-balance'>Total balance: {toDollars(totalBalancesByTag[tagValue])}</div>
       <div class="flex flex-wrap -m-3">
         {#each envelopesByTag[tagValue] as envelope}
           <a

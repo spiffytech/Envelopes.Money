@@ -1,7 +1,7 @@
 <script>
   import checkOnline from "is-online";
   import page from "page";
-  import { getContext, setContext } from "svelte";
+  import { setContext } from "svelte";
 
   import { endpoint } from "./lib/config";
   import EditAccount from "./EditAccount.svelte";
@@ -79,7 +79,7 @@
     <div
       class="bg-white border border-grey-light rounded flex justify-between
       flex-wrap nav mb-2">
-      <a class="btn font-bold" href="/home">HackerBudget</a>
+      <a class="btn font-bold" href="/home" data-cy='home-button'>HackerBudget</a>
       {#if creds}
         <div data-cy="nav-buttons">
           <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">

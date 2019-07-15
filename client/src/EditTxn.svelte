@@ -51,6 +51,7 @@
       return rest;
     })
     .filter(txn => txn.amount != 0);
+  $: console.log(txns);
 
   let allLabels = {};
   let suggestedLabels;
@@ -98,6 +99,7 @@
     txns = txns.map(txn => ({ ...txn, label: suggestion }));
     txns[0].to_id = allLabels[suggestion].to_id;
     txns[0].from_id = allLabels[suggestion].from_id;
+    console.log('here', txns);
   }
 
   let error = null;
@@ -159,7 +161,7 @@
         <div>
           <label class="label">
             Who did you pay?
-            <input bind:value={txns[0].label} class="input" />
+            <input bind:value={txns[0].label} class="input" data-cy='label' />
           </label>
         </div>
 
@@ -169,12 +171,12 @@
               Suggested Payees:
               <div>
                 {#each suggestedLabels as suggestion}
-                  <div>
+                  <div data-cy='suggested-payee'>
                     <button
                       type="button"
                       class={`input btn btn-tertiary`}
                       on:click|preventDefault={() => setSuggestion(suggestion)}>
-                       {suggestion}
+                      {suggestion}
                     </button>
                   </div>
                 {/each}
@@ -202,15 +204,16 @@
         </div>
 
         <p class="font-bold" data-cy="sum-of-splits">
-          Sum of splits: {toDollars(txns
-              .map(txn => txn.amount || 0)
-              .reduce((acc, item) => acc + item, 0))}
+          Sum of splits: {toDollars(txns.map(txn => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
         </p>
 
         <div>
           <label class="label">
-             {type === 'banktxn' ? 'Account:' : 'Transfer From:'}
-            <select bind:value={txns[0].from_id} class="input">
+            {type === 'banktxn' ? 'Account:' : 'Transfer From:'}
+            <select
+              bind:value={txns[0].from_id}
+              class="input"
+              data-cy="transaction-source">
               <option value={null}>Select a source</option>
               {#each from as f}
                 <option value={f.id}>{f.name}: {toDollars(f.balance)}</option>
@@ -221,8 +224,8 @@
 
         <div>
           <label>
-             {type === 'banktxn' ? 'Envelopes:' : 'Transfer Into:'}
-            {#each txns as txn}
+            {type === 'banktxn' ? 'Envelopes:' : 'Transfer Into:'}
+            {#each txns as txn, i}
               <div data-cy="split-data-entry">
                 <select bind:value={txn.to_id} class="input">
                   <option value={null}>Select a destination</option>
@@ -239,7 +242,10 @@
                   value={txn.amount ? txn.amount / 100 : ''}
                   placeholder="Dollar amount for this split"
                   step="0.01"
-                  on:input={event => {console.log(event.target.value); event.target.value && (txn.amount = Math.round(parseFloat(event.target.value) * 100))}} />
+                  on:input={event => {
+                    console.log(event.target.value);
+                    if (event.target.value) txns[i].amount = Math.round(parseFloat(event.target.value) * 100);
+                  }} />
               </div>
             {/each}
           </label>

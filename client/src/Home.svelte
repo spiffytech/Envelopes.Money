@@ -68,10 +68,11 @@
     <div
       on:click={() => page(`/editTxn/${txn.txn_id}`)}
       class="flex justify-between p-3 border border-grey-light rounded mb-1"
+      data-cy='transaction'
     >
       <div class="mr-2">{txn.date}</div>
       <div class="text-left flex-1 min-w-0 mr-2">
-        <div class="text-left font-bold">
+        <div class="text-left font-bold" data-cy='transaction-label'>
           {#if txn.label}{txn.label}{:else}<span class='italic text-sm'>No Label</span>{/if} 
           {#if txn.memo}<span title={txn.memo}>((Memo))</span>{/if}
         </div>

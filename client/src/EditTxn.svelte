@@ -1,16 +1,15 @@
 <script>
   import fuzzySort from "fuzzysort";
   import page from "page";
-  import fromPairs from "ramda/es/fromPairs";
   import groupBy from "ramda/es/groupBy";
   import * as shortid from "shortid";
   import { onMount } from "svelte";
 
   import * as Balances from "./lib/Balances";
   import { toDollars } from "./lib/pennies";
-  import * as TopLabels from "./lib/TopLabels";
   import * as Transactions from "./lib/Transactions";
   import { formatDate, guardCreds } from "./lib/utils";
+  import { arrays as derivedStore} from "./stores/main";
 
   export let params;
   let txnId;
@@ -51,9 +50,9 @@
       return rest;
     })
     .filter(txn => txn.amount != 0);
-  $: console.log(txns);
 
-  let allLabels = {};
+  $: allLabels = $derivedStore.labelQuickFills;
+  $: console.log(allLabels);
   let suggestedLabels;
   $: suggestedLabels = fuzzySort
     .go(txns[0].label || "", Object.keys(allLabels))
@@ -81,15 +80,10 @@
   onMount(() => {
     async function initialize() {
       const balancesP = Balances.loadBalances(creds);
-      const labelsP = TopLabels.loadTopLabels(creds);
-      const [{ data: balances_ }, { data: labels_ }] = await Promise.all([
+      const [{ data: balances_ }] = await Promise.all([
         balancesP,
-        labelsP
       ]);
       balances = balances_.balances;
-      allLabels = fromPairs(
-        labels_.top_labels.map(label => [label.label, label])
-      );
     }
 
     initializeP = initialize();

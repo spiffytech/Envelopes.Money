@@ -1,7 +1,9 @@
-import comparator from 'ramda/es/comparator';
-import flatten from 'ramda/es/flatten';
-import fromPairs from 'ramda/es/fromPairs';
-import groupBy from 'ramda/es/groupBy';
+import comparator from "ramda/es/comparator";
+import filter from "ramda/es/filter";
+import flatten from "ramda/es/flatten";
+import fromPairs from "ramda/es/fromPairs";
+import groupBy from "ramda/es/groupBy";
+import map from "ramda/es/map";
 import { derived, writable } from "svelte/store";
 
 import * as Accounts from "../lib/Accounts";
@@ -20,9 +22,10 @@ function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
 
 function calcBalancesForAccount(amounts) {
   const amountsByDate = groupBy(amount => amount.date, amounts);
-  const minDate = amounts.length === 0 ? new Date().getTime() : Math.min(
-    ...amounts.map(({ date }) => new Date(date).getTime())
-  );
+  const minDate =
+    amounts.length === 0
+      ? new Date().getTime()
+      : Math.min(...amounts.map(({ date }) => new Date(date).getTime()));
   const dates = calcDaysInPeriod(new Date(minDate));
   const { ret: finalRet } = dates.reduce(
     ({ ret, lastValue }, date) => {
@@ -60,13 +63,38 @@ function balancesByAccountByDay(transactionsArr, accounts) {
     txnsByAccount
   );
   const ret = fromPairs(
-    Object.values(accounts).map((account) => [account.id, {
-      account,
-      balances: calcBalancesForAccount(txnAmountsByAccount[account.id] || [])
-    }])
-  )
+    Object.values(accounts).map(account => [
+      account.id,
+      {
+        account,
+        balances: calcBalancesForAccount(txnAmountsByAccount[account.id] || [])
+      }
+    ])
+  );
 
   return ret;
+}
+
+/**
+ * Given a bunch of transactions, calculates which from+to account combo is the
+ * most commonly used so we can suggest that for the user to quick-fill
+ */
+function calcFieldsForLabel(txnsArr) {
+  if (txnsArr.length === 0) return {};
+  txnsArr.sort(comparator((a, b) => a.date < b.date));
+
+  const txnsByLabel = filter(
+    arr => arr.length > 0,
+    groupBy(txn => txn.label, txnsArr)
+  );
+  return map(txnsForLabel => {
+    const groups = groupBy(txn => `${txn.from_id}-${txn.to_id}`, txnsForLabel);
+    const biggestGroup = Object.values(groups).reduce(
+      (biggest, item) => (item.length > biggest.length ? item : biggest),
+      []
+    );
+    return { from_id: biggestGroup[0].from_id, to_id: biggestGroup[0].to_id };
+  }, txnsByLabel);
 }
 
 export const store = writable({
@@ -77,7 +105,7 @@ export const store = writable({
   periodLength: 15,
 
   hasLoadedTxns: false,
-  hasLoadedAccounts: false,
+  hasLoadedAccounts: false
 });
 
 export const arrays = derived(store, $store => {
@@ -111,10 +139,16 @@ export const arrays = derived(store, $store => {
     })
     .sort(comparator((a, b) => a.date > b.date));
 
+  console.time("Compute balances");
   const balancesByAccountByDay_ = balancesByAccountByDay(
     txnsArr,
     $store.accounts
   );
+  console.timeEnd("Compute balances");
+
+  console.time("Calc label quickfills");
+  const labelQuickFills = calcFieldsForLabel(txnsArr);
+  console.timeEnd("Calc label quickfills");
 
   return {
     ...$store,
@@ -132,7 +166,8 @@ export const arrays = derived(store, $store => {
     envelopes: Object.values($store.accounts).filter(
       b => b.type === "envelope"
     ),
-    accounts: Object.values($store.accounts).filter(b => b.type === "account")
+    accounts: Object.values($store.accounts).filter(b => b.type === "account"),
+    labelQuickFills
   };
 });
 

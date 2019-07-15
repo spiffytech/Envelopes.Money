@@ -113,15 +113,6 @@ export const fragments = gql`
         from_name
       }
 
-      fragment top_label on top_labels {
-        label
-        count
-        to_id
-        from_id
-        user_id
-        name
-      }
-
       fragment tag on tags {
         user_id
         tag

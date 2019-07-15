@@ -1,0 +1,3 @@
+- args:
+    sql: DROP VIEW "public"."top_labels"
+  type: run_sql

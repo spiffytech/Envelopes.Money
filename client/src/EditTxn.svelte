@@ -186,7 +186,7 @@
               type="date"
               value={formatDate(txns[0].date)}
               class="input"
-              on:input={event => (txns[0].date = new Date(event.target.value))} />
+              on:input={event => (txns[0].date = formatDate(new Date(event.target.value + "T00:00")))} />
           </label>
         </div>
 

@@ -25,7 +25,7 @@ function calcBalancesForAccount(amounts) {
   const minDate =
     amounts.length === 0
       ? new Date().getTime()
-      : Math.min(...amounts.map(({ date }) => new Date(date).getTime()));
+      : Math.min(...amounts.map(({ date }) => new Date(date + "T00:00").getTime()));
   const dates = calcDaysInPeriod(new Date(minDate));
   const { ret: finalRet } = dates.reduce(
     ({ ret, lastValue }, date) => {

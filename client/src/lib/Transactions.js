@@ -3,6 +3,7 @@ import * as shortid from "shortid";
 
 import mkApollo from "../lib/apollo";
 import { fragments } from "../lib/apollo";
+import {formatDate} from '../lib/utils';
 
 export function loadTransaction({ userId, apikey }, transactionId) {
   const apollo = mkApollo(apikey);
@@ -93,7 +94,7 @@ export function mkEmptyTransaction(userId) {
     id: shortid.generate(),
     user_id: userId,
     memo: "",
-    date: new Date(),
+    date: formatDate(new Date()),
     amount: 0,
     label: null,
     from_id: null,

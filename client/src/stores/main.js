@@ -155,11 +155,11 @@ export const arrays = derived(store, $store => {
     isLoading: !$store.hasLoadedAccounts || !$store.hasLoadedTxns,
     txnsGrouped: txnsGrouped.filter(
       txnGrouped =>
-        (txnGrouped.label || "").toLowerCase().includes($store.searchTerm) ||
-        (txnGrouped.memo || "").toLowerCase().includes($store.searchTerm) ||
-        txnGrouped.from_name.toLowerCase().includes($store.searchTerm) ||
-        txnGrouped.to_names.toLowerCase().includes($store.searchTerm) ||
-        (txnGrouped.amount / 100).toFixed(2).includes($store.searchTerm)
+        (txnGrouped.label || "").toLowerCase().includes($store.searchTerm.toLowerCase()) ||
+        (txnGrouped.memo || "").toLowerCase().includes($store.searchTerm.toLowerCase()) ||
+        txnGrouped.from_name.toLowerCase().includes($store.searchTerm.toLowerCase()) ||
+        txnGrouped.to_names.toLowerCase().includes($store.searchTerm.toLowerCase()) ||
+        (txnGrouped.amount / 100).toFixed(2).includes($store.searchTerm.toLowerCase())
     ),
 
     balancesByAccountByDay: balancesByAccountByDay_,

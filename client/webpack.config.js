@@ -1,6 +1,7 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const DotEnv = require('dotenv-webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const mode = process.env.NODE_ENV || 'development';
 const prod = mode === 'production';
@@ -21,7 +22,7 @@ module.exports = {
 	},
 	output: {
 		path: __dirname + '/public',
-		filename: '[name].js',
+		filename: '[name].[contenthash].js',
 		chunkFilename: '[name].[id].js'
 	},
 	module: {
@@ -52,6 +53,7 @@ module.exports = {
 	},
 	mode,
 	plugins: [
+		new HtmlWebpackPlugin({title: "Envelopes.money"}),
 		new MiniCssExtractPlugin({
 			filename: '[name].css'
 		}),

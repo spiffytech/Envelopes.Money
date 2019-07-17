@@ -1,6 +1,7 @@
 {
   "name": "svelte-app",
   "version": "1.0.0",
+  "license": "AGPLv3",
   "devDependencies": {
     "@types/d3": "^5.7.2",
     "@types/lodash": "^4.14.123",

@@ -26,7 +26,7 @@
     "graphql": "^14.0.2",
     "http-proxy-middleware": "^0.19.1",
     "isomorphic-fetch": "^2.2.1",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.14",
     "longjohn": "^0.2.12",
     "morgan": "^1.9.1",
     "mz": "^2.7.0",

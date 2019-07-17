@@ -44,8 +44,14 @@ export async function signUp(req: express.Request, res: express.Response) {
     const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
     console.log(await apollo.mutate({
       mutation: gql`
-        mutation SignUp($objects: [users_insert_input!]!) {
-          insert_users(objects: $objects) {
+        mutation SignUp($users: [users_insert_input!]!, $accounts: [accounts_insert_input!]!) {
+          insert_users(objects: $users) {
+            returning {
+              id
+            }
+          }
+
+          insert_accounts(objects: $accounts) {
             returning {
               id
             }
@@ -53,12 +59,29 @@ export async function signUp(req: express.Request, res: express.Response) {
         }
       `,
       variables: {
-        objects: [{
+        users: [{
           id: userId,
           email: req.body.email,
           scrypt: hash,
           apikey,
         }],
+
+        accounts: [
+          {
+            id: shortid.generate(),
+            user_id: userId,
+            name: '[Unallocated]',
+            type: 'envelope',
+            extra: {}
+          },
+          {
+            id: shortid.generate(),
+            user_id: userId,
+            name: '[Equity]',
+            type: 'account',
+            extra: {}
+          }
+        ]
       },
     }));
     console.log(`Signed up ${req.body.email}`);

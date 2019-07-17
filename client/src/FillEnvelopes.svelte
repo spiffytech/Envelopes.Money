@@ -1,14 +1,15 @@
 <script>
   import page from "page";
   import * as shortid from "shortid";
+  import { onMount } from "svelte";
 
   import Balance from "./Balance.svelte";
   import * as Balances from "./lib/Balances";
   import MoneyInput from "./MoneyInput.svelte";
   import { toDollars } from "./lib/pennies";
+  import { arrays as derivedStore} from "./stores/main";
   import * as Transactions from "./lib/Transactions";
   import { guardCreds } from "./lib/utils";
-  import { onMount } from "svelte";
 
   const creds = guardCreds();
 
@@ -98,7 +99,7 @@
                 <div class="flex justify-between bubble">
                     <div>
                         <div>
-                            <Balance balance={fill.envelope} adjustment={fill.amount} />
+                            <Balance balance={$derivedStore.balancesByAccountByDay[fill.envelope.id]} defaultDaysToRender={15} />
 
                             <button
                                 class="border btn btn-secondary"

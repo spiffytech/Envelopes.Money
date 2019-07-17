@@ -14,7 +14,10 @@ function calcDaysToRender(account, defaultDaysToRender) {
     if (account.extra.interval === "total") {
       return defaultDaysToRender + 1;
     }
-    return durations[account.extra.interval] + 1;
+    if (account.extra.interval) {
+      return durations[account.extra.interval] + 1;
+    }
+    return defaultDaysToRender;
   }
   return defaultDaysToRender + 1;
 }
@@ -75,6 +78,7 @@ function calcDaysInPeriod(
     <div
       class="item flex-grow p-3 border border-gray-100 shadow-md rounded-lg m-3 bg-white"
       style="min-width: 0"
+      data-cy="balance"
     >
       <div class="flex justify-between">
         <div>

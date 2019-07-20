@@ -65,7 +65,7 @@
     <p data-cy='no-transactions'>You don't have any transactions yet! Go create some by clicking the button in the top-right.</p>
   {/if}
 
-  {#each txnsGrouped.slice(page * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
+  {#each txnsGrouped.slice(pageNum * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
     <Transaction {txn} />
   {/each}
 

@@ -154,7 +154,7 @@
   <button type='submit' class='btn btn-primary'>Save {account.type}</button>
 </form>
 
-{#each txns.slice(page * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
+{#each txns.slice(pageNum * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
   <Transaction {txn} />
 {/each}
 

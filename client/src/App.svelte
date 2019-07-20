@@ -79,7 +79,7 @@
     <div
       class="bg-white border border-grey-light rounded flex justify-between
       flex-wrap nav mb-2">
-      <a class="btn font-bold" href="/home" data-cy='home-button'>HackerBudget</a>
+      <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
       {#if creds}
         <div data-cy="nav-buttons">
           <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">

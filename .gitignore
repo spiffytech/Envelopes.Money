@@ -25,3 +25,5 @@ yarn-error.log*
 react
 vscode.code-workspace
 cypress.env.json
+
+client/public/bundle*js*

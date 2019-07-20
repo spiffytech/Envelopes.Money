@@ -21,6 +21,7 @@ app.use(cookieParser());
 app.use('/', unauth);
 app.use('/api', authed);
 if (!process.env.GRAPHQL_ENDPOINT) throw new Error('Missing GRAPHQL_ENDPOINT');
+if (!process.env.SCRYPT_SALT) throw new Error('Missing SCRYPT_SALT');
 //app.use('/v1alpha1/graphql', httpProxy({target: process.env.GRAPHQL_ENDPOINT, logLevel: 'debug'}))
 app.use(
   '/v1alpha1/graphql',

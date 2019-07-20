@@ -33,5 +33,6 @@ services:
       HASURA_ADMIN_KEY: myadminsecretkey
       GRAPHQL_HTTP_HOST: http://localhost:8080/v1/graphql
       GRAPHQL_WSS_HOST: wss://localhost:8080/v1/graphql
+      SCRYPT_SALT: correcthorsebatterystaple
 volumes:
   db_data:

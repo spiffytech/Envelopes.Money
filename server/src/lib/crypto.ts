@@ -1,11 +1,14 @@
-import scrypt from 'scrypt';
-
-const scryptParameters = scrypt.paramsSync(0.1)
+import crypto from 'crypto';
 
 export async function encode(s: string) {
-  return (await scrypt.kdf(s, scryptParameters)).toString('Base64')
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(s, process.env.SCRYPT_SALT!, 64, (err, hashBuffer) => {
+      if (err) return reject(err);
+      resolve(hashBuffer.toString('Base64'));
+    });
+  });
 }
 
 export async function verify(encoded: string, s: string) {
-  return scrypt.verifyKdf(Buffer.from(encoded, 'Base64'), s)
+  return encoded === s;
 }

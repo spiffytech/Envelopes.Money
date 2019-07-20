@@ -25,12 +25,15 @@ RUN npm run build
 RUN npm run tailwind
 
 WORKDIR /workdir/server
-CMD node dist/server/index.js
+CMD /workdir/server/docker-start.sh
 
 FROM node:12-alpine AS runner
+
 ENV NODE_ENV=production
 RUN mkdir -p /workdir/server
 RUN mkdir -p /workdir/client
+
+COPY docker-start.sh /workdir/server
 
 COPY --from=builder /workdir/server/package*.json /workdir/server/
 COPY --from=builder /workdir/server/dist /workdir/server/dist
@@ -40,5 +43,4 @@ COPY --from=builder /workdir/client/public /workdir/client/public
 WORKDIR /workdir/server
 RUN npm install
 
-WORKDIR /workdir/server
-CMD node dist/server/index.js
+CMD /workdir/server/docker-start.sh

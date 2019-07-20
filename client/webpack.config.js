@@ -10,7 +10,7 @@ module.exports = {
         port: 5001,
         proxy: {
             context: () => true,
-            target: 'http://localhost:8000'
+            target: 'http://localhost:8001'
         }
     },
 	entry: {

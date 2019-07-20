@@ -9,9 +9,9 @@ import {getMainDefinition} from 'apollo-utilities';
 import gql from 'graphql-tag';
 
 function mkClient(token, isAdmin=false) {
-  const httpUri = process.env.GRAPHQL_HTTP_HOST;
+  const httpUri = window._env_.GRAPHQL_HTTP_HOST;
   if (!httpUri) throw new Error('Missing HTTP GraphQL endpoint');
-  const wssUri = process.env.GRAPHQL_WSS_HOST;
+  const wssUri = window._env_.GRAPHQL_WSS_HOST;
   if (!wssUri) throw new Error('Missing WSS GraphQL endpoint');
   const httpLink = createHttpLink({uri: httpUri});
   const wssLink = new WebSocketLink({

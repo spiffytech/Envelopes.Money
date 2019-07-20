@@ -21,7 +21,8 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
       HASURA_GRAPHQL_AUTH_HOOK: http://hackerbudget:3000/hasura_auth
   hackerbudget:
-    image: spiffytech/hackerbudget
+    #image: spiffytech/hackerbudget
+    image: envelopes.money
     ports:
         - "8001:3000"
     depends_on:
@@ -30,5 +31,7 @@ services:
     environment:
       GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1alpha1/graphql
       HASURA_ADMIN_KEY: myadminsecretkey
+      GRAPHQL_HTTP_HOST: http://localhost:8080/v1/graphql
+      GRAPHQL_WSS_HOST: wss://localhost:8080/v1/graphql
 volumes:
   db_data:

@@ -16,8 +16,8 @@ const app = new App({
 
 export default app;
 
-if (process.env.LOGROCKET_APP) {
-  LogRocket.init(process.env.LOGROCKET_APP, {
+if (window._env_.LOGROCKET_APP) {
+  LogRocket.init(window._env_.LOGROCKET_APP, {
     network: { isEnabled: false },
     dom: { isEnabled: false }
   });

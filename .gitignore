@@ -27,3 +27,4 @@ vscode.code-workspace
 cypress.env.json
 
 client/public/bundle*js*
+client/public/env.js

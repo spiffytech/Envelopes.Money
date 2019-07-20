@@ -1,5 +1,4 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const DotEnv = require('dotenv-webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
@@ -57,7 +56,6 @@ module.exports = {
 		new MiniCssExtractPlugin({
 			filename: '[name].css'
 		}),
-		new DotEnv({systemvars: true}),
         ...(prod ? [] : [new BundleAnalyzerPlugin()]),
 	],
     //devtool: prod ? false: 'source-map',

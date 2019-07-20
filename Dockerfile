@@ -1,9 +1,5 @@
 FROM node:11
 
-ARG GRAPHQL_HTTP_HOST
-ARG GRAPHQL_WSS_HOST
-ARG LOGROCKET_APP
-
 RUN mkdir -p /workdir/server
 RUN mkdir -p /workdir/client
 

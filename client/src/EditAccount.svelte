@@ -22,6 +22,8 @@
   let newTag = {key: '', value: ''};
 
   $: txns = $derivedStore.txnsGrouped.filter((txn) => txn.from_id === accountId || txn.to_ids.includes(accountId))
+  const numItemsPerPage = 100;
+  let pageNum = 0;
 
   $: if (accountId) {
     Accounts.loadAccount(graphql, accountId).
@@ -152,6 +154,15 @@
   <button type='submit' class='btn btn-primary'>Save {account.type}</button>
 </form>
 
-{#each txns as txn}
+{#each txns.slice(page * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
   <Transaction {txn} />
+{/each}
+
+{#each new Array(Math.ceil(txns.length / numItemsPerPage)).fill(null).map((_, i) => i) as btn_number}
+    <button
+        on:click|preventDefault={() => pageNum=btn_number}
+        class="btn btn-secondary"
+    >
+        Page {btn_number + 1}
+    </button>
 {/each}

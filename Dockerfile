@@ -27,7 +27,7 @@ RUN npm run tailwind
 WORKDIR /workdir/server
 CMD node dist/server/index.js
 
-FROM node:11 AS runner
+FROM node:11-alpine AS runner
 ENV NODE_ENV=production
 RUN mkdir -p /workdir/server
 RUN mkdir -p /workdir/client

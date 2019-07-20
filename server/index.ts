@@ -1,6 +1,5 @@
 /* tslint:disable:no-var-requires */
 require('dotenv').config();
-require('longjohn');
 
 import cors from 'cors';
 import express from 'express';

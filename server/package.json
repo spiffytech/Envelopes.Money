@@ -13,7 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/http-proxy-middleware": "^0.19.2",
     "apollo-boost": "^0.1.22",
     "apollo-client": "^2.4.7",
     "apollo-link-context": "^1.0.10",
@@ -27,7 +26,6 @@
     "http-proxy-middleware": "^0.19.1",
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.14",
-    "longjohn": "^0.2.12",
     "morgan": "^1.9.1",
     "mz": "^2.7.0",
     "nconf": "^0.10.0",
@@ -35,6 +33,7 @@
     "shortid": "^2.2.14"
   },
   "devDependencies": {
+    "@types/http-proxy-middleware": "^0.19.2",
     "@types/bs58": "^3.0.30",
     "@types/cookie-parser": "^1.4.1",
     "@types/cors": "^2.8.4",
@@ -49,6 +48,7 @@
     "@types/nconf": "0.0.37",
     "@types/scrypt": "^6.0.0",
     "@types/shortid": "0.0.29",
+    "longjohn": "^0.2.12",
     "nodemon": "^1.18.7",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.2"

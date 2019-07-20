@@ -30,9 +30,10 @@ services:
     restart: always
     environment:
       GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1alpha1/graphql
-      HASURA_ADMIN_KEY: myadminsecretkey
       GRAPHQL_HTTP_HOST: http://localhost:8080/v1/graphql
-      GRAPHQL_WSS_HOST: wss://localhost:8080/v1/graphql
+      GRAPHQL_WSS_HOST: ws://localhost:8080/v1/graphql
+      HASURA_ADMIN_KEY: myadminsecretkey
+      COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple
 volumes:
   db_data:

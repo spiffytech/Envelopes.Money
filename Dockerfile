@@ -27,6 +27,10 @@ RUN npm run tailwind
 WORKDIR /workdir/server
 CMD /workdir/server/docker-start.sh
 
+FROM node:12-alpine as intermediate
+COPY --from=builder /workdir/server/node_modules/ /root/node_modules
+RUN npm prune --production
+
 FROM node:12-alpine AS runner
 
 ENV NODE_ENV=production
@@ -41,6 +45,6 @@ COPY --from=builder /workdir/server/dist /workdir/server/dist
 COPY --from=builder /workdir/client/public /workdir/client/public
 
 WORKDIR /workdir/server
-RUN npm install
+COPY --from=intermediate /root/node_modules/ /workdir/server/node_modules/
 
 CMD /workdir/server/docker-start.sh

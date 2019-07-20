@@ -3,10 +3,12 @@
   import * as shortid from 'shortid';
   import {getContext, onMount} from 'svelte';
 
+  import Transaction from './components/Transaction';
   import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
   import {formatDate} from './lib/utils';
+  import {arrays as derivedStore} from './stores/main';
 
   const graphql = getContext('graphql');
 
@@ -18,6 +20,8 @@
   let canChangeType = true;
   let tags = [];
   let newTag = {key: '', value: ''};
+
+  $: txns = $derivedStore.txnsGrouped.filter((txn) => txn.from_id === accountId || txn.to_ids.includes(accountId))
 
   $: if (accountId) {
     Accounts.loadAccount(graphql, accountId).
@@ -147,3 +151,7 @@
 
   <button type='submit' class='btn btn-primary'>Save {account.type}</button>
 </form>
+
+{#each txns as txn}
+  <Transaction {txn} />
+{/each}

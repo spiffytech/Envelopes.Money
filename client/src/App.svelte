@@ -42,7 +42,6 @@
   if (!creds) {
     page("/login");
   } else {
-    setContext("creds", creds);
     const graphql = {
       apollo: mkApollo(creds.apikey),
       wsclient: mkWSClient(
@@ -60,6 +59,7 @@
       apikey: creds.apikey
     };
     setContext("graphql", graphql);
+    setContext("creds", graphql);
     if (window.Cypress) {
       window.creds = creds;
       window.graphql = graphql;

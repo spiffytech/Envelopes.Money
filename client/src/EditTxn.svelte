@@ -26,10 +26,8 @@
   // This takes care of when our props change
   onMount(async () => {
     if (!txnId) return;
-    const txnP = Transactions.loadTransaction(creds, txnId);
-    const { data: txns_ } = await txnP;
-    if (txns_.transactions.length === 0) return page("/404");
-    txns = txns_.transactions;
+    txns = Object.values($derivedStore.transactions).filter((transaction) => transaction.txn_id === txnId);
+    if (txns.length === 0) return page("/404");
     type = txns[0].type;
   });
 

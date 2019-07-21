@@ -1,33 +1,12 @@
 import gql from "graphql-tag";
 import * as shortid from "shortid";
 
-import mkApollo from "../lib/apollo";
 import { fragments } from "../lib/apollo";
 import {formatDate} from '../lib/utils';
 
-export function loadTransaction({ userId, apikey }, transactionId) {
-  const apollo = mkApollo(apikey);
-  return apollo.query({
+export function saveTransactions({wsclient}, txns) {
+  return wsclient.query({
     query: gql`
-      ${fragments}
-      query GetTxns($user_id: String!, $txn_id: String!) {
-        transactions(
-          where: {
-            _and: [{ user_id: { _eq: $user_id } }, { txn_id: { _eq: $txn_id } }]
-          }
-        ) {
-          ...transaction
-        }
-      }
-    `,
-    variables: { user_id: userId, txn_id: transactionId }
-  });
-}
-
-export function saveTransactions({ userId, apikey }, txns) {
-  const apollo = mkApollo(apikey);
-  return apollo.mutate({
-    mutation: gql`
       ${fragments}
       mutation UpsertTransactions(
         $txnId: String!
@@ -56,10 +35,9 @@ export function saveTransactions({ userId, apikey }, txns) {
   });
 }
 
-export function deleteTransactions({ userId, apikey }, txnId) {
-  const apollo = mkApollo(apikey);
-  return apollo.mutate({
-    mutation: gql`
+export function deleteTransactions({wsclient}, txnId) {
+  return wsclient.query({
+    query: gql`
       ${fragments}
       mutation DeleteTransactions($txnId: String!) {
         delete_transactions(where: { txn_id: { _eq: $txnId } }) {

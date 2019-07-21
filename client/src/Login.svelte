@@ -10,13 +10,10 @@
 
     async function handleSubmit() {
         try {
-            const response = await axios.post(
-                `${endpoint}/login`, {email, password}
+            await axios.post(
+                `${endpoint}/login`, {email, password}, {withCredentials: true}
             );
-            const creds = {userId: response.data.userId, apikey: response.data.apikey};
-            window.localStorage.setItem('creds', JSON.stringify(creds));
-            page('/home');
-            location.reload();  // Force the new context to get set
+            location.href = '/';  // Force the new context to get set
         } catch (ex) {
             error = ex.response.data.error;
         }

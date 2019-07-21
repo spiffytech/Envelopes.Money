@@ -8,13 +8,11 @@ import mkApollo from '../lib/apollo';
 import * as crypto from '../lib/crypto';
 import * as sessions from '../lib/sessions';
 
-function setCookie(res: express.Response, apikey: string, userId: string) {
-  const maxAge = 86400 * 1000 * 14
-  // Lets the browser see how long the session will last
-  res.cookie('sessionAlive', maxAge.toString(), {maxAge, httpOnly: false});
-  // Holds our actual session auth information
-  res.cookie('apikey', apikey, {maxAge, httpOnly: false});
-  res.cookie('userId', userId, {maxAge, httpOnly: false});
+function setSession(req: express.Request, apikey: string, userId: string) {
+  req.session!.credentials = {
+    apikey,
+    userId,
+  };
 }
 
 export async function signUp(req: express.Request, res: express.Response) {
@@ -26,7 +24,6 @@ export async function signUp(req: express.Request, res: express.Response) {
       return;
     }
     const hash = await crypto.encode(req.body.password);
-    console.log(req.headers);
     /*
     const userToken = req.headers['authorization'];
     if (!userToken) {
@@ -38,7 +35,6 @@ export async function signUp(req: express.Request, res: express.Response) {
     */
 
     const apikey = bs58.encode(await nodeCrypto.randomBytes(32));
-    console.log(apikey);
 
     const userId = shortid.generate()
     const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
@@ -85,7 +81,7 @@ export async function signUp(req: express.Request, res: express.Response) {
       },
     }));
     console.log(`Signed up ${req.body.email}`);
-    setCookie(res, apikey, userId);
+    setSession(req, apikey, userId);
     res.send({success: true, userId, apikey});
   } catch(ex) {
     console.error(ex);
@@ -113,7 +109,7 @@ export async function logIn(req: express.Request, res: express.Response) {
       return res.json({error: 'Invalid credentials'});
     }
 
-    setCookie(res, user.apikey, user.id);
+    setSession(req, user.apikey, user.id);
     res.send({success: true, userId: user.id, apikey: user.apikey});
   } catch(ex) {
     console.error(ex);

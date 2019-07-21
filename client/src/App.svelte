@@ -13,6 +13,9 @@
   import { arrays as derivedStore } from "./stores/main";
   import Login from "./Login.svelte";
   import mkApollo from "./lib/apollo";
+
+  export let creds;
+
   let route;
   let routeParams;
 
@@ -35,7 +38,6 @@
   page({ hashbang: true });
 
   setContext("endpoint", endpoint);
-  const creds = JSON.parse(localStorage.getItem("creds"));
   if (!creds) {
     page("/login");
   } else {

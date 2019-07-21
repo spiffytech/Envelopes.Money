@@ -5,9 +5,11 @@ import mkApollo from '../lib/apollo';
 if (!process.env.HASURA_ADMIN_KEY) throw new Error('Must supply HASURA_ADMIN_KEY');
 
 export function apikeyFromRequest(req: express.Request) {
-  if (req.cookies.apikey) return req.cookies.apikey;
   if (req.query.apikey) return req.query.apikey
-  return null;
+
+  if (!req.session!.credentials) return null;
+  if (!req.session!.credentials.apikey) return null;
+  return req.session!.credentials.apikey;
 }
 
 interface User {

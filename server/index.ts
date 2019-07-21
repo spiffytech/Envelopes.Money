@@ -4,7 +4,6 @@ require('dotenv').config();
 import cookieSession from 'cookie-session';
 import cors from 'cors';
 import express from 'express';
-import httpProxy from 'http-proxy-middleware';
 import morgan from 'morgan';
 import * as path from 'path';
 
@@ -27,15 +26,6 @@ app.use(
 );
 
 app.use('/', unauth);
-app.use(
-  '/v1alpha1/graphql',
-  httpProxy({
-    target: process.env.GRAPHQL_ENDPOINT,
-    logLevel: 'debug',
-    changeOrigin: true,
-    prependPath: false,
-  })
-)
 
 const authedRouter = express.Router();
 authedRouter.use(async (req, res, next) => {

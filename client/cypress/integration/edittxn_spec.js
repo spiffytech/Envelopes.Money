@@ -1,6 +1,6 @@
 import * as shortid from 'shortid';
 
-describe('Hitting an empty user account', () => {
+describe('Editing a txn in an empty user account', () => {
     before(() => {
         cy.register();
     });

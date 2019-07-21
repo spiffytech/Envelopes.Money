@@ -1,7 +1,6 @@
 <script>
     import axios from 'axios';
-    import page from 'page';
-    import {getContext, setContext} from 'svelte';
+    import {getContext} from 'svelte';
 
     const endpoint = getContext('endpoint');
     let error = null;

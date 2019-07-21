@@ -124,12 +124,16 @@
     await Transactions.deleteTransactions(creds, txnId);
     page("/home");
   }
+
+  function filterRealAccounts(account) {
+    return !account.name.match(/\[.*\]/);
+  }
 </script>
 
 {#await initializeP}
   <p>Loading...</p>
 {:then}
-  {#if from === undefined || to === undefined || from.length === 0 || to.length === 0}
+  {#if from === undefined || to === undefined || from.filter(filterRealAccounts).length === 0 || to.filter(filterRealAccounts).length === 0}
     <p data-cy="no-data">
       Go create some accounts and envelopes before trying to do this
     </p>

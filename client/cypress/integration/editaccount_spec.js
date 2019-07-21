@@ -1,4 +1,3 @@
-import {Base64} from 'js-base64';
 import * as shortid from 'shortid';
 
 describe('Creating a new account', () => {

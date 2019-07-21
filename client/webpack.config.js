@@ -61,6 +61,7 @@ module.exports = {
     //devtool: prod ? false: 'source-map',
 	devtool: 'source-map',
 	optimization: {
-	  usedExports: true
+        usedExports: true,
+        minimize: true
 	},
 };

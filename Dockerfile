@@ -24,8 +24,9 @@ WORKDIR /workdir/client
 RUN npm run build
 RUN npm run tailwind
 
+COPY docker-start.sh /workdir/server
 WORKDIR /workdir/server
-CMD /workdir/server/docker-start.sh
+CMD bash /workdir/server/docker-start.sh
 
 FROM node:12-alpine as intermediate
 COPY --from=builder /workdir/server/node_modules/ /root/node_modules
@@ -47,4 +48,4 @@ COPY --from=builder /workdir/client/public /workdir/client/public
 WORKDIR /workdir/server
 COPY --from=intermediate /root/node_modules/ /workdir/server/node_modules/
 
-CMD /workdir/server/docker-start.sh
+CMD sh /workdir/server/docker-start.sh

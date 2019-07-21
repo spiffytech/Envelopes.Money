@@ -48,17 +48,11 @@ Cypress.Commands.add('login', () => {
     }).then((response) => {
         Cypress.env('userId', response.body.userId);
         Cypress.env('apikey', response.body.apikey);
-        window.localStorage.setItem('creds', JSON.stringify({userId: response.body.userId, apikey: response.body.apikey}));
     });
 });
 
 Cypress.Commands.add('setLogin', () => {
-    cy.window().then((window) => {
-        window.localStorage.setItem(
-            'creds', JSON.stringify({userId: Cypress.env('userId'), apikey: Cypress.env('apikey')})
-        );
-        cy.setCookie('apikey', Cypress.env('apikey'));
-    });
+    cy.login();
 });
 
 Cypress.Commands.add('loadAccounts', (suffix) => {

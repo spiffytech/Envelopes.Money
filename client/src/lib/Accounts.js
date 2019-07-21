@@ -6,8 +6,8 @@ export function isEnvelope(account) {
   return account.type === 'envelope';
 }
 
-export function loadAccounts({userId, apollo}) {
-  return apollo.query({
+export function loadAccounts({userId, wsclient}) {
+  return wsclient.query({
     query: gql`
       ${fragments}
       query GetAccounts($user_id: String!) {
@@ -20,8 +20,8 @@ export function loadAccounts({userId, apollo}) {
   });
 }
 
-export function loadAccount({userId, apollo}, accountId) {
-  return apollo.query({
+export function loadAccount({userId, wsclient}, accountId) {
+  return wsclient.query({
     query: gql`
       ${fragments}
       query GetAccounts($user_id: String!, $account_id: String!) {
@@ -34,9 +34,9 @@ export function loadAccount({userId, apollo}, accountId) {
   });
 }
 
-export function saveAccount({apollo}, account) {
-  return apollo.mutate({
-    mutation: gql`
+export function saveAccount({wsclient}, account) {
+  return wsclient.query({
+    query: gql`
       ${fragments}
       mutation UpsertAccount($account: accounts_insert_input!) {
         insert_accounts(

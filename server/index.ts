@@ -29,8 +29,6 @@ app.use('/', unauth);
 
 const authedRouter = express.Router();
 authedRouter.use(async (req, res, next) => {
-  console.log('req', req);
-  console.log('credentials', req.session!.credentials);
   const apikey = sessions.apikeyFromRequest(req);
   if (!apikey) {
     res.statusCode = 500;

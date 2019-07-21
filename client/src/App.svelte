@@ -12,7 +12,6 @@
   import * as mainStore from "./stores/main";
   import { arrays as derivedStore } from "./stores/main";
   import Login from "./Login.svelte";
-  import mkApollo from "./lib/apollo";
   import {mkClient as mkWSClient} from './lib/graphql';
 
   export let creds;
@@ -43,7 +42,6 @@
     page("/login");
   } else {
     const graphql = {
-      apollo: mkApollo(creds.apikey),
       wsclient: mkWSClient(
         window._env_.GRAPHQL_WSS_HOST,
         {

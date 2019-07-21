@@ -54,10 +54,10 @@ export function saveAccount({apollo}, account) {
 }
 
 export async function subscribe(
-  { userId, apollo },
+  { userId, wsclient },
   onData
 ) {
-  return apollo
+  return wsclient
     .subscribe({
       query: gql`
         ${fragments}
@@ -68,8 +68,7 @@ export async function subscribe(
         }
       `,
       variables: { user_id: userId }
-    })
-    .subscribe({ next: onData });
+    }, onData);
 }
 
 export function mkEmptyEnvelope(userId) {

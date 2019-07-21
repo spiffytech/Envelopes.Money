@@ -13,6 +13,7 @@
   import { arrays as derivedStore } from "./stores/main";
   import Login from "./Login.svelte";
   import mkApollo from "./lib/apollo";
+  import {mkClient as mkWSClient} from './lib/graphql';
 
   export let creds;
 
@@ -44,6 +45,17 @@
     setContext("creds", creds);
     const graphql = {
       apollo: mkApollo(creds.apikey),
+      wsclient: mkWSClient(
+        window._env_.GRAPHQL_WSS_HOST,
+        {
+            reconnect: true,
+            connectionParams: {
+              headers: {
+                'Authorization': `Bearer ${creds.apikey}`,
+              }
+            },
+          }
+      ),
       userId: creds.userId,
       apikey: creds.apikey
     };

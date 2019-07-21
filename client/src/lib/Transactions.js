@@ -73,8 +73,8 @@ export function deleteTransactions({ userId, apikey }, txnId) {
   });
 }
 
-export async function subscribe({ userId, apollo }, onData) {
-  return apollo
+export async function subscribe({ userId, wsclient }, onData) {
+  return wsclient
     .subscribe({
       query: gql`
         ${fragments}
@@ -85,8 +85,7 @@ export async function subscribe({ userId, apollo }, onData) {
         }
       `,
       variables: { user_id: userId }
-    })
-    .subscribe({ next: onData });
+    }, onData);
 }
 
 export function mkEmptyTransaction(userId) {

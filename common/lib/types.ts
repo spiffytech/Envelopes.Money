@@ -35,20 +35,6 @@ export interface BankAccount {
 
 export type IAccount = Envelope | BankAccount;
 
-export interface TxnGrouped {
-  to_names: string;
-  to_ids: string;
-  amount: number;
-  txn_id: string;
-  user_id: string;
-  label: string | null;
-  date: string;
-  memo: string;
-  type: string;
-  from_id: string;
-  from_name: string;
-}
-
 export interface Balance {
   id: string;
   user_id: string;

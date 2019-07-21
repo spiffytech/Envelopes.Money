@@ -48,7 +48,12 @@
       return [
         tag,
         envelopeBalancesForTag
-          .map(({ id }) => $derivedStore.balancesByAccountByDay[id].balances[currentDateStr])
+          .map(({ id }) => {
+            if ($derivedStore.balancesByAccountByDay[id]) {
+              return $derivedStore.balancesByAccountByDay[id].balances[currentDateStr]
+            }
+            return 0;
+          })
           .reduce(
             (tagBalance, envelopeBalance) => tagBalance + envelopeBalance,
             0

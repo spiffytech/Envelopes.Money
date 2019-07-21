@@ -1,7 +1,6 @@
 import gql from 'graphql-tag';
 import fromPairs from 'ramda/es/fromPairs';
 
-import mkApollo from '../lib/apollo';
 import {fragments} from '../lib/apollo';
 
 export function isBalanceEnvelope(account) {
@@ -82,9 +81,8 @@ export function calcAmountForPeriod(balance) {
   return calcAmountRegularInterval(balance);
 }
 
-export function loadBalances({userId, apikey}) {
-  const apollo = mkApollo(apikey);
-  return apollo.query({
+export function loadBalances({userId, wsclient}) {
+  return wsclient.query({
 
     query: gql`
       ${fragments}
@@ -98,9 +96,8 @@ export function loadBalances({userId, apikey}) {
   });
 }
 
-export async function subscribe({userId, apikey}, onData) {
-  const apollo = mkApollo(apikey);
-  return apollo.subscribe({
+export async function subscribe({userId, wsclient}, onData) {
+  return wsclient.subscribe({
     query: gql`
       ${fragments}
       subscription SubscribeBalances($user_id: String!) {
@@ -110,5 +107,5 @@ export async function subscribe({userId, apikey}, onData) {
       }
     `,
     variables: {user_id: userId},
-  }).subscribe({next: onData});
+  }, onData);
 }

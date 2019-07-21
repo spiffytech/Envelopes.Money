@@ -1,5 +1,6 @@
 <script>
-  import {line, scaleLinear, scaleSqrt} from 'd3';
+  import {scaleLinear, scaleSqrt} from 'd3-scale';
+  import {line} from 'd3-shape';
   import head from 'ramda/es/head'
   import last from 'ramda/es/last';
 

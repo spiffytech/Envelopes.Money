@@ -1,5 +1,4 @@
 <script>
-  import localforage from "localforage";
   import chain from 'ramda/es/chain';
   import fromPairs from 'ramda/es/fromPairs';
   import groupBy from 'ramda/es/groupBy';
@@ -26,6 +25,7 @@
   let sortBy = "name";
   $: sortFn = sortFns[sortBy];
   let sortTag = null;
+  $: localStorage.setItem('selectedTag', sortTag);
   $: accounts = $derivedStore.accounts.slice().sort(sortFn);
   $: envelopes = $derivedStore.envelopes.slice().sort(sortFn);
   $: allTags = uniq(
@@ -69,7 +69,7 @@
 
   onMount(() => {
     (async () => {
-      sortTag = await localforage.getItem("selectedTag");
+      sortTag = await localStorage.getItem("selectedTag");
     })();
   });
 </script>

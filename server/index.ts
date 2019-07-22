@@ -21,7 +21,8 @@ app.use(
   cookieSession({
     name: "session",
     secret: process.env.COOKIE_SECRET,
-    maxAge: 1000 * 86400 * 14
+    maxAge: 1000 * 86400 * 14,
+    signed: false
   })
 );
 
@@ -31,15 +32,15 @@ const authedRouter = express.Router();
 authedRouter.use(async (req, res, next) => {
   const apikey = sessions.apikeyFromRequest(req);
   if (!apikey) {
-    res.statusCode = 500;
-    console.log('Unauthorized');
+    res.statusCode = 401;
+    console.log('No API key in request');
     return res.send({error: 'unauthorized'})
   }
 
   const session = await sessions.lookUpSession(apikey);
   if (!session) {
-    res.statusCode = 500;
-    console.log('Unauthorized');
+    res.statusCode = 401;
+    console.error('No session for that API key');
     return res.send({error: 'unauthorized'})
   }
 
@@ -51,6 +52,7 @@ authedRouter.use(async (req, res, next) => {
 authedRouter.get('/credentials', (req, res) => {
   res.json({apikey: req.session!.credentials.apikey, userId: req.session!.credentials.userId});
 });
+
 app.use('/api', authedRouter);
 
 // Serve static files for React

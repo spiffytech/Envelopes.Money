@@ -5,7 +5,7 @@ import * as accountsStore from "./stores/accounts";
 import * as Envelope from "./lib/Envelope";
 import LogRocket from "logrocket";
 
-axios.get('/api/credentials').
+axios.get('/api/credentials', {withCredentials: true}).
 then((response) => response.data).
 catch(() => null).
 then((creds) => {

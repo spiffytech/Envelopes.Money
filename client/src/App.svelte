@@ -1,5 +1,4 @@
 <script>
-  import checkOnline from "is-online";
   import page from "page";
   import { setContext } from "svelte";
 
@@ -10,6 +9,7 @@
   import FillEnvelopes from "./FillEnvelopes.svelte";
   import Home from "./Home.svelte";
   import * as mainStore from "./stores/main";
+  import {store} from './stores/main';
   import { arrays as derivedStore } from "./stores/main";
   import Login from "./Login.svelte";
   import {mkClient as mkWSClient} from './lib/graphql';
@@ -63,29 +63,28 @@
       window.graphql = graphql;
     }
 
+    graphql.wsclient.client.onConnected(() =>
+      store.update($store => ({...$store, connected: true}))
+    )
+    graphql.wsclient.client.onReconnected(() =>
+      store.update($store => ({...$store, connected: true}))
+    )
+    graphql.wsclient.client.onDisconnected(() =>
+      store.update($store => ({...$store, connected: false}))
+    )
     mainStore.subscribe(graphql);
   }
-
-  let onlineStatus = undefined;
-
-  $: isLoading = creds && $derivedStore.isLoading;
-  async function watchOnlineStatus() {
-    onlineStatus = await checkOnline();
-
-    const timeout = onlineStatus ? 5000 : 500;
-    await new Promise(resolve => setTimeout(resolve, timeout));
-    watchOnlineStatus();
-  }
-  watchOnlineStatus();
 </script>
 
 {#if window.Cypress} 
   <p>{JSON.stringify(window.Cypress.env())}</p>
 {/if}
 
-{#if onlineStatus || onlineStatus === undefined}
-  {#if isLoading}
+{#if $store.connected}
+  {#if $derivedStore.isLoading}
     <p>Loading...</p>
+    <p>{$derivedStore.connected} Connected</p>
+    <p>{JSON.stringify($derivedStore.loadedItems)}</p>
   {:else}
     <div class="stripe bg-orange h-1" />
     <div

@@ -105,7 +105,11 @@ export const store = writable({
   transactions: {},
   periodLength: 15,
 
-  isLoading: true,
+  connected: false,
+  loadedItems: {
+    accounts: false,
+    transactions: false
+  }
 });
 
 export const arrays = derived(store, $store => {
@@ -152,6 +156,7 @@ export const arrays = derived(store, $store => {
 
   return {
     ...$store,
+    isLoading: !(Object.values($store.loadedItems).every(identity)),
     txnsGrouped: txnsGrouped.filter(
       txnGrouped =>
         (txnGrouped.label || "").toLowerCase().includes($store.searchTerm.toLowerCase()) ||
@@ -183,29 +188,43 @@ function subscribeModule(graphql, module, storeKey, dataKey) {
   });
 }
 
+function setLoaded(key) {
+  store.update($store => {
+    // Use a conditional to minimize rerenders
+    if (!$store.loadedItems[key]) {
+      return {...$store, loadedItems: {...$store.loadedItems, [key]: true}};
+    }
+    return $store;
+  });
+}
+
 export function subscribe(graphql) {
   const pendingData = {
     accounts: null,
     transactions: null
   };
 
-  const setData = () => {
+  const setData = (key) => {
+    setLoaded(key);
+
+    // A bunch of our derived computations rely on all of the store data being
+    // loaded. A partial load throws errors. So only set the values once they've
+    // all arrived.
     const isReady = Object.values(pendingData).every(identity);
     if (!isReady) return;
     store.update($store => ({
       ...$store,
       ...pendingData,
-      isLoading: false,
     }));
   }
 
   Accounts.subscribe(graphql, ({ data }) => {
     pendingData.accounts = fromPairs(data.accounts.map(account => [account.id, account]));
-    setData();
+    setData('accounts');
   });
   Transactions.subscribe(graphql, ({ data }) => {
     pendingData.transactions = fromPairs(data.transactions.map(txn => [txn.id, txn]));
-    setData();
+    setData('transactions');
   });
   subscribeModule(graphql, Balances, "balances", "balances");
 }

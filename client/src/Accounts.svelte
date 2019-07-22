@@ -120,9 +120,9 @@
   {#each envelopeTagValues as tagValue}
     <div data-cy={`envelope-group-${tagValue || 'null'}`}>
       <header class="small-caps">
-         {sortTag || 'No tag selected'}:
+         {sortTag === 'null' ? 'No tag selected' : sortTag}:
         <span class="font-bold small-caps">
-           {tagValue === '' ? 'No Value' : tagValue}
+           {tagValue === 'undefined' ? 'No Value' : tagValue}
         </span>
       </header>
       <div data-cy='total-balance'>Total balance: {toDollars(totalBalancesByTag[tagValue])}</div>

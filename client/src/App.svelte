@@ -8,6 +8,7 @@
   import EditTxn from "./EditTxn.svelte";
   import FillEnvelopes from "./FillEnvelopes.svelte";
   import Home from "./Home.svelte";
+  import Nav from './components/Nav.svelte';
   import * as mainStore from "./stores/main";
   import {store} from './stores/main';
   import { arrays as derivedStore } from "./stores/main";
@@ -69,11 +70,17 @@
       window.graphql = graphql;
     }
 
+    graphql.wsclient.client.onConnecting(() =>
+      store.update($store => ({...$store, connecting: true}))
+    )
     graphql.wsclient.client.onConnected(() =>
-      store.update($store => ({...$store, connected: true}))
+      store.update($store => ({...$store, connecting: false, connected: true}))
+    )
+    graphql.wsclient.client.onReconnecting(() =>
+      store.update($store => ({...$store, connecting: true}))
     )
     graphql.wsclient.client.onReconnected(() =>
-      store.update($store => ({...$store, connected: true}))
+      store.update($store => ({...$store, connecting: false, connected: true}))
     )
     graphql.wsclient.client.onDisconnected(() =>
       store.update($store => ({...$store, connected: false}))
@@ -86,42 +93,23 @@
   <p>{JSON.stringify(window.Cypress.env())}</p>
 {/if}
 
-{#if $store.connected}
-  {#if $derivedStore.isLoading}
-    <p>Loading...</p>
-    <p>{$derivedStore.connected} Connected</p>
-    <p>{JSON.stringify($derivedStore.loadedItems)}</p>
-  {:else}
-    <div class="stripe bg-orange h-1" />
-    <div
-      class="bg-white border border-grey-light rounded flex justify-between
-      flex-wrap nav mb-2">
-      <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
-      {#if creds}
-        <div data-cy="nav-buttons">
-          <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">
-            New Transaction
-          </a>
-          <a
-            class="btn btn-secondary"
-            href="/editAccount"
-            data-cy="new-account">
-            New Account
-          </a>
-          <a class="btn btn-secondary" href="/fill" data-cy="fill-envelopes">
-            Fill Envelopes
-          </a>
-          <a class="btn btn-secondary" href="/editTags" data-cy="edit-tags">
-            Edit Tags
-          </a>
-        </div>
-      {/if}
-    </div>
-    <svelte:component this={route} bind:params={routeParams} />
+{#if creds}
+  {#if $store.connecting}
+    <p>🏃 Connecting to the database...</p>
+  {:else if $store.connected && $derivedStore.isLoading}
+    <p>✔️ Connected</p>
+    <p>Loading data...</p>
+    {#each Object.entries($derivedStore.loadedItems) as [itemName, isLoaded]}
+      <span>{isLoaded ? '✔️' : '🏃'} {itemName}</span>
+    {/each}
+  {:else if !$store.connected}
+    <p>We're not connected or even trying to connect! but why!</p>
   {/if}
-{:else if creds}
-  <p>Loading</p>
+
+  <Nav />
+
+  <svelte:component this={route} bind:params={routeParams} />
 {:else}
-  <p>Not connected</p>
+  <p>Not logged in</p>
   <svelte:component this={route} bind:params={routeParams} />
 {/if}

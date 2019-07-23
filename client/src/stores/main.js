@@ -103,6 +103,7 @@ export const store = writable({
   accounts: {},
   periodLength: 15,
 
+  connecting: false,
   connected: false,
   loadedItems: {
     accounts: false,
@@ -137,10 +138,11 @@ export const arrays = derived(store, $store => {
         memo: txnGroup[0].memo,
         from_id: txnGroup[0].from_id,
         from_name: fromName,
-        type: txnGroup[0].type
+        type: txnGroup[0].type,
+        cleared: txnGroup[0].cleared
       };
     })
-    .sort(comparator((a, b) => a.date > b.date));
+    .sort(comparator((a, b) => a.date === b.date ? a.insertionOrder > b.insertionOrdor : a.date > b.date));
 
   console.time("Compute balances");
   const balancesByAccountByDay_ = balancesByAccountByDay(

@@ -22,7 +22,7 @@ export function saveTransactions({wsclient}, txns) {
           objects: $txns
           on_conflict: {
             constraint: transactions_pkey
-            update_columns: [memo, date, amount, label, from_id, to_id]
+            update_columns: [memo, date, amount, label, from_id, to_id, cleared]
           }
         ) {
           returning {
@@ -75,6 +75,7 @@ export function mkEmptyTransaction(userId) {
     amount: 0,
     label: null,
     from_id: null,
-    to_id: null
+    to_id: null,
+    cleared: false
   };
 }

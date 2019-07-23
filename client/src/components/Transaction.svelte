@@ -1,10 +1,13 @@
 <script>
-  import {toDollars} from '../lib/pennies';
+  import { toDollars } from "../lib/pennies";
 
   export let txn;
 </script>
 
-<a style="display: contents" href={`/editTxn/${txn.txn_id}`} class="no-underline text-black">
+<a
+  style="display: contents"
+  href={`/editTxn/${txn.txn_id}`}
+  class="no-underline text-black">
   <div
     class="flex justify-between p-3 border border-grey-light rounded mb-1"
     data-cy="transaction">
@@ -33,5 +36,13 @@
     </div>
 
     <div class="text-right">{toDollars(txn.amount)}</div>
+
+    <div
+      class="ml-2 border-2 rounded text-xl flex item-center justify-between p-1"
+      class:bg-green-lightest={txn.cleared}
+      class:border-green-dark={txn.cleared}
+      title={'Cleared? ' + txn.cleared}>
+      <div>C</div>
+    </div>
   </div>
 </a>

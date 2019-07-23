@@ -17,6 +17,8 @@ export const fragments = gql`
         from_id
         to_id
         type
+        insertion_order
+        cleared
       }
       
       fragment account on accounts {

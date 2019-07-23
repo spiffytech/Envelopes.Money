@@ -225,6 +225,7 @@ export function subscribe(graphql) {
   });
   Transactions.subscribe(graphql, ({ data }) => {
     pendingData.transactions = fromPairs(data.transactions.map(txn => [txn.id, txn]));
+    console.log(pendingData.transactions)
     setData('transactions');
   });
 }

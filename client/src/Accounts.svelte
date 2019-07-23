@@ -62,10 +62,8 @@
     })
   );
 
-  $: envelopes =
-    groupBy(balance => balance.type, $derivedStore.balances)["envelope"] || [];
-  $: accounts =
-    groupBy(balance => balance.type, $derivedStore.balances)["account"] || [];
+  $: envelopes = $derivedStore.envelopes;
+  $: accounts = $derivedStore.accounts;
 
   onMount(() => {
     (async () => {

@@ -8,7 +8,6 @@ import map from "ramda/es/map";
 import { derived, writable } from "svelte/store";
 
 import * as Accounts from "../lib/Accounts";
-import * as Balances from "../lib/Balances";
 import * as Transactions from "../lib/Transactions";
 import { formatDate } from "../lib/utils";
 
@@ -99,10 +98,9 @@ function calcFieldsForLabel(txnsArr) {
 }
 
 export const store = writable({
-  accounts: {},
-  balances: [],
   searchTerm: "",
   transactions: {},
+  accounts: {},
   periodLength: 15,
 
   connected: false,
@@ -125,6 +123,7 @@ export const arrays = derived(store, $store => {
       const fromName = $store.accounts[txnGroup[0].from_id]
         ? $store.accounts[txnGroup[0].from_id].name
         : "unknown";
+
       return {
         to_names: toNames.join(", "),
         to_ids: txnGroup.map(txn => txn.to_id).join(","),
@@ -226,7 +225,6 @@ export function subscribe(graphql) {
     pendingData.transactions = fromPairs(data.transactions.map(txn => [txn.id, txn]));
     setData('transactions');
   });
-  subscribeModule(graphql, Balances, "balances", "balances");
 }
 
 window.store = arrays;

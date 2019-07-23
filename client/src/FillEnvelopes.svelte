@@ -1,7 +1,6 @@
 <script>
   import page from "page";
   import * as shortid from "shortid";
-  import { onMount } from "svelte";
 
   import Balance from "./Balance.svelte";
   import * as Balances from "./lib/Balances";
@@ -9,12 +8,15 @@
   import { toDollars } from "./lib/pennies";
   import { arrays as derivedStore} from "./stores/main";
   import * as Transactions from "./lib/Transactions";
-  import { guardCreds } from "./lib/utils";
+  import { formatDate, guardCreds } from "./lib/utils";
 
   const creds = guardCreds();
 
-  let dataP = Promise.resolve([]);
-  let fills = [];
+  const today = formatDate(new Date());
+  let fills = $derivedStore.envelopes.map((envelope) => ({
+      amount: 0,
+      envelope: {...envelope, balance: $derivedStore.balancesByAccountByDay[envelope.id].balances[today]}
+    }));
   $: sumOfFills = fills
     .map(fill => fill.amount)
     .reduce((acc, item) => acc + item, 0);
@@ -54,28 +56,8 @@
     await Transactions.saveTransactions(creds, txns);
     page("/home");
   }
-
-  onMount(() => {
-    async function fetchStuff() {
-      const balancesData = await Balances.loadBalances(creds);
-      const newFills = balancesData.data.balances
-        .filter(balance => Balances.isBalanceEnvelope(balance))
-        .map(balance => ({
-          id: balance.id,
-          envelopeId: balance.id,
-          amount: 0,
-          envelope: balance
-        }));
-      fills = newFills;
-      return newFills;
-    }
-    dataP = fetchStuff();
-  });
 </script>
 
-{#await dataP}
-    <p>Loading accounts...</p>
-{:then}
     <div class="flex justify-around content">
         <form
           on:submit|preventDefault={handleSubmit}
@@ -146,6 +128,3 @@
             <input type='submit' value='Fill!' class='btn btn-primary' />
         </form>
     </div>
-{:catch ex}
-    <p>Error! {ex.message}</p>
-{/await}

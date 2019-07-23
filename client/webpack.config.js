@@ -10,7 +10,7 @@ module.exports = {
         port: 5001,
         proxy: {
             context: () => true,
-            target: 'http://localhost:8001'
+            target: 'http://localhost:8000'
         }
     },
 	entry: {
@@ -61,7 +61,7 @@ module.exports = {
     //devtool: prod ? false: 'source-map',
 	devtool: 'source-map',
 	optimization: {
-        usedExports: true,
-        minimize: true
+        usedExports: prod,
+        minimize: prod
 	},
 };

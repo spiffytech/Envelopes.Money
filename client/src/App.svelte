@@ -26,16 +26,22 @@
     };
   }
 
-  page("/", setRoute(Home));
-  page("/home", setRoute(Home));
-  page("/login", setRoute(Login));
-  page("/fill", setRoute(FillEnvelopes));
-  page("/editTags", setRoute(EditTags));
-  page("/editTxn", setRoute(EditTxn));
-  page("/editTxn/:txnId", setRoute(EditTxn));
-  page("/editAccount", setRoute(EditAccount));
-  page("/editAccount/:accountId", setRoute(EditAccount));
-  page({ hashbang: true });
+  if (creds) {
+    page("/", setRoute(Home));
+    page("/home", setRoute(Home));
+    page("/login", setRoute(Login));
+    page("/fill", setRoute(FillEnvelopes));
+    page("/editTags", setRoute(EditTags));
+    page("/editTxn", setRoute(EditTxn));
+    page("/editTxn/:txnId", setRoute(EditTxn));
+    page("/editAccount", setRoute(EditAccount));
+    page("/editAccount/:accountId", setRoute(EditAccount));
+    page({ hashbang: true });
+  } else {
+    page("/login", setRoute(Login));
+    page('*', setRoute(Login));
+    page({ hashbang: true });
+  }
 
   setContext("endpoint", endpoint);
   if (!creds) {
@@ -113,6 +119,9 @@
     </div>
     <svelte:component this={route} bind:params={routeParams} />
   {/if}
+{:else if creds}
+  <p>Loading</p>
 {:else}
-  <p>Please go online to use the app</p>
+  <p>Not connected</p>
+  <svelte:component this={route} bind:params={routeParams} />
 {/if}

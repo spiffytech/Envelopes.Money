@@ -3,6 +3,7 @@ require("dotenv").config();
 
 import cookieSession from "cookie-session";
 import cors from "cors";
+import Debug from 'debug';
 import express from "express";
 import morgan from "morgan";
 import * as path from "path";
@@ -13,6 +14,8 @@ import * as sessions from "./src/lib/sessions";
 if (!process.env.GRAPHQL_ENDPOINT) throw new Error("Missing GRAPHQL_ENDPOINT");
 if (!process.env.COOKIE_SECRET) throw new Error("Missing COOKIE_SECRET");
 if (!process.env.SCRYPT_SALT) throw new Error("Missing SCRYPT_SALT");
+
+const debug = Debug('app');
 
 const app = express();
 app.use(morgan("combined"));

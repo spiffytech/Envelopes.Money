@@ -35,5 +35,6 @@ services:
       HASURA_ADMIN_KEY: myadminsecretkey
       COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple
+      DEBUG: app
 volumes:
   db_data:

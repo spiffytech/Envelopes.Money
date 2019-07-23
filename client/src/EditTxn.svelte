@@ -82,6 +82,7 @@
         balancesP,
       ]);
       balances = balances_.balances;
+      console.log('balances', balances);
     }
 
     initializeP = initialize();

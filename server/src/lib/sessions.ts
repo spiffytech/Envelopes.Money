@@ -9,7 +9,8 @@ if (!process.env.HASURA_ADMIN_KEY) throw new Error('Must supply HASURA_ADMIN_KEY
 const debug = Debug('sessions');
 
 export function apikeyFromRequest(req: express.Request) {
-  debug('session is new? %s', req.session!.isNew)
+  debug('Session is new? %s', req.session!.isNew)
+  debug('Credentials: %s', JSON.stringify(req.session!.credentials));
   if (req.query.apikey) return req.query.apikey
 
   if (!req.session!.credentials) return null;

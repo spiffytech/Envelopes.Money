@@ -62,9 +62,6 @@
     })
   );
 
-  $: envelopes = $derivedStore.envelopes;
-  $: accounts = $derivedStore.accounts;
-
   onMount(() => {
     (async () => {
       sortTag = await localStorage.getItem("selectedTag");

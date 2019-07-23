@@ -140,10 +140,11 @@ export const arrays = derived(store, $store => {
         from_id: txnGroup[0].from_id,
         from_name: fromName,
         type: txnGroup[0].type,
+        insertionOrder: txnGroup[0].insertion_order,
         cleared: txnGroup[0].cleared
       };
     })
-    .sort(comparator((a, b) => a.date === b.date ? a.insertionOrder > b.insertionOrdor : a.date > b.date));
+    .sort(comparator((a, b) => a.date === b.date ? a.insertionOrder > b.insertionOrder : a.date > b.date));
 
   console.time("Compute balances");
   const balancesByAccountByDay_ = balancesByAccountByDay(

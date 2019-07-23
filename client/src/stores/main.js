@@ -1,3 +1,4 @@
+import {get as getIdb, set as setIdb} from 'idb-keyval';
 import comparator from "ramda/es/comparator";
 import filter from "ramda/es/filter";
 import flatten from "ramda/es/flatten";
@@ -199,14 +200,18 @@ function setLoaded(key) {
   });
 }
 
-export function subscribe(graphql) {
+export async function subscribe(graphql) {
   const pendingData = {
     accounts: null,
     transactions: null
   };
 
-  const setData = (key) => {
-    setLoaded(key);
+  const setData = async (key, data, fromLocal=false) => {
+    // Use the OR so we keep the default datastructure instead of undefined if
+    // IndexedDB returns an empty value on page load
+    pendingData[key] = data || pendingData[key];
+    if (!fromLocal) setLoaded(key);
+    await setIdb(key, data);
 
     // A bunch of our derived computations rely on all of the store data being
     // loaded. A partial load throws errors. So only set the values once they've
@@ -219,14 +224,20 @@ export function subscribe(graphql) {
     }));
   }
 
-  Accounts.subscribe(graphql, ({ data }) => {
-    pendingData.accounts = fromPairs(data.accounts.map(account => [account.id, account]));
-    setData('accounts');
+  const [accounts, transactions] = await Promise.all([
+    getIdb('accounts'),
+    getIdb('transactions')
+  ]);
+  setData('accounts', accounts, true);
+  setData('transactions', transactions, true);
+
+  Accounts.subscribe(graphql, async ({ data }) => {
+    setData('accounts', fromPairs(data.accounts.map(account => [account.id, account])));
+    await setIdb('accounts', pendingData.accounts);
   });
-  Transactions.subscribe(graphql, ({ data }) => {
-    pendingData.transactions = fromPairs(data.transactions.map(txn => [txn.id, txn]));
-    console.log(pendingData.transactions)
-    setData('transactions');
+  Transactions.subscribe(graphql, async ({ data }) => {
+    setData('transactions', fromPairs(data.transactions.map(txn => [txn.id, txn])));
+    await setIdb('transactions', pendingData.transactions);
   });
 }
 

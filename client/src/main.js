@@ -14,7 +14,7 @@ then((creds) => {
     window.Envelope = Envelope;
   }
 
-  const app = new App({
+  new App({
     target: document.body,
     props: {creds}
   });

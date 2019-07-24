@@ -108,7 +108,9 @@
 
   <Nav />
 
-  <svelte:component this={route} bind:params={routeParams} />
+  {#if !$derivedStore.isLoading}
+    <svelte:component this={route} bind:params={routeParams} />
+  {/if}
 {:else}
   <p>Not logged in</p>
   <svelte:component this={route} bind:params={routeParams} />

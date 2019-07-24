@@ -6,6 +6,7 @@ import fromPairs from "ramda/es/fromPairs";
 import groupBy from "ramda/es/groupBy";
 import identity from 'ramda/es/identity';
 import map from "ramda/es/map";
+import memoizeWith from 'ramda/es/memoizeWith';
 import { derived, writable } from "svelte/store";
 
 import * as Accounts from "../lib/Accounts";
@@ -13,13 +14,15 @@ import * as Transactions from "../lib/Transactions";
 import { formatDate } from "../lib/utils";
 
 // TODO: Trampoline this because it's going to overflow
-function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
+const calcDaysInPeriod = memoizeWith(
+  (date) => date.toString(),
+  function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
   // The extra day is a hack until we figure out storing+parsing dates in a
   // consistent timezone
   if (new Date(periodEnd.getTime() + 86400000) < periodStart) return days;
   const nextDate = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate()+1);
   return calcDaysInPeriod(nextDate, [...days, periodStart], periodEnd);
-}
+});
 
 function calcBalancesForAccount(txnsForAccount) {
   const amountsByDate = groupBy(amount => amount.date, txnsForAccount);
@@ -175,19 +178,6 @@ export const arrays = derived(store, $store => {
   };
 });
 
-/**
- * Subscribes to a given module's data set, updating the supplied store key on
- * every update
- */
-function subscribeModule(graphql, module, storeKey, dataKey) {
-  module.subscribe(graphql, ({ data }) => {
-    store.update($store => ({
-      ...$store,
-      [storeKey]: data[dataKey]
-    }));
-  });
-}
-
 function setLoaded(key) {
   store.update($store => {
     // Use a conditional to minimize rerenders
@@ -208,7 +198,8 @@ export async function subscribe(graphql) {
     // Use the OR so we keep the default datastructure instead of undefined if
     // IndexedDB returns an empty value on page load
     pendingData[key] = data || pendingData[key];
-    if (!fromLocal) setLoaded(key);
+    //if (!fromLocal) setLoaded(key);
+    setLoaded(key);  // TODO: Distinguish loading from disk vs loading from network
     await setIdb(key, data);
 
     // A bunch of our derived computations rely on all of the store data being

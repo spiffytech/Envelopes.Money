@@ -190,6 +190,13 @@
         </label>
       </div>
 
+      <div>
+        <label>
+          <input type="checkbox" bind:checked={txns[0].cleared} />
+          Cleared
+        </label>
+      </div>
+
       <p class="font-bold" data-cy="sum-of-splits">
         Sum of splits: {toDollars(txns.map(txn => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
       </p>

@@ -21,12 +21,9 @@ function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
   return calcDaysInPeriod(nextDate, [...days, periodStart], periodEnd);
 }
 
-function calcBalancesForAccount(amounts) {
-  const amountsByDate = groupBy(amount => amount.date, amounts);
-  const minDate =
-    amounts.length === 0
-      ? new Date().getTime()
-      : Math.min(...amounts.map(({ date }) => new Date(date + "T00:00").getTime()));
+function calcBalancesForAccount(txnsForAccount) {
+  const amountsByDate = groupBy(amount => amount.date, txnsForAccount);
+  const minDate = txnsForAccount.map(({date}) => date).sort()[txnsForAccount.length - 1];
   const dates = calcDaysInPeriod(new Date(minDate));
   const { ret: finalRet } = dates.reduce(
     ({ ret, lastValue }, date) => {

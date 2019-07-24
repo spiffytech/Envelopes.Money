@@ -14,10 +14,10 @@ import { formatDate } from "../lib/utils";
 
 // TODO: Trampoline this because it's going to overflow
 function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
-  // THe extra day is a hack until we figure out storing+parsing dates in a
+  // The extra day is a hack until we figure out storing+parsing dates in a
   // consistent timezone
   if (new Date(periodEnd.getTime() + 86400000) < periodStart) return days;
-  const nextDate = new Date(periodStart.getTime() + 86400000);
+  const nextDate = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate()+1);
   return calcDaysInPeriod(nextDate, [...days, periodStart], periodEnd);
 }
 

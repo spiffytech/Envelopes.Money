@@ -36,5 +36,14 @@ services:
       COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple
       DEBUG: app
+  couch:
+    image: couchdb
+    restart: always
+    volumes:
+      - ./couchdb.ini:/opt/couchdb/etc/local.ini
+      - couchdb_data:/opt/couchdb/data
+    ports:
+      - 5984:5984
 volumes:
   db_data:
+  couchdb_data:

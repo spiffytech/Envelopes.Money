@@ -2,6 +2,8 @@
     import axios from 'axios';
     import {getContext} from 'svelte';
 
+    import initPouch from './lib/pouch';
+
     const endpoint = getContext('endpoint');
     let error = null;
     let email = '';
@@ -12,9 +14,14 @@
             await axios.post(
                 `${endpoint}/login`, {email, password}, {withCredentials: true}
             );
+            await initPouch(email, password);
             location.href = '/';  // Force the new context to get set
         } catch (ex) {
+          if (ex.response) {
             error = ex.response.data.error;
+          } else {
+            throw ex;
+          }
         }
     }
 </script>

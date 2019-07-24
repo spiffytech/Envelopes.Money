@@ -13,6 +13,8 @@ const debug = Debug('authentication');
 
 function setSession(req: express.Request, apikey: string, userId: string) {
   req.session!.credentials = {
+    email: req.body!.email,
+    password: req.body!.password,
     apikey,
     userId,
   };

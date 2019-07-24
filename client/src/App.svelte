@@ -14,6 +14,7 @@
   import { arrays as derivedStore } from "./stores/main";
   import Login from "./Login.svelte";
   import {mkClient as mkWSClient} from './lib/graphql';
+  import initPouch from './lib/pouch';
 
   export let creds;
 
@@ -48,6 +49,7 @@
   if (!creds) {
     page("/login");
   } else {
+    console.log('creds', creds);
     const graphql = {
       wsclient: mkWSClient(
         window._env_.GRAPHQL_WSS_HOST,
@@ -60,6 +62,7 @@
             },
           }
       ),
+      pouch: initPouch(creds.email, creds.password),
       userId: creds.userId,
       apikey: creds.apikey
     };

@@ -59,6 +59,8 @@ authedRouter.use(async (req, res, next) => {
 
 authedRouter.get("/credentials", (req, res) => {
   res.json({
+    email: req.session!.credentials.email,
+    password: req.session!.credentials.password,
     apikey: req.session!.credentials.apikey,
     userId: req.session!.credentials.userId
   });

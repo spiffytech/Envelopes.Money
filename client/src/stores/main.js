@@ -172,8 +172,8 @@ export const arrays = derived(store, $store => {
     balancesByAccountByDay: balancesByAccountByDay_,
     envelopes: Object.values($store.accounts).filter(
       b => b.type === "envelope"
-    ),
-    accounts: Object.values($store.accounts).filter(b => b.type === "account"),
+    ).sort(comparator((a, b) => a.name < b.name)),
+    accounts: Object.values($store.accounts).filter(b => b.type === "account").sort(comparator((a, b) => a.name < b.name)),
     labelQuickFills
   };
 });

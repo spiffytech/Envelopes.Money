@@ -26,7 +26,7 @@ const calcDaysInPeriod = memoizeWith(
 
 function calcBalancesForAccount(txnsForAccount) {
   const amountsByDate = groupBy(amount => amount.date, txnsForAccount);
-  const minDate = txnsForAccount.map(({date}) => date).sort()[txnsForAccount.length - 1];
+  const minDate = txnsForAccount.map(({date}) => date).sort()[0];
   const dates = calcDaysInPeriod(new Date(minDate));
   const { ret: finalRet } = dates.reduce(
     ({ ret, lastValue }, date) => {

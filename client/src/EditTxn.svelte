@@ -43,7 +43,7 @@
       txn_id: finalTxnId
     }))
     .map(txn => {
-      const { __typename, ...rest } = txn;
+      const { __typename, insertion_order, ...rest } = txn;
       return rest;
     })
     .filter(txn => txn.amount != 0);

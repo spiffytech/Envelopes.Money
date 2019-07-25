@@ -121,7 +121,7 @@
 
   <Nav />
 
-  {#if !$derivedStore.isLoading}
+  {#if (window._env_.USE_POUCH || $store.connected) && !$derivedStore.isLoading}
     <svelte:component this={route} bind:params={routeParams} />
   {/if}
 {:else}

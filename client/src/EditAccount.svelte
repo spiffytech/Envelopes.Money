@@ -1,4 +1,5 @@
 <script>
+  import Debug from 'debug';
   import page from 'page';
   import * as shortid from 'shortid';
   import {getContext, onMount} from 'svelte';
@@ -11,6 +12,7 @@
   import {formatDate} from './lib/utils';
   import {arrays as derivedStore, store} from './stores/main';
 
+  const debug = Debug('Envelopes.Money:EditAccount.svelte');
   const graphql = getContext('graphql');
 
   export let params;
@@ -28,6 +30,8 @@
 
   $: if (accountId) {
     const account_ = $store.accounts[accountId];
+    debug('Loading page with account ID %s', accountId);
+    debug('Found existing account? %s', !!account_);
     if (!account_) {
       page('/404');
     } else {
@@ -38,6 +42,7 @@
 
   onMount(async () => {
     const {data} = await Tags.loadTags(graphql);
+    console.log('tags', data.tags);
     tags = data.tags.map(({tag}) => tag);
   });
 

@@ -16,7 +16,7 @@ import * as Transactions from "../lib/Transactions";
 import { formatDate } from "../lib/utils";
 import { PouchAccounts, PouchTransactions } from "../lib/pouch";
 
-const debug = Debug("store");
+const debug = Debug("Envelopes.Money:store");
 
 // TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
@@ -208,7 +208,7 @@ export const arrays = derived(store, $store => {
 
 function setLoaded(key) {
   store.update($store => {
-    // Use a conditional to minimize rerenders
+    // Minimize rerenders by wrapping in a conditional
     if (!$store.loadedItems[key]) {
       return { ...$store, loadedItems: { ...$store.loadedItems, [key]: true } };
     }
@@ -272,32 +272,37 @@ export async function subscribe(graphql) {
   };
 
   let pouchIsInitialized = false;
-  try {
-    await graphql.localDB.get("initialized");
-    pouchIsInitialized = true;
-  } catch (ex) {
-    if (ex.status !== 404) {
-      throw ex;
+  if (window._env_.USE_POUCH) {
+    try {
+      await graphql.localDB.get("initialized");
+      pouchIsInitialized = true;
+    } catch (ex) {
+      if (ex.status !== 404) {
+        throw ex;
+      }
     }
   }
 
   const setData = async function setData(key, data, fromLocal = false) {
+    debug('setData called with key %s and data quantity %s', key, Object.values(data).length)
     // Use the OR so we keep the default datastructure instead of undefined if
     // IndexedDB returns an empty value on page load
     pendingData[key] = data || pendingData[key];
-    //if (!fromLocal) setLoaded(key);
-    setLoaded(key); // TODO: Distinguish loading from disk vs loading from network
     if (!window._env_.USE_POUCH) await setIdb(key, data);
 
     // A bunch of our derived computations rely on all of the store data being
     // loaded. A partial load throws errors. So only set the values once they've
     // all arrived.
     const isReady = Object.values(pendingData).every(identity);
-    if (!isReady) return;
-    store.update($store => ({
-      ...$store,
-      ...pendingData
-    }));
+    if (isReady) {
+      debug('Store is ready, setting data %o', Object.values(pendingData).map((o) => Object.values(o).length));
+      store.update($store => ({
+        ...$store,
+        ...pendingData
+      }));
+    }
+    //if (!fromLocal) setLoaded(key);
+    setLoaded(key); // TODO: Distinguish loading from disk vs loading from network
 
     if (window._env_.USE_POUCH && !fromLocal && !pouchIsInitialized) {
       debug("Initializing pouchdb with data %o", pendingData);
@@ -353,6 +358,7 @@ export async function subscribe(graphql) {
       getIdb("accounts"),
       getIdb("transactions")
     ]);
+    debug('Setting data from IndexedDB: %s, %s', Object.values(accounts).length, Object.values(transactions).length);
     setData("accounts", accounts, true);
     setData("transactions", transactions, true);
 

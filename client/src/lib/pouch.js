@@ -19,6 +19,10 @@ const txnIdIndex = {
   index: { fields: ["txn_id"] },
   ddoc: 'txns_txn_id_index'
 };
+const recordTypeIndex = {
+  index: { fields: ["type_"] },
+  ddoc: 'record_type_index'
+};
 
 export default function init(username, password) {
   if (!window._env_.USE_POUCH) return;
@@ -40,6 +44,7 @@ export default function init(username, password) {
         .on("error", console.error);
 
       localDB.createIndex(txnIdIndex).catch(console.error);
+      localDB.createIndex(recordTypeIndex).catch(console.error);
     })
     .catch(console.error);
 
@@ -50,6 +55,11 @@ export default function init(username, password) {
 export class PouchTransactions {
   constructor(localDB) {
     this.localDB = localDB;
+  }
+
+  async loadAll() {
+    const results = await this.localDB.find({selector: {type_: 'transaction'}, index: 'record_type_index'});
+    return results.docs;
   }
 
   /**
@@ -79,5 +89,16 @@ export class PouchTransactions {
       })
 
       await Promise.all(txnsByGroupId.map((txn) => this.localDB.remove(txn)));
+  }
+}
+
+export class PouchAccounts {
+  constructor(localDB) {
+    this.localDB = localDB;
+  }
+
+  async loadAll() {
+    const results = await this.localDB.find({selector: {type_: 'account'}, index: 'record_type_index'});
+    return results.docs;
   }
 }

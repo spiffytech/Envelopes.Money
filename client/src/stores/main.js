@@ -13,6 +13,7 @@ import { derived, writable } from "svelte/store";
 import * as Accounts from "../lib/Accounts";
 import * as Transactions from "../lib/Transactions";
 import { formatDate } from "../lib/utils";
+import {PouchAccounts, PouchTransactions} from '../lib/pouch';
 
 // TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
@@ -280,32 +281,50 @@ export async function subscribe(graphql) {
       ...pendingData
     }));
 
-    if (window._env_.USE_POUCH) {
-      await setPouchData(graphql.pouch, key, data);
+    if (window._env_.USE_POUCH && !fromLocal) {
+      try {
+        await graphql.localDB.get('initialized');
+      } catch (ex) {
+        if (ex.status !== 404) {
+          throw ex;
+        }
+        await setPouchData(graphql.localDB, key, data);
+        await graphql.localDB.put({_id: 'initialized', initialized: true});
+        console.log('Initialized PouchDB');
+      }
     }
   };
 
-  const [accounts, transactions] = await Promise.all([
-    getIdb("accounts"),
-    getIdb("transactions")
-  ]);
-  setData("accounts", accounts, true);
-  setData("transactions", transactions, true);
+  if (window._env_.USE_POUCH) {
+    const pouchTransactions = new PouchTransactions(graphql.localDB);
+    const pouchAccounts = new PouchAccounts(graphql.localDB);
+    const txns = await pouchTransactions.loadAll();
+    const accounts = await pouchAccounts.loadAll();
+    setData('transactions', txns, true);
+    setData('accounts', accounts, true);
+  } else {
+    const [accounts, transactions] = await Promise.all([
+      getIdb("accounts"),
+      getIdb("transactions")
+    ]);
+    setData("accounts", accounts, true);
+    setData("transactions", transactions, true);
 
-  Accounts.subscribe(graphql, async ({ data }) => {
-    setData(
-      "accounts",
-      fromPairs(data.accounts.map(account => [account.id, account]))
-    );
-    await setIdb("accounts", pendingData.accounts);
-  });
-  Transactions.subscribe(graphql, async ({ data }) => {
-    setData(
-      "transactions",
-      fromPairs(data.transactions.map(txn => [txn.id, txn]))
-    );
-    await setIdb("transactions", pendingData.transactions);
-  });
+    Accounts.subscribe(graphql, async ({ data }) => {
+      setData(
+        "accounts",
+        fromPairs(data.accounts.map(account => [account.id, account]))
+      );
+      await setIdb("accounts", pendingData.accounts);
+    });
+    Transactions.subscribe(graphql, async ({ data }) => {
+      setData(
+        "transactions",
+        fromPairs(data.transactions.map(txn => [txn.id, txn]))
+      );
+      await setIdb("transactions", pendingData.transactions);
+    });
+  }
 }
 
 window.store = arrays;

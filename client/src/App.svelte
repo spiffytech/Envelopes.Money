@@ -105,13 +105,17 @@
 {#if creds && creds.email && creds.password}
   {#if $store.connecting}
     <p>🏃 Connecting to the database...</p>
-  {:else if window._env_.USE_POUCH || ($store.connected && $derivedStore.isLoading)}
-    <p>✔️ Connected</p>
-    <p>Loading data...</p>
+  {:else if ((window._env_.USE_POUCH || $store.connected) && $derivedStore.isLoading)}
+    {#if window._env_.USE_POUCH}
+      <p>Loading data from local store...</p>
+    {:else}
+      <p>✔️ Connected</p>
+      <p>Loading data...</p>
+    {/if}
     {#each Object.entries($derivedStore.loadedItems) as [itemName, isLoaded]}
       <span>{isLoaded ? '✔️' : '🏃'} {itemName}</span>
     {/each}
-  {:else if !$store.connected}
+  {:else if !$store.connected && !window._env_.USE_POUCH}
     <p>We're not connected or even trying to connect! but why!</p>
   {/if}
 

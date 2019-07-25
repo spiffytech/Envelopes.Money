@@ -13,7 +13,7 @@ import { derived, writable } from "svelte/store";
 import * as Accounts from "../lib/Accounts";
 import * as Transactions from "../lib/Transactions";
 import { formatDate } from "../lib/utils";
-import {PouchAccounts, PouchTransactions} from '../lib/pouch';
+import { PouchAccounts, PouchTransactions } from "../lib/pouch";
 
 // TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
@@ -263,13 +263,23 @@ export async function subscribe(graphql) {
     transactions: null
   };
 
-  const setData = async (key, data, fromLocal = false) => {
+  let pouchIsInitialized = false;
+  try {
+    await graphql.localDB.get("initialized");
+    pouchIsInitialized = true;
+  } catch (ex) {
+    if (ex.status !== 404) {
+      throw ex;
+    }
+  }
+
+  const setData = async function setData(key, data, fromLocal = false) {
     // Use the OR so we keep the default datastructure instead of undefined if
     // IndexedDB returns an empty value on page load
     pendingData[key] = data || pendingData[key];
     //if (!fromLocal) setLoaded(key);
     setLoaded(key); // TODO: Distinguish loading from disk vs loading from network
-    await setIdb(key, data);
+    if (!window._env_.USE_POUCH) await setIdb(key, data);
 
     // A bunch of our derived computations rely on all of the store data being
     // loaded. A partial load throws errors. So only set the values once they've
@@ -281,27 +291,25 @@ export async function subscribe(graphql) {
       ...pendingData
     }));
 
-    if (window._env_.USE_POUCH && !fromLocal) {
-      try {
-        await graphql.localDB.get('initialized');
-      } catch (ex) {
-        if (ex.status !== 404) {
-          throw ex;
-        }
-        await setPouchData(graphql.localDB, key, data);
-        await graphql.localDB.put({_id: 'initialized', initialized: true});
-        console.log('Initialized PouchDB');
-      }
+    if (window._env_.USE_POUCH && !fromLocal && !pouchIsInitialized) {
+      await setPouchData(graphql.localDB, "accounts", pendingData.accounts);
+      await setPouchData(
+        graphql.localDB,
+        "transactions",
+        pendingData.transactions
+      );
+      await graphql.localDB.put({ _id: "initialized", initialized: true });
+      console.log("Initialized PouchDB");
     }
   };
 
-  if (window._env_.USE_POUCH) {
+  if (window._env_.USE_POUCH && pouchIsInitialized) {
     const pouchTransactions = new PouchTransactions(graphql.localDB);
     const pouchAccounts = new PouchAccounts(graphql.localDB);
     const txns = await pouchTransactions.loadAll();
     const accounts = await pouchAccounts.loadAll();
-    setData('transactions', txns, true);
-    setData('accounts', accounts, true);
+    setData("accounts", accounts, true);
+    setData("transactions", txns, true);
   } else {
     const [accounts, transactions] = await Promise.all([
       getIdb("accounts"),

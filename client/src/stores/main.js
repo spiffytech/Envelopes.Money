@@ -292,13 +292,14 @@ export async function subscribe(graphql) {
     }));
 
     if (window._env_.USE_POUCH && !fromLocal && !pouchIsInitialized) {
+      console.log("Initializing pouchdb with data", pendingData);
       await setPouchData(graphql.localDB, "accounts", pendingData.accounts);
       await setPouchData(
         graphql.localDB,
         "transactions",
         pendingData.transactions
       );
-      await graphql.localDB.put({ _id: "initialized", initialized: true });
+      await graphql.localDB.upsert('initialized', () => ({ _id: "initialized", initialized: true }));
       console.log("Initialized PouchDB");
     }
   };

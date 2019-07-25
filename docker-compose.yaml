@@ -41,7 +41,7 @@ services:
     image: couchdb
     restart: always
     volumes:
-      - ./couchdb.ini:/opt/couchdb/etc/local.ini
+      - ./couchdb.ini:/opt/couchdb/etc/local.d/docker.ini
       - couchdb_data:/opt/couchdb/data
     ports:
       - 5984:5984

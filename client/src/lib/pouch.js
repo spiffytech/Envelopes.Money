@@ -45,9 +45,6 @@ export default function init(username, password) {
       localDB
         .sync(remoteDB, { live: true, retry: true })
         .on("error", console.error);
-      remoteDB
-        .sync(localDB, { live: true, retry: true })
-        .on("error", console.error);
 
       localDB.createIndex(txnIdIndex).catch(console.error);
       localDB.createIndex(recordTypeIndex).catch(console.error);

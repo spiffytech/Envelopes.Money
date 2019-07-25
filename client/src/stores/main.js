@@ -1,5 +1,6 @@
 import { get as getIdb, set as setIdb } from "idb-keyval";
 import comparator from "ramda/es/comparator";
+import Debug from 'debug';
 import equals from "ramda/es/equals";
 import filter from "ramda/es/filter";
 import flatten from "ramda/es/flatten";
@@ -14,6 +15,8 @@ import * as Accounts from "../lib/Accounts";
 import * as Transactions from "../lib/Transactions";
 import { formatDate } from "../lib/utils";
 import { PouchAccounts, PouchTransactions } from "../lib/pouch";
+
+const debug = Debug('store');
 
 // TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
@@ -214,7 +217,7 @@ function setLoaded(key) {
 }
 
 async function setPouchData(localDB, key, data) {
-  console.log("data", data);
+  debug("Storing data in Pouch: %o", data);
   const incoming = Object.values(data);
   const incomingInPouchForm = incoming.map(doc => ({
     ...doc,
@@ -234,6 +237,9 @@ async function setPouchData(localDB, key, data) {
       docs.filter(doc => doc.ok).map(({ ok }) => ok)
     )
   );
+
+  debug('Incoming docs: %o', incomingInPouchForm);
+  debug('Existing Pouch docs: %o', existingDocs);
 
   await Promise.all(
     existingDocs.map(existingDoc => {
@@ -255,6 +261,8 @@ async function setPouchData(localDB, key, data) {
       return null; // New doc matched old doc
     })
     .filter(identity);
+
+    debug('Insertion result: %o', await localDB.bulkDocs(toInsert));
 }
 
 export async function subscribe(graphql) {
@@ -292,7 +300,7 @@ export async function subscribe(graphql) {
     }));
 
     if (window._env_.USE_POUCH && !fromLocal && !pouchIsInitialized) {
-      console.log("Initializing pouchdb with data", pendingData);
+      debug("Initializing pouchdb with data %o", pendingData);
       await setPouchData(graphql.localDB, "accounts", pendingData.accounts);
       await setPouchData(
         graphql.localDB,
@@ -300,7 +308,7 @@ export async function subscribe(graphql) {
         pendingData.transactions
       );
       await graphql.localDB.upsert('initialized', () => ({ _id: "initialized", initialized: true }));
-      console.log("Initialized PouchDB");
+      debug("Initialized PouchDB");
     }
   };
 

@@ -4,6 +4,7 @@
   "license": "AGPLv3",
   "devDependencies": {
     "@types/d3": "^5.7.2",
+    "@types/debug": "^4.1.4",
     "@types/lodash": "^4.14.123",
     "@types/pouchdb": "^6.4.0",
     "@types/pouchdb-find": "^6.3.4",
@@ -44,6 +45,7 @@
     "generate_test_credentials": "node scripts/generate_test_credentials.js"
   },
   "dependencies": {
+    "debug": "^4.1.1",
     "html-webpack-plugin": "^3.2.0",
     "idb-keyval": "^3.2.0",
     "lodash": "^4.17.14",

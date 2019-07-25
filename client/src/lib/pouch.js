@@ -115,6 +115,6 @@ export class PouchAccounts {
 
   async save(account) {
     debug('Saving account %O', account);
-    await this.localDB.upsert(account.id, ({_rev}) => ({...account, _id: account.id, type: 'account', _rev}));
+    await this.localDB.upsert(account.id, ({_rev}) => ({...account, _id: account.id, type_: 'account', _rev}));
   }
 }

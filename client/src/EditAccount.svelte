@@ -9,7 +9,7 @@
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
   import {formatDate} from './lib/utils';
-  import {arrays as derivedStore} from './stores/main';
+  import {arrays as derivedStore, store} from './stores/main';
 
   const graphql = getContext('graphql');
 
@@ -27,16 +27,13 @@
   let pageNum = 0;
 
   $: if (accountId) {
-    Accounts.loadAccount(graphql, accountId).
-    then(({data}) => {
-      if (data.accounts.length === 0) {
-        page('/404');
-        return;
-      }
-
-      account = data.accounts[0];
+    const account_ = $store.accounts[accountId];
+    if (!account_) {
+      page('/404');
+    } else {
+      account = account_;
       canChangeType = false;
-    });
+    }
   }
 
   onMount(async () => {
@@ -45,14 +42,15 @@
   });
 
   async function handleSubmit() {
-    const {__typename, ...rest} = account;
+    const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
+    const {__typename, type_, _id, _rev, ...rest} = account;
     const accountWithId =
-      {...rest, id: rest.id || `${rest.type}/${shortid.generate()}`}
+      {...rest, id: newAccountId}
     await accountsStore.saveAccount(graphql, accountWithId);
 
     if (window._env_.USE_POUCH) {
       const pouchAccounts = new PouchAccounts(graphql.localDB);
-      pouchAccounts.save(accountWithId);
+      pouchAccounts.save({...account, id: newAccountId});
     }
     page('/');
   }

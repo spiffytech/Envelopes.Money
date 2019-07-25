@@ -1,12 +1,13 @@
-import {get as getIdb, set as setIdb} from 'idb-keyval';
+import { get as getIdb, set as setIdb } from "idb-keyval";
 import comparator from "ramda/es/comparator";
+import equals from "ramda/es/equals";
 import filter from "ramda/es/filter";
 import flatten from "ramda/es/flatten";
 import fromPairs from "ramda/es/fromPairs";
 import groupBy from "ramda/es/groupBy";
-import identity from 'ramda/es/identity';
+import identity from "ramda/es/identity";
 import map from "ramda/es/map";
-import memoizeWith from 'ramda/es/memoizeWith';
+import memoizeWith from "ramda/es/memoizeWith";
 import { derived, writable } from "svelte/store";
 
 import * as Accounts from "../lib/Accounts";
@@ -15,18 +16,23 @@ import { formatDate } from "../lib/utils";
 
 // TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
-  (date) => date.toString(),
+  date => date.toString(),
   function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
-  // The extra day is a hack until we figure out storing+parsing dates in a
-  // consistent timezone
-  if (new Date(periodEnd.getTime() + 86400000) < periodStart) return days;
-  const nextDate = new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate()+1);
-  return calcDaysInPeriod(nextDate, [...days, periodStart], periodEnd);
-});
+    // The extra day is a hack until we figure out storing+parsing dates in a
+    // consistent timezone
+    if (new Date(periodEnd.getTime() + 86400000) < periodStart) return days;
+    const nextDate = new Date(
+      periodStart.getFullYear(),
+      periodStart.getMonth(),
+      periodStart.getDate() + 1
+    );
+    return calcDaysInPeriod(nextDate, [...days, periodStart], periodEnd);
+  }
+);
 
 function calcBalancesForAccount(txnsForAccount) {
   const amountsByDate = groupBy(amount => amount.date, txnsForAccount);
-  const minDate = txnsForAccount.map(({date}) => date).sort()[0];
+  const minDate = txnsForAccount.map(({ date }) => date).sort()[0];
   const dates = calcDaysInPeriod(new Date(minDate));
   const { ret: finalRet } = dates.reduce(
     ({ ret, lastValue }, date) => {
@@ -144,7 +150,13 @@ export const arrays = derived(store, $store => {
         cleared: txnGroup[0].cleared
       };
     })
-    .sort(comparator((a, b) => a.date === b.date ? a.insertionOrder > b.insertionOrder : a.date > b.date));
+    .sort(
+      comparator((a, b) =>
+        a.date === b.date
+          ? a.insertionOrder > b.insertionOrder
+          : a.date > b.date
+      )
+    );
 
   console.time("Compute balances");
   const balancesByAccountByDay_ = balancesByAccountByDay(
@@ -159,21 +171,33 @@ export const arrays = derived(store, $store => {
 
   return {
     ...$store,
-    isLoading: !(Object.values($store.loadedItems).every(identity)),
+    isLoading: !Object.values($store.loadedItems).every(identity),
     txnsGrouped: txnsGrouped.filter(
       txnGrouped =>
-        (txnGrouped.label || "").toLowerCase().includes($store.searchTerm.toLowerCase()) ||
-        (txnGrouped.memo || "").toLowerCase().includes($store.searchTerm.toLowerCase()) ||
-        txnGrouped.from_name.toLowerCase().includes($store.searchTerm.toLowerCase()) ||
-        txnGrouped.to_names.toLowerCase().includes($store.searchTerm.toLowerCase()) ||
-        (txnGrouped.amount / 100).toFixed(2).includes($store.searchTerm.toLowerCase())
+        (txnGrouped.label || "")
+          .toLowerCase()
+          .includes($store.searchTerm.toLowerCase()) ||
+        (txnGrouped.memo || "")
+          .toLowerCase()
+          .includes($store.searchTerm.toLowerCase()) ||
+        txnGrouped.from_name
+          .toLowerCase()
+          .includes($store.searchTerm.toLowerCase()) ||
+        txnGrouped.to_names
+          .toLowerCase()
+          .includes($store.searchTerm.toLowerCase()) ||
+        (txnGrouped.amount / 100)
+          .toFixed(2)
+          .includes($store.searchTerm.toLowerCase())
     ),
 
     balancesByAccountByDay: balancesByAccountByDay_,
-    envelopes: Object.values($store.accounts).filter(
-      b => b.type === "envelope"
-    ).sort(comparator((a, b) => a.name < b.name)),
-    accounts: Object.values($store.accounts).filter(b => b.type === "account").sort(comparator((a, b) => a.name < b.name)),
+    envelopes: Object.values($store.accounts)
+      .filter(b => b.type === "envelope")
+      .sort(comparator((a, b) => a.name < b.name)),
+    accounts: Object.values($store.accounts)
+      .filter(b => b.type === "account")
+      .sort(comparator((a, b) => a.name < b.name)),
     labelQuickFills
   };
 });
@@ -182,10 +206,59 @@ function setLoaded(key) {
   store.update($store => {
     // Use a conditional to minimize rerenders
     if (!$store.loadedItems[key]) {
-      return {...$store, loadedItems: {...$store.loadedItems, [key]: true}};
+      return { ...$store, loadedItems: { ...$store.loadedItems, [key]: true } };
     }
     return $store;
   });
+}
+
+async function setPouchData(localDB, key, data) {
+  console.log("data", data);
+  const incoming = Object.values(data);
+  const incomingInPouchForm = incoming.map(doc => ({
+    ...doc,
+    type_: key.replace(/s$/, ""),
+    // TODO: Migrate 100% couch before this bites us with txns referencing accounts starting with an underscore
+    _id: doc.id.replace(/^_+/, "☃︎"), // Couch reserves IDs starting with underscores for special things
+    __typename: undefined
+  }));
+  incomingInPouchForm.forEach(doc => delete doc["__typename"]);
+  const incomingDocIdsSet = new Set(incomingInPouchForm.map(({ _id }) => _id));
+
+  const searchResults = await localDB.bulkGet({
+    docs: Array.from(incomingDocIdsSet).map(id => ({ id }))
+  });
+  const existingDocs = flatten(
+    searchResults.results.map(({ docs }) =>
+      docs.filter(doc => doc.ok).map(({ ok }) => ok)
+    )
+  );
+
+  await Promise.all(
+    existingDocs.map(existingDoc => {
+      if (!incomingDocIdsSet.has(existingDoc._id)) {
+        return localDB.remove(existingDoc);
+      }
+      return Promise.resolve(null);
+    })
+  );
+  const existingById = fromPairs(existingDocs.map(doc => [doc._id, doc]));
+
+  console.log("iipf", incomingInPouchForm);
+  console.log("ebid", existingById);
+  const toInsert = incomingInPouchForm
+    .map(doc => {
+      const { _rev, ...existing } = existingById[doc._id] || {};
+      console.log(_rev, equals(doc, existing), existing, doc);
+      if (_rev && !equals(doc, existing)) {
+        return { ...doc, _rev }; // Updated doc
+      }
+      if (!_rev) return doc; // New doc
+      return null; // New doc matched old doc
+    })
+    .filter(identity);
+  console.log("to_insert into PouchDB", toInsert);
+  console.log("insertion results", await localDB.bulkDocs(toInsert));
 }
 
 export async function subscribe(graphql) {
@@ -194,12 +267,12 @@ export async function subscribe(graphql) {
     transactions: null
   };
 
-  const setData = async (key, data, fromLocal=false) => {
+  const setData = async (key, data, fromLocal = false) => {
     // Use the OR so we keep the default datastructure instead of undefined if
     // IndexedDB returns an empty value on page load
     pendingData[key] = data || pendingData[key];
     //if (!fromLocal) setLoaded(key);
-    setLoaded(key);  // TODO: Distinguish loading from disk vs loading from network
+    setLoaded(key); // TODO: Distinguish loading from disk vs loading from network
     await setIdb(key, data);
 
     // A bunch of our derived computations rely on all of the store data being
@@ -209,24 +282,34 @@ export async function subscribe(graphql) {
     if (!isReady) return;
     store.update($store => ({
       ...$store,
-      ...pendingData,
+      ...pendingData
     }));
-  }
+
+    if (window._env_.USE_POUCH) {
+      await setPouchData(graphql.pouch, key, data);
+    }
+  };
 
   const [accounts, transactions] = await Promise.all([
-    getIdb('accounts'),
-    getIdb('transactions')
+    getIdb("accounts"),
+    getIdb("transactions")
   ]);
-  setData('accounts', accounts, true);
-  setData('transactions', transactions, true);
+  setData("accounts", accounts, true);
+  setData("transactions", transactions, true);
 
   Accounts.subscribe(graphql, async ({ data }) => {
-    setData('accounts', fromPairs(data.accounts.map(account => [account.id, account])));
-    await setIdb('accounts', pendingData.accounts);
+    setData(
+      "accounts",
+      fromPairs(data.accounts.map(account => [account.id, account]))
+    );
+    await setIdb("accounts", pendingData.accounts);
   });
   Transactions.subscribe(graphql, async ({ data }) => {
-    setData('transactions', fromPairs(data.transactions.map(txn => [txn.id, txn])));
-    await setIdb('transactions', pendingData.transactions);
+    setData(
+      "transactions",
+      fromPairs(data.transactions.map(txn => [txn.id, txn]))
+    );
+    await setIdb("transactions", pendingData.transactions);
   });
 }
 

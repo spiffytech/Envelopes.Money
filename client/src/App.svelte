@@ -46,10 +46,9 @@
   }
 
   setContext("endpoint", endpoint);
-  if (!creds) {
+  if (!creds || !creds.email || !creds.password) {
     page("/login");
   } else {
-    console.log('creds', creds);
     const graphql = {
       wsclient: mkWSClient(
         window._env_.GRAPHQL_WSS_HOST,
@@ -96,7 +95,7 @@
   <p>{JSON.stringify(window.Cypress.env())}</p>
 {/if}
 
-{#if creds}
+{#if creds && creds.email && creds.password}
   {#if $store.connecting}
     <p>🏃 Connecting to the database...</p>
   {:else if $store.connected && $derivedStore.isLoading}

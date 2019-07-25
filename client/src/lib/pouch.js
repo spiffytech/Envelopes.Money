@@ -17,11 +17,11 @@ function toHex(str) {
 
 const txnIdIndex = {
   index: { fields: ["txn_id"] },
-  ddoc: 'txns_txn_id_index'
+  ddoc: "txns_txn_id_index"
 };
 const recordTypeIndex = {
   index: { fields: ["type_"] },
-  ddoc: 'record_type_index'
+  ddoc: "record_type_index"
 };
 
 export default function init(username, password) {
@@ -34,7 +34,9 @@ export default function init(username, password) {
     : null;
   localDB.remoteDB = remoteDB;
   remoteDB
-    .logIn(username, password)
+    .signUp(username, password)
+    .catch(() => remoteDB)
+    .then(() => remoteDB.logIn(username, password))
     .then(() => {
       localDB
         .sync(remoteDB, { live: true, retry: true })
@@ -58,7 +60,10 @@ export class PouchTransactions {
   }
 
   async loadAll() {
-    const results = await this.localDB.find({selector: {type_: 'transaction'}, index: 'record_type_index'});
+    const results = await this.localDB.find({
+      selector: { type_: "transaction" },
+      index: "record_type_index"
+    });
     return results.docs;
   }
 
@@ -81,14 +86,14 @@ export class PouchTransactions {
    * @param {string} txn_group_id
    */
   async delete(txn_group_id) {
-      const txnsByGroupId = await this.localDB.find({
-          selector: {
-              txn_id: txn_group_id
-          },
-          use_index: 'txns_txn_id_index'
-      })
+    const txnsByGroupId = await this.localDB.find({
+      selector: {
+        txn_id: txn_group_id
+      },
+      use_index: "txns_txn_id_index"
+    });
 
-      await Promise.all(txnsByGroupId.map((txn) => this.localDB.remove(txn)));
+    await Promise.all(txnsByGroupId.map(txn => this.localDB.remove(txn)));
   }
 }
 
@@ -98,7 +103,10 @@ export class PouchAccounts {
   }
 
   async loadAll() {
-    const results = await this.localDB.find({selector: {type_: 'account'}, index: 'record_type_index'});
+    const results = await this.localDB.find({
+      selector: { type_: "account" },
+      index: "record_type_index"
+    });
     return results.docs;
   }
 }

@@ -9,7 +9,7 @@ import groupBy from "ramda/es/groupBy";
 import identity from "ramda/es/identity";
 import map from "ramda/es/map";
 import memoizeWith from "ramda/es/memoizeWith";
-import { derived, writable } from "svelte/store";
+import { derived, get as storeGet, writable } from "svelte/store";
 import uniq from "ramda/es/uniq";
 
 import * as Accounts from "../lib/Accounts";
@@ -18,6 +18,7 @@ import { formatDate } from "../lib/utils";
 import { PouchAccounts, PouchTransactions } from "../lib/pouch";
 
 const debug = Debug("Envelopes.Money:store");
+window.storeGet = storeGet;
 
 // TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
@@ -352,7 +353,7 @@ export async function subscribe(graphql) {
     graphql.localDB
       .changes({ live: true, since: "now", include_docs: true })
       .on("change", ({ id, doc, deleted }) => {
-        const transactionType = id.split("/");
+        const transactionType = id.split("/")[0];
         // We had a period where transaction IDs didn't have 'transaction/'
         // prepended, so we can't detect them by looking for that
         const storeKey =
@@ -363,10 +364,11 @@ export async function subscribe(graphql) {
           if (deleted) {
             debug("Doc was deleted");
             delete $store[storeKey][id];
-            return $store;
+            return {...$store};
           } else {
+            debug('Received an update for %s %s: %O', storeKey, id, doc);
             $store[storeKey][id] = doc;
-            return $store;
+            return {...$store};
           }
         });
       })
@@ -402,4 +404,5 @@ export async function subscribe(graphql) {
   }
 }
 
-window.store = arrays;
+window.store = store;
+window.derivedStore = arrays;

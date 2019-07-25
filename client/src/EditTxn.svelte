@@ -9,6 +9,7 @@
   import * as Transactions from "./lib/Transactions";
   import { formatDate, guardCreds } from "./lib/utils";
   import { arrays as derivedStore } from "./stores/main";
+  import {PouchTransactions} from './lib/pouch';
 
   export let params;
   let txnId;
@@ -106,6 +107,11 @@
     }
     error = null; // Reset it if we got here
     await Transactions.saveTransactions(creds, derivedTxns);
+
+    if (window._env_.USE_POUCH) {
+      const pouchTransactions = new PouchTransactions(creds.localDB);
+      pouchTransactions.save(derivedTxns);
+    }
     page("/home");
   }
 
@@ -113,6 +119,10 @@
     if (!txnId) return;
     if (!confirm("Are you sure you want to delete this transaction?")) return;
     await Transactions.deleteTransactions(creds, txnId);
+    if (window._env_.USE_POUCH) {
+      const pouchTransactions = new PouchTransactions(creds.localDB);
+      pouchTransactions.delete(txnId);
+    }
     page("/home");
   }
 

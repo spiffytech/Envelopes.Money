@@ -244,12 +244,9 @@ async function setPouchData(localDB, key, data) {
   );
   const existingById = fromPairs(existingDocs.map(doc => [doc._id, doc]));
 
-  console.log("iipf", incomingInPouchForm);
-  console.log("ebid", existingById);
   const toInsert = incomingInPouchForm
     .map(doc => {
       const { _rev, ...existing } = existingById[doc._id] || {};
-      console.log(_rev, equals(doc, existing), existing, doc);
       if (_rev && !equals(doc, existing)) {
         return { ...doc, _rev }; // Updated doc
       }
@@ -257,8 +254,6 @@ async function setPouchData(localDB, key, data) {
       return null; // New doc matched old doc
     })
     .filter(identity);
-  console.log("to_insert into PouchDB", toInsert);
-  console.log("insertion results", await localDB.bulkDocs(toInsert));
 }
 
 export async function subscribe(graphql) {

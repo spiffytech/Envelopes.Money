@@ -49,6 +49,7 @@
   if (!creds || !creds.email || !creds.password) {
     page("/login");
   } else {
+    const pouch = initPouch(creds.email, creds.password);
     const graphql = {
       wsclient: mkWSClient(
         window._env_.GRAPHQL_WSS_HOST,
@@ -61,7 +62,8 @@
             },
           }
       ),
-      pouch: initPouch(creds.email, creds.password),
+      pouch,
+      localDB: pouch,
       userId: creds.userId,
       apikey: creds.apikey
     };

@@ -101,7 +101,7 @@ export class PouchTransactions {
       use_index: "txns_txn_id_index"
     });
 
-    await Promise.all(txnsByGroupId.map(txn => this.localDB.remove(txn)));
+    await Promise.all(txnsByGroupId.docs.map(txn => this.localDB.remove(txn)));
   }
 }
 

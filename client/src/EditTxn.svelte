@@ -121,7 +121,7 @@
     await Transactions.deleteTransactions(creds, txnId);
     if (window._env_.USE_POUCH) {
       const pouchTransactions = new PouchTransactions(creds.localDB);
-      pouchTransactions.delete(txnId);
+      await pouchTransactions.delete(txnId);
     }
     page("/home");
   }

@@ -327,6 +327,26 @@ export async function subscribe(graphql) {
       true
     );
     setData("transactions", fromPairs(txns.map(txn => [txn.id, txn])), true);
+
+    debug('Registering pouchdb changes listener');
+    graphql.localDB.changes({live: true, since: 'now', include_docs: true}).
+    on('change', ({id, doc, deleted}) => {
+      const transactionType = id.split('/');
+      // We had a period where transaction IDs didn't have 'transaction/'
+      // prepended, so we can't detect them by looking for that
+      const storeKey = transactionType === 'account' || transactionType === 'category' ? 'accounts' : 'transactions';
+      store.update($store => {
+        if (deleted) {
+          debug('Doc was deleted');
+          delete $store[storeKey][id];
+          return $store;
+        } else {
+          $store[storeKey][id] = doc;
+          return $store
+        }
+      });
+    }).
+    on('error', console.error);
   } else {
     debug('Reading data from Hasura');
     const [accounts, transactions] = await Promise.all([

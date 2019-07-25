@@ -41,6 +41,7 @@ export default function init(username, password) {
     .catch(() => remoteDB)
     .then(() => remoteDB.logIn(username, password))
     .then(() => {
+      debug("Setting up PouchDB replication");
       localDB
         .sync(remoteDB, { live: true, retry: true })
         .on("error", console.error);

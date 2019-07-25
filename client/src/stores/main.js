@@ -10,6 +10,7 @@ import identity from "ramda/es/identity";
 import map from "ramda/es/map";
 import memoizeWith from "ramda/es/memoizeWith";
 import { derived, writable } from "svelte/store";
+import uniq from "ramda/es/uniq";
 
 import * as Accounts from "../lib/Accounts";
 import * as Transactions from "../lib/Transactions";
@@ -202,7 +203,14 @@ export const arrays = derived(store, $store => {
     accounts: Object.values($store.accounts)
       .filter(b => b.type === "account")
       .sort(comparator((a, b) => a.name < b.name)),
-    labelQuickFills
+    labelQuickFills,
+    tags: uniq(
+      flatten(
+        Object.values($store.accounts)
+          .map(account => account.tags)
+          .map(tags => Object.keys(tags))
+      )
+    ).sort()
   };
 });
 
@@ -284,7 +292,11 @@ export async function subscribe(graphql) {
   }
 
   const setData = async function setData(key, data, fromLocal = false) {
-    debug('setData called with key %s and data quantity %s', key, Object.values(data).length)
+    debug(
+      "setData called with key %s and data quantity %s",
+      key,
+      Object.values(data).length
+    );
     // Use the OR so we keep the default datastructure instead of undefined if
     // IndexedDB returns an empty value on page load
     pendingData[key] = data || pendingData[key];
@@ -295,7 +307,10 @@ export async function subscribe(graphql) {
     // all arrived.
     const isReady = Object.values(pendingData).every(identity);
     if (isReady) {
-      debug('Store is ready, setting data %o', Object.values(pendingData).map((o) => Object.values(o).length));
+      debug(
+        "Store is ready, setting data %o",
+        Object.values(pendingData).map(o => Object.values(o).length)
+      );
       store.update($store => ({
         ...$store,
         ...pendingData
@@ -321,7 +336,7 @@ export async function subscribe(graphql) {
   };
 
   if (window._env_.USE_POUCH && pouchIsInitialized) {
-    debug('Reading data from Pouch');
+    debug("Reading data from Pouch");
     const pouchTransactions = new PouchTransactions(graphql.localDB);
     const pouchAccounts = new PouchAccounts(graphql.localDB);
     const txns = await pouchTransactions.loadAll();
@@ -333,32 +348,40 @@ export async function subscribe(graphql) {
     );
     setData("transactions", fromPairs(txns.map(txn => [txn.id, txn])), true);
 
-    debug('Registering pouchdb changes listener');
-    graphql.localDB.changes({live: true, since: 'now', include_docs: true}).
-    on('change', ({id, doc, deleted}) => {
-      const transactionType = id.split('/');
-      // We had a period where transaction IDs didn't have 'transaction/'
-      // prepended, so we can't detect them by looking for that
-      const storeKey = transactionType === 'account' || transactionType === 'category' ? 'accounts' : 'transactions';
-      store.update($store => {
-        if (deleted) {
-          debug('Doc was deleted');
-          delete $store[storeKey][id];
-          return $store;
-        } else {
-          $store[storeKey][id] = doc;
-          return $store
-        }
-      });
-    }).
-    on('error', console.error);
+    debug("Registering pouchdb changes listener");
+    graphql.localDB
+      .changes({ live: true, since: "now", include_docs: true })
+      .on("change", ({ id, doc, deleted }) => {
+        const transactionType = id.split("/");
+        // We had a period where transaction IDs didn't have 'transaction/'
+        // prepended, so we can't detect them by looking for that
+        const storeKey =
+          transactionType === "account" || transactionType === "category"
+            ? "accounts"
+            : "transactions";
+        store.update($store => {
+          if (deleted) {
+            debug("Doc was deleted");
+            delete $store[storeKey][id];
+            return $store;
+          } else {
+            $store[storeKey][id] = doc;
+            return $store;
+          }
+        });
+      })
+      .on("error", console.error);
   } else {
-    debug('Reading data from Hasura');
+    debug("Reading data from Hasura");
     const [accounts, transactions] = await Promise.all([
       getIdb("accounts"),
       getIdb("transactions")
     ]);
-    debug('Setting data from IndexedDB: %s, %s', Object.values(accounts).length, Object.values(transactions).length);
+    debug(
+      "Setting data from IndexedDB: %s, %s",
+      Object.values(accounts).length,
+      Object.values(transactions).length
+    );
     setData("accounts", accounts, true);
     setData("transactions", transactions, true);
 

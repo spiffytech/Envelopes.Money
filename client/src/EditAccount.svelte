@@ -21,29 +21,25 @@
   $: accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
   let account = Accounts.mkEmptyEnvelope(graphql.userId);
   let canChangeType = true;
-  let tags = [];
+  let tags = $derivedStore.tags;
   let newTag = {key: '', value: ''};
 
   $: txns = $derivedStore.txnsGrouped.filter((txn) => txn.from_id === accountId || txn.to_ids.includes(accountId))
   const numItemsPerPage = 100;
   let pageNum = 0;
 
-  $: if (accountId) {
-    const account_ = $store.accounts[accountId];
-    debug('Loading page with account ID %s', accountId);
-    debug('Found existing account? %s', !!account_);
-    if (!account_) {
-      page('/404');
-    } else {
-      account = account_;
-      canChangeType = false;
+  onMount(() => {
+    if (accountId) {
+      const account_ = $store.accounts[accountId];
+      debug('Loading page with account ID %s', accountId);
+      debug('Found existing account? %s', !!account_);
+      if (!account_) {
+        page('/404');
+      } else {
+        account = account_;
+        canChangeType = false;
+      }
     }
-  }
-
-  onMount(async () => {
-    const {data} = await Tags.loadTags(graphql);
-    console.log('tags', data.tags);
-    tags = data.tags.map(({tag}) => tag);
   });
 
   async function handleSubmit() {

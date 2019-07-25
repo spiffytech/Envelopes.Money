@@ -21,7 +21,7 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
       HASURA_GRAPHQL_AUTH_HOOK: http://hackerbudget:3000/hasura_auth
   hackerbudget:
-    image: spiffytech/envelopes.money
+    image: spiffytech/envelopes.money:beta
     ports:
         - "8001:3000"
     depends_on:

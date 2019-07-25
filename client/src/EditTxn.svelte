@@ -32,7 +32,7 @@
   });
 
   let finalTxnId;
-  $: finalTxnId = txnId || shortid.generate();
+  $: finalTxnId = txnId || `transaction/${shortid.generate()}`;
   let derivedTxns;
   $: derivedTxns = txns
     .map(txn => ({
@@ -245,7 +245,6 @@
                 placeholder="Dollar amount for this split"
                 step="0.01"
                 on:input={event => {
-                  console.log(event.target.value);
                   if (event.target.value) txns[i].amount = Math.round(parseFloat(event.target.value) * 100);
                 }} />
             </div>

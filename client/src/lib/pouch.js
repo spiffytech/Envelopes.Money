@@ -5,6 +5,7 @@ import PouchDBFind from "pouchdb-find";
 import PouchDBUpsert from "pouchdb-upsert";
 
 const debug = Debug('pouch');
+window.PouchDB = PouchDB;
 
 PouchDB.plugin(PouchDBAuthenticaton);
 PouchDB.plugin(PouchDBFind);
@@ -26,6 +27,11 @@ const recordTypeIndex = {
   index: { fields: ["type_"] },
   ddoc: "record_type_index"
 };
+
+export function initMetaDB() {
+  if (!window._env_.USE_POUCH) return;
+  return new PouchDB('meta');
+}
 
 export default function init(username, password) {
   if (!window._env_.USE_POUCH) return;

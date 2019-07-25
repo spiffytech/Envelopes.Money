@@ -1,14 +1,37 @@
-import axios from 'axios';
+import axios from "axios";
+import Debug from 'debug';
+import LogRocket from "logrocket";
 
 import App from "./App.svelte";
 import * as accountsStore from "./stores/accounts";
 import * as Envelope from "./lib/Envelope";
-import LogRocket from "logrocket";
+import {initMetaDB} from './lib/pouch';
 
-axios.get('/api/credentials', {withCredentials: true}).
-then((response) => response.data).
-catch(() => null).
-then((creds) => {
+const debug = Debug('Envelopes.Money:main');
+
+async function main() {
+  let creds;
+  if (window._env_.USE_POUCH) {
+    debug('Checking for CouchDB credentials in IndexedDB');
+    const metaDB = initMetaDB();
+    try {
+      creds = await metaDB.get('creds');
+      debug('Found credentials in the DB');
+    } catch (ex) {
+      if (ex.status !== 404) {
+        alert(ex.message);
+      }
+      debug('Didn\'t find the credentials in the DB');
+    }
+  } else {
+    try {
+      const response = await axios.get("/api/credentials", { withCredentials: true })
+      creds = response.data;
+    } catch (ex) {
+      // pass
+    }
+  }
+
   if (window.Cypress) {
     window.accountsStore = accountsStore;
     window.Envelope = Envelope;
@@ -16,7 +39,7 @@ then((creds) => {
 
   new App({
     target: document.body,
-    props: {creds}
+    props: { creds }
   });
 
   if (window._env_.LOGROCKET_APP) {
@@ -25,4 +48,6 @@ then((creds) => {
       dom: { isEnabled: false }
     });
   }
-})
+}
+
+main();

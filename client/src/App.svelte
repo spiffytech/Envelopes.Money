@@ -49,19 +49,39 @@
   if (!creds || !creds.email || !creds.password) {
     page("/login");
   } else {
-    const pouch = initPouch(creds.email, creds.password);
+    let pouch
+    const wsclient = mkWSClient(
+      window._env_.GRAPHQL_WSS_HOST,
+      {
+          reconnect: true,
+          connectionParams: {
+            headers: {
+              'Authorization': `Bearer ${creds.apikey}`,
+            }
+          },
+        }
+    );
+    wsclient.client.onConnecting(() =>
+      store.update($store => ({...$store, connecting: true}))
+    )
+    wsclient.client.onConnected(() =>
+      store.update($store => ({...$store, connecting: false, connected: true}))
+    )
+    wsclient.client.onReconnecting(() =>
+      store.update($store => ({...$store, connecting: true}))
+    )
+    wsclient.client.onReconnected(() =>
+      store.update($store => ({...$store, connecting: false, connected: true}))
+    )
+    wsclient.client.onDisconnected(() =>
+      store.update($store => ({...$store, connected: false}))
+    )
+
+    if (window._env_.USE_POUCH) {
+      pouch = initPouch(creds.email, creds.password);
+    }
     const graphql = {
-      wsclient: mkWSClient(
-        window._env_.GRAPHQL_WSS_HOST,
-        {
-            reconnect: true,
-            connectionParams: {
-              headers: {
-                'Authorization': `Bearer ${creds.apikey}`,
-              }
-            },
-          }
-      ),
+      wsclient,
       pouch,
       localDB: pouch,
       userId: creds.userId,
@@ -74,21 +94,6 @@
       window.graphql = graphql;
     }
 
-    graphql.wsclient.client.onConnecting(() =>
-      store.update($store => ({...$store, connecting: true}))
-    )
-    graphql.wsclient.client.onConnected(() =>
-      store.update($store => ({...$store, connecting: false, connected: true}))
-    )
-    graphql.wsclient.client.onReconnecting(() =>
-      store.update($store => ({...$store, connecting: true}))
-    )
-    graphql.wsclient.client.onReconnected(() =>
-      store.update($store => ({...$store, connecting: false, connected: true}))
-    )
-    graphql.wsclient.client.onDisconnected(() =>
-      store.update($store => ({...$store, connected: false}))
-    )
     mainStore.subscribe(graphql);
   }
 </script>
@@ -100,7 +105,7 @@
 {#if creds && creds.email && creds.password}
   {#if $store.connecting}
     <p>🏃 Connecting to the database...</p>
-  {:else if $store.connected && $derivedStore.isLoading}
+  {:else if window._env_.USE_POUCH || ($store.connected && $derivedStore.isLoading)}
     <p>✔️ Connected</p>
     <p>Loading data...</p>
     {#each Object.entries($derivedStore.loadedItems) as [itemName, isLoaded]}

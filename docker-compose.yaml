@@ -2,7 +2,7 @@ version: '3.6'
 services:
   postgres:
     image: postgres
-    restart: always
+    restart: on-failure
     volumes:
     - db_data:/var/lib/postgresql/data
     ports:
@@ -13,7 +13,7 @@ services:
     - "8080:8080"
     depends_on:
     - "postgres"
-    restart: always
+    restart: on-failure
     environment:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:@postgres:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
@@ -26,7 +26,7 @@ services:
         - "8001:3000"
     depends_on:
     - "graphql-engine"
-    restart: always
+    restart: on-failure
     environment:
       GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1alpha1/graphql
       GRAPHQL_HTTP_HOST: http://localhost:8080/v1/graphql
@@ -39,7 +39,7 @@ services:
       DEBUG: app
   couch:
     image: couchdb
-    restart: always
+    restart: on-failure
     volumes:
       - ./couchdb.ini:/opt/couchdb/etc/local.d/docker.ini
       - couchdb_data:/opt/couchdb/data

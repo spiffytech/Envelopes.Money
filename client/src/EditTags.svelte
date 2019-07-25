@@ -1,91 +1,85 @@
 <script>
+  import Debug from 'debug';
   import page from 'page';
   import fromPairs from 'ramda/es/fromPairs';
   import {getContext, onMount} from 'svelte';
+  import {arrays as derivedStore, store} from './stores/main';
   
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
+  import {PouchAccounts} from './lib/pouch';
+
+  const debug = Debug('Envelopes.Money:EditTags.svelte');
 
   const graphql = getContext('graphql');
-  let initializeP = new Promise(() => null);
-  let allTags = [];
-  let accounts = [];
+  let allTags = $derivedStore.tags;
+  let accounts = $derivedStore.envelopes;
   let selectedTag = null;
   let error = null;
-
-  onMount(() => {
-    async function initialize() {
-      const {data: tags} = await Tags.loadTags(graphql);
-      allTags = tags.tags.map(({tag}) => tag);
-
-      const {data: accountsData} = await Accounts.loadAccounts(graphql);
-      accounts =
-        accountsData.accounts.
-        filter(Accounts.isEnvelope).
-        sort((a, b) => a.name < b.name ? -1 : 1);
-    }
-
-    initializeP = initialize();
-  });
+  let dirty = {};
 
   async function handleSubmit() {
-    const accountsWithSelectedTag = fromPairs(
-      accounts.
-      filter((account) => account.tags[selectedTag]).
-      map((account) => [account.id, {[selectedTag]: account.tags[selectedTag]}])
-    );
+    if (!window._env_.USE_POUCH) {
+      const accountsWithSelectedTag = fromPairs(
+        accounts.
+        filter((account) => account.tags[selectedTag]).
+        map((account) => [account.id, {[selectedTag]: account.tags[selectedTag]}])
+      );
 
-    const accountsWithoutSelectedTag =
-      accounts.
-      filter((account) => !account.tags[selectedTag]).
-      map((account) => account.id);
-  
-    try {
-      await Tags.updateAccountsTags(graphql, accountsWithSelectedTag)
-      await Tags.deleteTagFromAccounts(graphql, selectedTag, accountsWithoutSelectedTag);
-      error = null;
-      page('/home');
-    } catch (ex) {
-      error = ex.message;
-      throw ex;
+      const accountsWithoutSelectedTag =
+        accounts.
+        filter((account) => !account.tags[selectedTag]).
+        map((account) => account.id);
+    
+      try {
+        await Tags.updateAccountsTags(graphql, accountsWithSelectedTag)
+        await Tags.deleteTagFromAccounts(graphql, selectedTag, accountsWithoutSelectedTag);
+        error = null;
+        page('/home');
+      } catch (ex) {
+        error = ex.message;
+        throw ex;
+      }
+    } else {
+      const accountsThatChanged = accounts.filter((account) => dirty[account.id]);
+      debug('These accounts changed: %o', accountsThatChanged);
+
+      const pouchAccounts = new PouchAccounts(graphql.localDB);
     }
   }
 </script>
 
-{#await initializeP}
-  <p>Loading...</p>
-{:then}
-  <div class='flex justify-around'>
-    {#if error}<p>{error}</p>{/if}
+<div class='flex justify-around'>
+  {#if error}<p>{error}</p>{/if}
 
-    <form on:submit|preventDefault={handleSubmit} class='content'>
-      <select bind:value={selectedTag} class='border'>
-        <option value={null}>Select a tag</option>
-        {#each allTags as tag}
-          <option value={tag}>{tag}</option>
-        {/each}
-      </select>
+  <form on:submit|preventDefault={handleSubmit} class='content'>
+    <select bind:value={selectedTag} class='border'>
+      <option value={null}>Select a tag</option>
+      {#each allTags as tag}
+        <option value={tag}>{tag}</option>
+      {/each}
+    </select>
 
-      {#if selectedTag}
-        {#each accounts as account}
-          <div>
-            <label class='label'>
-              {account.name}
-              <input
-                class='input'
-                value={account.tags[selectedTag] || ''}
-                on:input={(event) => account.tags[selectedTag] = event.target.value}
-              />
-            </label>
-          </div>
-        {/each}
-
+    {#if selectedTag}
+      {#each accounts as account}
         <div>
-          <button type="submit" class='btn btn-primary'>Save Tags</button>
+          <label class='label'>
+            {account.name}
+            <input
+              class='input'
+              value={account.tags[selectedTag] || ''}
+              on:input={(event) => {
+                account.tags[selectedTag] = event.target.value
+                dirty[account.id] = true;
+              }}
+            />
+          </label>
         </div>
-      {/if}
-    </form>
-  </div>
-{:catch ex}
-  <p>Error! {ex.message}</p>
-{/await}
+      {/each}
+
+      <div>
+        <button type="submit" class='btn btn-primary'>Save Tags</button>
+      </div>
+    {/if}
+  </form>
+</div>

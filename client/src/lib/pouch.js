@@ -4,7 +4,7 @@ import PouchDBAuthenticaton from "pouchdb-authentication";
 import PouchDBFind from "pouchdb-find";
 import PouchDBUpsert from "pouchdb-upsert";
 
-const debug = Debug('pouch');
+const debug = Debug('Envelopes.Money:pouch');
 window.PouchDB = PouchDB;
 
 PouchDB.plugin(PouchDBAuthenticaton);

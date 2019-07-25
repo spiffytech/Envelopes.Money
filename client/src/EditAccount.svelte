@@ -47,11 +47,12 @@
     const {__typename, type_, _id, _rev, ...rest} = account;
     const accountWithId =
       {...rest, id: newAccountId}
-    await accountsStore.saveAccount(graphql, accountWithId);
 
     if (window._env_.USE_POUCH) {
       const pouchAccounts = new PouchAccounts(graphql.localDB);
-      pouchAccounts.save({...account, id: newAccountId});
+      await pouchAccounts.save({...account, id: newAccountId});
+    } else {
+      await accountsStore.saveAccount(graphql, accountWithId);
     }
     page('/');
   }

@@ -1,7 +1,10 @@
+import Debug from 'debug';
 import PouchDB from "pouchdb";
 import PouchDBAuthenticaton from "pouchdb-authentication";
 import PouchDBFind from "pouchdb-find";
 import PouchDBUpsert from "pouchdb-upsert";
+
+const debug = Debug('pouch');
 
 PouchDB.plugin(PouchDBAuthenticaton);
 PouchDB.plugin(PouchDBFind);
@@ -70,7 +73,7 @@ export class PouchTransactions {
   /**
    * @param {ITransaction[]} txns
    */
-  async save(txns) {
+  async saveAll(txns) {
     return Promise.all(
       txns.map(txn =>
         this.localDB.upsert(txn.id.replace(/^_+/, "☃︎"), ({ _rev }) => ({
@@ -108,5 +111,10 @@ export class PouchAccounts {
       index: "record_type_index"
     });
     return results.docs;
+  }
+
+  async save(account) {
+    debug('Saving account %O', account);
+    await this.localDB.upsert(account.id, ({_rev}) => ({...account, _id: account.id, type: 'account', _rev}));
   }
 }

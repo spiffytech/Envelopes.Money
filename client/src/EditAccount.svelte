@@ -3,6 +3,7 @@
   import * as shortid from 'shortid';
   import {getContext, onMount} from 'svelte';
 
+  import {PouchAccounts} from './lib/pouch';
   import Transaction from './components/Transaction';
   import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
@@ -48,6 +49,11 @@
     const accountWithId =
       {...rest, id: rest.id || `${rest.type}/${shortid.generate()}`}
     await accountsStore.saveAccount(graphql, accountWithId);
+
+    if (window._env_.USE_POUCH) {
+      const pouchAccounts = new PouchAccounts(graphql.localDB);
+      pouchAccounts.save(accountWithId);
+    }
     page('/');
   }
 </script>

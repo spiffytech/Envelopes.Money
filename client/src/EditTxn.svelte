@@ -110,7 +110,7 @@
 
     if (window._env_.USE_POUCH) {
       const pouchTransactions = new PouchTransactions(creds.localDB);
-      pouchTransactions.save(derivedTxns);
+      pouchTransactions.saveAll(derivedTxns);
     }
     page("/home");
   }

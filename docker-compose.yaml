@@ -21,8 +21,7 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
       HASURA_GRAPHQL_AUTH_HOOK: http://hackerbudget:3000/hasura_auth
   hackerbudget:
-    #image: spiffytech/envelopes.money
-    image: envelopes.money
+    image: spiffytech/envelopes.money
     ports:
         - "8001:3000"
     depends_on:
@@ -35,6 +34,8 @@ services:
       HASURA_ADMIN_KEY: myadminsecretkey
       COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple
+      USE_POUCH: "true"
+      COUCHDB: http://127.0.0.1:5984
       DEBUG: app
   couch:
     image: couchdb

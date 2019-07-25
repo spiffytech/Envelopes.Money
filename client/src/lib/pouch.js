@@ -74,11 +74,16 @@ export class PouchTransactions {
    * @param {ITransaction[]} txns
    */
   async saveAll(txns) {
-    return Promise.all(
+    const existingTxnsInGroup = await this.localDB.find({selector: {txn_id: txns[0].txn_id}});
+    debug('Found existing txns: %O', existingTxnsInGroup);
+    await Promise.all(existingTxnsInGroup.docs.map((doc) => this.localDB.remove(doc)));
+
+    await Promise.all(
       txns.map(txn =>
         this.localDB.upsert(txn.id.replace(/^_+/, "☃︎"), ({ _rev }) => ({
           ...txn,
           _id: txn.id,
+          type_: 'transaction',
           _rev
         }))
       )

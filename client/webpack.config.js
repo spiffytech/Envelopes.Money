@@ -1,6 +1,8 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const mode = process.env.NODE_ENV || 'development';
 const prod = mode === 'production';
@@ -10,7 +12,7 @@ module.exports = {
         port: 5001,
         proxy: {
             context: () => true,
-            target: 'http://localhost:8000'
+            target: `http://${process.env.HOST || 'localhost'}:8000`
         }
     },
 	entry: {

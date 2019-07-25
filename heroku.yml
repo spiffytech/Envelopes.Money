@@ -1,7 +1,3 @@
 build:
-    config:
-        GRAPHQL_HTTP_HOST: https://hasura-prod.envelopes.money/v1alpha1/graphql
-        GRAPHQL_WSS_HOST: wss://hasura-prod.envelopes.money/v1alpha1/graphql
-        LOGROCKET_APP: g8v96u/betanvelopesmoney
     docker:
         web: Dockerfile

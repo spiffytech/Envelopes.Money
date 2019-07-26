@@ -165,16 +165,14 @@ export const arrays = derived(store, $store => {
       )
     );
 
-  console.time("Compute balances");
+  debug('Computing balances');
   const balancesByAccountByDay_ = balancesByAccountByDay(
     txnsArr,
     $store.accounts
   );
-  console.timeEnd("Compute balances");
+  debug('Computed balances');
 
-  console.time("Calc label quickfills");
   const labelQuickFills = calcFieldsForLabel(txnsArr);
-  console.timeEnd("Calc label quickfills");
 
   return {
     ...$store,

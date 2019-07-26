@@ -6,7 +6,7 @@
 
 <a
   style="display: contents"
-  href={`/editTxn/${txn.txn_id}`}
+  href={`/editTxn/${encodeURIComponent(encodeURIComponent(txn.txn_id))}`}
   class="no-underline text-black">
   <div
     class="flex justify-between p-3 border border-grey-light rounded mb-1"

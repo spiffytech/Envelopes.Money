@@ -13,7 +13,7 @@
 
   export let params;
   let txnId;
-  $: txnId = params.txnId;
+  $: txnId = params.txnId ? decodeURIComponent(decodeURIComponent(params.txnId)) : undefined;
 
   const creds = guardCreds();
 

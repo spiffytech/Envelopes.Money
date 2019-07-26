@@ -23,13 +23,13 @@ async function main() {
       }
       debug('Didn\'t find the credentials in the DB');
     }
-  } else {
-    try {
-      const response = await axios.get("/api/credentials", { withCredentials: true })
-      creds = response.data;
-    } catch (ex) {
-      // pass
-    }
+  }
+
+  try {
+    const response = await axios.get("/api/credentials", { withCredentials: true })
+    creds = {...(creds || {}), ...response.data};
+  } catch (ex) {
+    creds = null;
   }
 
   if (window.Cypress) {

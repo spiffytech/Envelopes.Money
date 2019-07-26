@@ -34,7 +34,7 @@ export function initMetaDB() {
   return new PouchDB('meta');
 }
 
-export default function init(username, password) {
+export default function init(username) {
   if (!window._env_.USE_POUCH) return;
   const localDB = new PouchDB("envelopes.money");
   const remoteDB = window._env_.COUCHDB

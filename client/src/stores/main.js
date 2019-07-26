@@ -382,8 +382,8 @@ export async function subscribe(graphql) {
     ]);
     debug(
       "Setting data from IndexedDB: %s, %s",
-      Object.values(accounts).length,
-      Object.values(transactions).length
+      Object.values(accounts || {}).length,
+      Object.values(transactions || {}).length
     );
     setData("accounts", accounts, true);
     setData("transactions", transactions, true);

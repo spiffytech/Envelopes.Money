@@ -15,12 +15,11 @@
 
     async function handleSubmit() {
         try {
-          if (!window._env_.USE_POUCH) {
-            debug('Logging in with Hasura')
-            await axios.post(
-                `${endpoint}/login`, {email, password}, {withCredentials: true}
-            );
-          } else {
+          debug('Logging in with Hasura')
+          await axios.post(
+              `${endpoint}/login`, {email, password}, {withCredentials: true}
+          );
+          if (window._env_.USE_POUCH) {
             debug('Logging in with CouchDB');
             debug('Stored the user\'s credentials');
             const localDB = await initPouch(email, password);

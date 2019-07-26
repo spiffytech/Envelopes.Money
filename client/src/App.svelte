@@ -11,10 +11,11 @@
   import Nav from './components/Nav.svelte';
   import * as mainStore from "./stores/main";
   import {store} from './stores/main';
-  import { arrays as derivedStore } from "./stores/main";
+  import { arrays as derivedStore, pouchStore } from "./stores/main";
   import Login from "./Login.svelte";
   import {mkClient as mkWSClient} from './lib/graphql';
   import initPouch from './lib/pouch';
+  import {sync} from './lib/pouch';
 
   export let creds;
 
@@ -49,7 +50,6 @@
   if (!creds || !creds.email || !creds.password) {
     page("/login");
   } else {
-    let pouch
     const wsclient = mkWSClient(
       window._env_.GRAPHQL_WSS_HOST,
       {
@@ -77,13 +77,15 @@
       store.update($store => ({...$store, connected: false}))
     )
 
+    let localDB
     if (window._env_.USE_POUCH) {
-      pouch = initPouch(creds.email, creds.password);
+      localDB = initPouch(creds.email, creds.password);
+      sync(localDB, pouchStore);
     }
     const graphql = {
       wsclient,
-      pouch,
-      localDB: pouch,
+      pouch: localDB,
+      localDB,
       userId: creds.userId,
       apikey: creds.apikey
     };

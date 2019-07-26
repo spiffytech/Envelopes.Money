@@ -1,6 +1,7 @@
 import { get as getIdb, set as setIdb } from "idb-keyval";
 import comparator from "ramda/es/comparator";
 import Debug from "debug";
+import immer from 'immer';
 import equals from "ramda/es/equals";
 import filter from "ramda/es/filter";
 import flatten from "ramda/es/flatten";
@@ -9,8 +10,8 @@ import groupBy from "ramda/es/groupBy";
 import identity from "ramda/es/identity";
 import map from "ramda/es/map";
 import memoizeWith from "ramda/es/memoizeWith";
-import { derived, get as storeGet, writable } from "svelte/store";
 import uniq from "ramda/es/uniq";
+import { derived, get as storeGet, writable } from "svelte/store";
 
 import * as Accounts from "../lib/Accounts";
 import * as Transactions from "../lib/Transactions";
@@ -403,6 +404,8 @@ export async function subscribe(graphql) {
     });
   }
 }
+
+export const pouchStore = writable(immer({state: 'offline', stateDetail: null}, identity));
 
 window.store = store;
 window.derivedStore = arrays;

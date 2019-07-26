@@ -1,4 +1,5 @@
 import Debug from 'debug';
+import immer from 'immer';
 import PouchDB from "pouchdb";
 import PouchDBAuthenticaton from "pouchdb-authentication";
 import PouchDBFind from "pouchdb-find";
@@ -47,11 +48,6 @@ export default function init(username, password) {
     .catch(() => remoteDB)
     .then(() => remoteDB.logIn(username, password))
     .then(() => {
-      debug("Setting up PouchDB replication");
-      localDB
-        .sync(remoteDB, { live: true, retry: true })
-        .on("error", console.error);
-
       localDB.createIndex(txnIdIndex).catch(console.error);
       localDB.createIndex(recordTypeIndex).catch(console.error);
     })
@@ -59,6 +55,17 @@ export default function init(username, password) {
 
   window.localDB = localDB;
   return localDB;
+}
+
+export function sync(localDB, pouchStore) {
+  debug("Setting up PouchDB replication");
+  localDB.sync(localDB.remoteDB, {live: true, retry: true, heartbeat: 10000}).
+  on('paused', err => pouchStore.update($store => immer($store, s => ({...s, state: 'paused', stateDetail: err})))).
+  on('error', err => pouchStore.update($store => immer($store, s => ({...s, state: 'error', stateDetail: err})))).
+  on('active', () => pouchStore.update($store => immer($store, s => ({...s, state: 'active', stateDetail: null})))).
+  on('complete', info => { throw new Error(`PouchDB replication unexpectedly completed. info is ${info}`)}).
+  on('denied', err => { throw new Error(`PouchDB replication was denied. Error is ${err}`)});
+
 }
 
 export class PouchTransactions {

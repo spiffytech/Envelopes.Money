@@ -24,8 +24,6 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
-import * as shortid from 'shortid';
-
 Cypress.Commands.add('register', () => {
     cy.exec('npm run --silent generate_test_credentials').then((result) => {
         const [email, password] = result.stdout.trim().split(',');
@@ -60,7 +58,6 @@ Cypress.Commands.add('loadAccounts', (suffix) => {
     // previous test
     cy.fixture('accounts').then((fixture) => {
         cy.window().then(async (window) => {
-            console.log('Creating a test envelope');
             const graphql = window.graphql;
             for(let account of fixture) {
                 await window.accountsStore.saveAccount(

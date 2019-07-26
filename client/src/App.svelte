@@ -15,7 +15,7 @@
   import Login from "./Login.svelte";
   import {mkClient as mkWSClient} from './lib/graphql';
   import initPouch from './lib/pouch';
-  import {sync} from './lib/pouch';
+  import {logIn, sync} from './lib/pouch';
 
   export let creds;
 
@@ -80,6 +80,7 @@
     let localDB
     if (window._env_.USE_POUCH) {
       localDB = initPouch(creds.email, creds.password);
+      logIn(localDB, creds);
       sync(localDB, pouchStore);
     }
     const graphql = {

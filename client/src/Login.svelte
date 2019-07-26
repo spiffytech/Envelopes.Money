@@ -4,7 +4,7 @@
     import {getContext} from 'svelte';
 
     import initPouch from './lib/pouch';
-    import {initMetaDB} from './lib/pouch';
+    import * as libPouch from './lib/pouch';
 
     const debug = Debug('Envelopes.Money:Login.svelte');
 
@@ -24,8 +24,13 @@
             debug('Stored the user\'s credentials');
             const localDB = await initPouch(email, password);
             debug('Initialized main PouchDB');
-            debug('Login results: %o', await localDB.remoteDB.logIn(email, password));
-            const metaDB = initMetaDB();
+            try {
+              debug('Login results: %o', await libPouch.logIn(localDB, {email, password}));
+            } catch (ex) {
+              if (ex.status !== 401) throw ex;
+              debug('Signing up: %O', await libPouch.signUp(localDB, {email, password}));
+            }
+            const metaDB = libPouch.initMetaDB();
             debug('Stored credentials: %O', await metaDB.upsert('creds', doc => ({email, password, _id: 'creds', _rev: doc._rev})));
           }
             location.href = '/';  // Force the new context to get set

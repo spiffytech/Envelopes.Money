@@ -43,18 +43,20 @@ export default function init(username, password) {
       })
     : null;
   localDB.remoteDB = remoteDB;
-  remoteDB
-    .signUp(username, password)
-    .catch(() => remoteDB)
-    .then(() => remoteDB.logIn(username, password))
-    .then(() => {
-      localDB.createIndex(txnIdIndex).catch(console.error);
-      localDB.createIndex(recordTypeIndex).catch(console.error);
-    })
-    .catch(console.error);
+
+  localDB.createIndex(txnIdIndex).catch(console.error);
+  localDB.createIndex(recordTypeIndex).catch(console.error);
 
   window.localDB = localDB;
   return localDB;
+}
+
+export function logIn(localDB, {email, password}) {
+  return localDB.remoteDB.logIn(email, password);
+}
+
+export function signUp(localDB, {email, password}) {
+  return localDB.remoteDB.signUp(email, password);
 }
 
 export function sync(localDB, pouchStore) {

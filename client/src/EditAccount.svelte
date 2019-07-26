@@ -51,7 +51,8 @@
     if (window._env_.USE_POUCH) {
       const pouchAccounts = new PouchAccounts(graphql.localDB);
       await pouchAccounts.save({...account, id: newAccountId});
-    } else {
+    }
+    if (!window._env_.POUCH_ONLY) {
       await accountsStore.saveAccount(graphql, accountWithId);
     }
     page('/');

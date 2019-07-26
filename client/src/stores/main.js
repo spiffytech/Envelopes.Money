@@ -319,7 +319,7 @@ export async function subscribe(graphql) {
     //if (!fromLocal) setLoaded(key);
     setLoaded(key); // TODO: Distinguish loading from disk vs loading from network
 
-    if (window._env_.USE_POUCH && !fromLocal && !pouchIsInitialized) {
+    if (window._env_.USE_POUCH && !window._env_.POUCH_ONLY && !fromLocal && !pouchIsInitialized) {
       debug("Initializing pouchdb with data %o", pendingData);
       await setPouchData(graphql.localDB, "accounts", pendingData.accounts);
       await setPouchData(

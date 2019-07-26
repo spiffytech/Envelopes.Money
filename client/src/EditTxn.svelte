@@ -106,7 +106,9 @@
       return;
     }
     error = null; // Reset it if we got here
-    await Transactions.saveTransactions(creds, derivedTxns);
+    if (!window._env_.POUCH_ONLY) {
+      await Transactions.saveTransactions(creds, derivedTxns);
+    }
 
     if (window._env_.USE_POUCH) {
       const pouchTransactions = new PouchTransactions(creds.localDB);
@@ -118,7 +120,9 @@
   async function deleteTransaction() {
     if (!txnId) return;
     if (!confirm("Are you sure you want to delete this transaction?")) return;
-    await Transactions.deleteTransactions(creds, txnId);
+    if (!window._env_.POUCH_ONLY) {
+      await Transactions.deleteTransactions(creds, txnId);
+    }
     if (window._env_.USE_POUCH) {
       const pouchTransactions = new PouchTransactions(creds.localDB);
       await pouchTransactions.delete(txnId);

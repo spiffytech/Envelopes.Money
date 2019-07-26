@@ -19,7 +19,7 @@
   let dirty = {};
 
   async function handleSubmit() {
-    if (!window._env_.USE_POUCH) {
+    if (!window._env_.POUCH_ONLY) {
       const accountsWithSelectedTag = fromPairs(
         accounts.
         filter((account) => account.tags[selectedTag]).
@@ -40,7 +40,8 @@
         error = ex.message;
         throw ex;
       }
-    } else {
+    } 
+    if (window.env.USE_POUCH) {
       const accountsThatChanged = accounts.filter((account) => dirty[account.id]);
       debug('These accounts changed: %o', accountsThatChanged);
 

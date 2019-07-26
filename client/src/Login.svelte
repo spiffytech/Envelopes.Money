@@ -16,9 +16,11 @@
     async function handleSubmit() {
         try {
           debug('Logging in with Hasura')
-          await axios.post(
-              `${endpoint}/login`, {email, password}, {withCredentials: true}
-          );
+          if (!window._env_.POUCH_ONLY) {
+            await axios.post(
+                `${endpoint}/login`, {email, password}, {withCredentials: true}
+            );
+          }
           if (window._env_.USE_POUCH) {
             debug('Logging in with CouchDB');
             debug('Stored the user\'s credentials');
@@ -33,7 +35,7 @@
             const metaDB = libPouch.initMetaDB();
             debug('Stored credentials: %O', await metaDB.upsert('creds', doc => ({email, password, _id: 'creds', _rev: doc._rev})));
           }
-            location.href = '/';  // Force the new context to get set
+          location.href = '/';  // Force the new context to get set
         } catch (ex) {
           if (ex.response) {
             error = ex.response.data.error;

@@ -10,6 +10,11 @@ import {initMetaDB} from './lib/pouch';
 const debug = Debug('Envelopes.Money:main');
 
 async function main() {
+  if (window._env_.POUCH_ONLY && !window._env_.USE_POUCH) {
+    alert('INvalid settings');
+    throw new Error('Must use pouch if using Pouch only');
+  }
+
   let creds;
   if (window._env_.USE_POUCH) {
     debug('Checking for CouchDB credentials in IndexedDB');
@@ -25,11 +30,13 @@ async function main() {
     }
   }
 
-  try {
-    const response = await axios.get("/api/credentials", { withCredentials: true })
-    creds = {...(creds || {}), ...response.data};
-  } catch (ex) {
-    creds = null;
+  if (!window._env_.POUCH_ONLY) {
+    try {
+      const response = await axios.get("/api/credentials", { withCredentials: true })
+      creds = {...(creds || {}), ...response.data};
+    } catch (ex) {
+      creds = null;
+    }
   }
 
   if (window.Cypress) {

@@ -50,32 +50,35 @@
   if (!creds || !creds.email || !creds.password) {
     page("/login");
   } else {
-    const wsclient = mkWSClient(
-      window._env_.GRAPHQL_WSS_HOST,
-      {
-          reconnect: true,
-          connectionParams: {
-            headers: {
-              'Authorization': `Bearer ${creds.apikey}`,
-            }
-          },
-        }
-    );
-    wsclient.client.onConnecting(() =>
-      store.update($store => ({...$store, connecting: true}))
-    )
-    wsclient.client.onConnected(() =>
-      store.update($store => ({...$store, connecting: false, connected: true}))
-    )
-    wsclient.client.onReconnecting(() =>
-      store.update($store => ({...$store, connecting: true}))
-    )
-    wsclient.client.onReconnected(() =>
-      store.update($store => ({...$store, connecting: false, connected: true}))
-    )
-    wsclient.client.onDisconnected(() =>
-      store.update($store => ({...$store, connected: false}))
-    )
+    let wsclient;
+    if (!window._env_.POUCH_ONLY) {
+      wsclient = mkWSClient(
+        window._env_.GRAPHQL_WSS_HOST,
+        {
+            reconnect: true,
+            connectionParams: {
+              headers: {
+                'Authorization': `Bearer ${creds.apikey}`,
+              }
+            },
+          }
+      );
+      wsclient.client.onConnecting(() =>
+        store.update($store => ({...$store, connecting: true}))
+      )
+      wsclient.client.onConnected(() =>
+        store.update($store => ({...$store, connecting: false, connected: true}))
+      )
+      wsclient.client.onReconnecting(() =>
+        store.update($store => ({...$store, connecting: true}))
+      )
+      wsclient.client.onReconnected(() =>
+        store.update($store => ({...$store, connecting: false, connected: true}))
+      )
+      wsclient.client.onDisconnected(() =>
+        store.update($store => ({...$store, connected: false}))
+      )
+    }
 
     let localDB
     if (window._env_.USE_POUCH) {

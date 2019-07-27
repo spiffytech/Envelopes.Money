@@ -68,7 +68,10 @@ if (!process.env.POUCH_ONLY) {
   });
 
   app.use("/api", authedRouter);
+} else {
+  debug('Using PouchDB exclusively. No logins supported.');
 }
+
 
 // Serve static files for React
 app.use(express.static(path.join(__dirname, "../../../client", "public")));

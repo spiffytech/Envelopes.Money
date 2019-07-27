@@ -1,6 +1,7 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WorkboxPlugin = require('workbox-webpack-plugin');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -59,6 +60,22 @@ module.exports = {
 			filename: '[name].css'
 		}),
         ...(prod ? [] : [new BundleAnalyzerPlugin()]),
+        new WorkboxPlugin.GenerateSW({
+          // these options encourage the ServiceWorkers to get in there fast
+          // and not allow any straggling "old" SWs to hang around
+          clientsClaim: true,
+          skipWaiting: true,
+          runtimeCaching: [{
+            urlPattern: /(.*env\.js|global.css|bundle.css)/,
+            handler: 'NetworkFirst',
+            options: {
+                networkTimeoutSeconds: 5,
+                backgroundSync: {
+                    name: 'env-js-queue'
+                }
+            }
+          }]
+        })
 	],
     //devtool: prod ? false: 'source-map',
 	devtool: 'source-map',

@@ -335,7 +335,7 @@ export async function subscribe(graphql) {
     }
   };
 
-  if (window._env_.USE_POUCH && pouchIsInitialized) {
+  if (window._env_.USE_POUCH && (window._env_.POUCH_ONLY || pouchIsInitialized)) {
     debug("Reading data from Pouch");
     const pouchTransactions = new PouchTransactions(graphql.localDB);
     const pouchAccounts = new PouchAccounts(graphql.localDB);
@@ -383,8 +383,8 @@ export async function subscribe(graphql) {
       Object.values(accounts || {}).length,
       Object.values(transactions || {}).length
     );
-    setData("accounts", accounts, true);
-    setData("transactions", transactions, true);
+    if (accounts) setData("accounts", accounts, true);
+    if (transactions) setData("transactions", transactions, true);
 
     Accounts.subscribe(graphql, async ({ data }) => {
       setData(

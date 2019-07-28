@@ -24,22 +24,22 @@ window.storeGet = storeGet;
 // TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
   date => date.toString(),
-  function calcDaysInPeriod(periodStart, days = [], periodEnd = new Date()) {
-    // The extra day is a hack until we figure out storing+parsing dates in a
-    // consistent timezone
-    if (new Date(periodEnd.getTime() + 86400000) < periodStart) return days;
-    const nextDate = new Date(
-      periodStart.getFullYear(),
-      periodStart.getMonth(),
-      periodStart.getDate() + 1
-    );
-    return calcDaysInPeriod(nextDate, [...days, periodStart], periodEnd);
+  function calcDaysInPeriod(periodStart) {
+    const dates = [periodStart];
+    const today = new Date();
+    while (true) {
+      const baseDate = dates[dates.length-1];
+      if (baseDate > new Date()) break;
+      const date = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + 1);
+      dates.push(date);
+    }
+    return dates;
   }
 );
 
 function calcBalancesForAccount(txnsForAccount) {
   const amountsByDate = groupBy(amount => amount.date, txnsForAccount);
-  const minDate = txnsForAccount.map(({ date }) => date).sort()[0];
+  const minDate = txnsForAccount.map(({ date }) => date).sort()[0] || new Date();
   const dates = calcDaysInPeriod(new Date(minDate));
   const { ret: finalRet } = dates.reduce(
     ({ ret, lastValue }, date) => {

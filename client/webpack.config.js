@@ -10,11 +10,7 @@ const prod = mode === 'production';
 
 module.exports = {
     devServer: {
-        port: 5001,
-        proxy: {
-            context: () => true,
-            target: `http://${process.env.HOST || 'localhost'}:8000`
-        }
+        port: 8080,
     },
 	entry: {
 		bundle: ['./src/main.js']

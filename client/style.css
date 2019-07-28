@@ -71,7 +71,7 @@
 }
 
 .btn-primary {
-    @apply text-white border bg-orange border-orange;
+    @apply border bg-orange border-orange;
 }
 
 .btn-secondary {

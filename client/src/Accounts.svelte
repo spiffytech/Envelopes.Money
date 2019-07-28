@@ -71,11 +71,13 @@
 
 <div class="m-3">
   <div class="shadow-md p-3 rounded-lg mb-3 b-white max-w-sm">
-    Sort By:
-    <select on:change={event => (sortBy = event.target.value)}>
-      <option value="name">Name</option>
-      <option value="balance">Balance</option>
-    </select>
+    <label>
+      Sort By:
+      <select on:change={event => (sortBy = event.target.value)}>
+        <option value="name">Name</option>
+        <option value="balance">Balance</option>
+      </select>
+    </label>
   </div>
 
   <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
@@ -104,13 +106,15 @@
     <header class="font-bold text-lg small-caps cursor-pointer">
       Envelopes
     </header>
-    Group by:
-    <select on:change={event => (sortTag = event.target.value)}>
-      <option value={'null'}>No Tag</option>
-      {#each allTags as tag}
-        <option value={tag}> {tag} </option>
-      {/each}
-    </select>
+    <label>
+      Group by:
+      <select on:change={event => (sortTag = event.target.value)}>
+        <option value={'null'}>No Tag</option>
+        {#each allTags as tag}
+          <option value={tag}> {tag} </option>
+        {/each}
+      </select>
+    </label>
   </div>
   {#each envelopeTagValues as tagValue}
     <div data-cy={`envelope-group-${tagValue || 'null'}`}>

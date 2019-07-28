@@ -29,7 +29,7 @@
     };
   }
 
-  if (creds) {
+  if (creds || window._env_.POUCH_ONLY) {
     page("/", setRoute(Home));
     page("/home", setRoute(Home));
     page("/login", setRoute(Login));
@@ -127,10 +127,14 @@
 
   <Nav />
 
-  {#if (window._env_.USE_POUCH || $store.connected) && !$derivedStore.isLoading}
-    <svelte:component this={route} bind:params={routeParams} />
-  {/if}
+  <main>
+    {#if (window._env_.USE_POUCH || $store.connected) && !$derivedStore.isLoading}
+      <svelte:component this={route} bind:params={routeParams} />
+    {/if}
+  </main>
 {:else}
   <p>Not logged in</p>
-  <svelte:component this={route} bind:params={routeParams} />
+  <main>
+    <svelte:component this={route} bind:params={routeParams} />
+  </main>
 {/if}

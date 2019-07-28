@@ -8,6 +8,11 @@
   flex-wrap nav mb-2">
   <div class="flex">
     <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
+
+    {#if window._env_.POUCH_ONLY && !$pouchStore.loggedIn}
+      <p>Sign In</p>
+    {/if}
+
     {#if $pouchStore.state === 'active'}<p>⌛</p>{/if}
     {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail} on:click={() => alert($pouchStore.stateDetail)}>❗</p>{/if}
   </div>

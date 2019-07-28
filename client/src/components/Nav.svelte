@@ -9,7 +9,7 @@
   <div class="flex">
     <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
     {#if $pouchStore.state === 'active'}<p>⌛</p>{/if}
-    {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail}>❗</p>{/if}
+    {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail} on:click={() => alert($pouchStore.stateDetail)}>❗</p>{/if}
   </div>
   <div data-cy="nav-buttons">
     <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">

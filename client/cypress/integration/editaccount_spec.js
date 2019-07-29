@@ -1,11 +1,7 @@
 import * as shortid from 'shortid';
 
 describe('Creating a new account', () => {
-    before(() => {
-        cy.register();
-    });
     beforeEach(() => {
-        cy.setLogin();
         cy.visit('#!/editAccount');
     });
 
@@ -40,14 +36,12 @@ describe('Creating a new account', () => {
 describe('Editing an existing account', () => {
     const suffix = shortid.generate();
     before(() => {
-        cy.register();
-        cy.setLogin();
         // Necessary for us to have the right window object when loading fixtures
         cy.visit('/');
+        cy.wait(200);
         cy.loadAccounts(suffix);
     });
     beforeEach(() => {
-        cy.setLogin();
         cy.visit(`#!/editAccount/${encodeURIComponent(encodeURIComponent(`envelope/QdIXTLRgc${suffix}`))}`);
         // Page.js isn't detecting hashbang changes
         cy.reload();

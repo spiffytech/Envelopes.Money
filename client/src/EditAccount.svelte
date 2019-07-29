@@ -43,8 +43,8 @@
   });
 
   async function handleSubmit() {
-    const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
     const {__typename, type_, _id, _rev, ...rest} = account;
+    const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
     const accountWithId =
       {...rest, id: newAccountId}
 

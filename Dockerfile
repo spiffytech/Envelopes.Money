@@ -16,7 +16,8 @@ FROM node:12 as builder-client
 RUN mkdir -p /workdir/client
 COPY client/package*.json /workdir/client/
 WORKDIR /workdir/client
-RUN npm install
+# Use --no-optional to skip the long Cypress download
+RUN npm install --no-optional
 
 COPY client/ /workdir/client/
 WORKDIR /workdir/client

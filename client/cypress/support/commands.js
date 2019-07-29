@@ -58,14 +58,12 @@ Cypress.Commands.add('loadAccounts', (suffix) => {
     // previous test
     cy.fixture('accounts').then((fixture) => {
         cy.window().then(async (window) => {
-            const graphql = window.graphql;
+            const pouchAccounts = new window.libPouch.PouchAccounts(window.localDB);
             for(let account of fixture) {
-                await window.accountsStore.saveAccount(
-                    graphql,
+                await pouchAccounts.save(
                     {
                         ...account,
                         id: `${account.id}${suffix}`,
-                        user_id: graphql.userId,
                     },
                 );
             }

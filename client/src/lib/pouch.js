@@ -5,6 +5,8 @@ import PouchDBAuthenticaton from "pouchdb-authentication";
 import PouchDBFind from "pouchdb-find";
 import PouchDBUpsert from "pouchdb-upsert";
 
+if (window._env_.USE_POUCH && !window._env_.COUCHDB) throw new Error('CouchDB setting is missing');
+
 const debug = Debug("Envelopes.Money:pouch");
 window.PouchDB = PouchDB;
 
@@ -34,21 +36,24 @@ export function initMetaDB() {
     return new PouchDB("meta");
 }
 
-export default function init(username) {
+export default function init() {
     if (!window._env_.USE_POUCH) return;
     const localDB = new PouchDB("envelopes.money");
-    const remoteDB = window._env_.COUCHDB
-        ? new PouchDB(window._env_.COUCHDB + "/userdb-" + toHex(username), {
-              skip_setup: true
-          })
-        : null;
-    localDB.remoteDB = remoteDB;
 
     localDB.createIndex(txnIdIndex).catch(console.error);
     localDB.createIndex(recordTypeIndex).catch(console.error);
 
-    window.localDB = localDB;
     return localDB;
+}
+
+export async function initRemote(creds, localDB, pouchStore) {
+  debug('Connecting to the remote CouchDB');
+  const remoteDB = new PouchDB(window._env_.COUCHDB + "/userdb-" + toHex(creds.email), {
+      skip_setup: true
+  });
+  localDB.remoteDB = remoteDB;
+  await login(localDB, creds);
+  sync(localDB, pouchStore);
 }
 
 export function logIn(localDB, { email, password }) {

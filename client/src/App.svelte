@@ -1,4 +1,5 @@
 <script>
+  import Debug from 'debug';
   import page from "page";
   import { setContext } from "svelte";
 
@@ -15,12 +16,17 @@
   import Login from "./Login.svelte";
   import {mkClient as mkWSClient} from './lib/graphql';
   import initPouch from './lib/pouch';
-  import {logIn, sync} from './lib/pouch';
+  import {initRemote, logIn, sync} from './lib/pouch';
+  import * as libPouch from './lib/pouch';
 
   export let creds;
 
+  const debug = Debug('Envelopes.Money:App.svelte');
+
   let route;
   let routeParams;
+
+  setContext("endpoint", endpoint);
 
   function setRoute(r) {
     return function({ params }) {
@@ -40,16 +46,7 @@
     page("/editAccount", setRoute(EditAccount));
     page("/editAccount/:accountId", setRoute(EditAccount));
     page({ hashbang: true });
-  } else {
-    page("/login", setRoute(Login));
-    page('*', setRoute(Login));
-    page({ hashbang: true });
-  }
 
-  setContext("endpoint", endpoint);
-  if (!creds || !creds.email || !creds.password) {
-    page("/login");
-  } else {
     let wsclient;
     if (!window._env_.POUCH_ONLY) {
       wsclient = mkWSClient(
@@ -82,25 +79,33 @@
 
     let localDB
     if (window._env_.USE_POUCH) {
-      localDB = initPouch(creds.email, creds.password);
-      logIn(localDB, creds);
-      sync(localDB, pouchStore);
+      localDB = initPouch();
+      if (creds) initRemote(creds, localDB, pouchStore);
     }
     const graphql = {
       wsclient,
       pouch: localDB,
       localDB,
-      userId: creds.userId,
-      apikey: creds.apikey
+      userId: window._env_.POUCH_ONLY ? null : creds.userId,
+      apikey: window._env_.POUCH_ONLY ? null : creds.apikey
     };
     setContext("graphql", graphql);
     setContext("creds", graphql);
     if (window.Cypress) {
       window.creds = creds;
       window.graphql = graphql;
+      window.libPouch = libPouch;
     }
+    window.localDB = localDB;
 
     mainStore.subscribe(graphql);
+  } else {
+    page("/login", setRoute(Login));
+    page('*', setRoute(Login));
+    page({ hashbang: true });
+
+    debug('Paging to /login');
+    page("/login");
   }
 </script>
 
@@ -108,7 +113,7 @@
   <p>{JSON.stringify(window.Cypress.env())}</p>
 {/if}
 
-{#if creds && creds.email && creds.password}
+{#if window._env_.POUCH_ONLY || (creds && creds.email && creds.password)}
   {#if $store.connecting}
     <p>🏃 Connecting to the database...</p>
   {:else if ((window._env_.USE_POUCH || $store.connected) && $derivedStore.isLoading)}

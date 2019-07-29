@@ -1,24 +1,24 @@
-import { get as getIdb, set as setIdb } from "idb-keyval";
-import comparator from "ramda/es/comparator";
-import Debug from "debug";
+import { get as getIdb, set as setIdb } from 'idb-keyval';
+import comparator from 'ramda/es/comparator';
+import Debug from 'debug';
 import immer from 'immer';
-import equals from "ramda/es/equals";
-import filter from "ramda/es/filter";
-import flatten from "ramda/es/flatten";
-import fromPairs from "ramda/es/fromPairs";
-import groupBy from "ramda/es/groupBy";
-import identity from "ramda/es/identity";
-import map from "ramda/es/map";
-import memoizeWith from "ramda/es/memoizeWith";
-import uniq from "ramda/es/uniq";
-import { derived, get as storeGet, writable } from "svelte/store";
+import equals from 'ramda/es/equals';
+import filter from 'ramda/es/filter';
+import flatten from 'ramda/es/flatten';
+import fromPairs from 'ramda/es/fromPairs';
+import groupBy from 'ramda/es/groupBy';
+import identity from 'ramda/es/identity';
+import map from 'ramda/es/map';
+import memoizeWith from 'ramda/es/memoizeWith';
+import uniq from 'ramda/es/uniq';
+import { derived, get as storeGet, writable } from 'svelte/store';
 
-import * as Accounts from "../lib/Accounts";
-import * as Transactions from "../lib/Transactions";
-import { formatDate } from "../lib/utils";
-import { PouchAccounts, PouchTransactions } from "../lib/pouch";
+import * as Accounts from '../lib/Accounts';
+import * as Transactions from '../lib/Transactions';
+import { formatDate } from '../lib/utils';
+import { PouchAccounts, PouchTransactions } from '../lib/pouch';
 
-const debug = Debug("Envelopes.Money:store");
+const debug = Debug('Envelopes.Money:store');
 window.storeGet = storeGet;
 
 // TODO: Trampoline this because it's going to overflow
@@ -28,9 +28,13 @@ const calcDaysInPeriod = memoizeWith(
     const dates = [periodStart];
     const today = new Date();
     while (true) {
-      const baseDate = dates[dates.length-1];
+      const baseDate = dates[dates.length - 1];
       if (baseDate > new Date()) break;
-      const date = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + 1);
+      const date = new Date(
+        baseDate.getFullYear(),
+        baseDate.getMonth(),
+        baseDate.getDate() + 1
+      );
       dates.push(date);
     }
     return dates;
@@ -39,7 +43,8 @@ const calcDaysInPeriod = memoizeWith(
 
 function calcBalancesForAccount(txnsForAccount) {
   const amountsByDate = groupBy(amount => amount.date, txnsForAccount);
-  const minDate = txnsForAccount.map(({ date }) => date).sort()[0] || new Date();
+  const minDate =
+    txnsForAccount.map(({ date }) => date).sort()[0] || new Date();
   const dates = calcDaysInPeriod(new Date(minDate));
   const { ret: finalRet } = dates.reduce(
     ({ ret, lastValue }, date) => {
@@ -67,8 +72,8 @@ function balancesByAccountByDay(transactionsArr, accounts) {
       {
         accountId: txn.to_id,
         date: txn.date,
-        amount: txn.amount * (txn.type === "banktxn" ? -1 : 1)
-      }
+        amount: txn.amount * (txn.type === 'banktxn' ? -1 : 1),
+      },
     ])
   );
 
@@ -81,8 +86,8 @@ function balancesByAccountByDay(transactionsArr, accounts) {
       account.id,
       {
         account,
-        balances: calcBalancesForAccount(txnAmountsByAccount[account.id] || [])
-      }
+        balances: calcBalancesForAccount(txnAmountsByAccount[account.id] || []),
+      },
     ])
   );
 
@@ -112,7 +117,7 @@ function calcFieldsForLabel(txnsArr) {
 }
 
 export const store = writable({
-  searchTerm: "",
+  searchTerm: '',
   transactions: {},
   accounts: {},
   periodLength: 15,
@@ -121,8 +126,8 @@ export const store = writable({
   connected: false,
   loadedItems: {
     accounts: false,
-    transactions: false
-  }
+    transactions: false,
+  },
 });
 
 export const arrays = derived(store, $store => {
@@ -133,15 +138,15 @@ export const arrays = derived(store, $store => {
   const txnsGrouped = Object.values(groupBy(txn => txn.txn_id, txnsArr))
     .map(txnGroup => {
       const toNames = txnGroup.map(txn =>
-        $store.accounts[txn.to_id] ? $store.accounts[txn.to_id].name : "unknown"
+        $store.accounts[txn.to_id] ? $store.accounts[txn.to_id].name : 'unknown'
       );
       const fromName = $store.accounts[txnGroup[0].from_id]
         ? $store.accounts[txnGroup[0].from_id].name
-        : "unknown";
+        : 'unknown';
 
       return {
-        to_names: toNames.join(", "),
-        to_ids: txnGroup.map(txn => txn.to_id).join(","),
+        to_names: toNames.join(', '),
+        to_ids: txnGroup.map(txn => txn.to_id).join(','),
         amount: txnGroup
           .map(txn => -txn.amount)
           .reduce((acc, item) => acc + item, 0),
@@ -154,7 +159,7 @@ export const arrays = derived(store, $store => {
         from_name: fromName,
         type: txnGroup[0].type,
         insertionOrder: txnGroup[0].insertion_order,
-        cleared: txnGroup[0].cleared
+        cleared: txnGroup[0].cleared,
       };
     })
     .sort(
@@ -179,10 +184,10 @@ export const arrays = derived(store, $store => {
     isLoading: !Object.values($store.loadedItems).every(identity),
     txnsGrouped: txnsGrouped.filter(
       txnGrouped =>
-        (txnGrouped.label || "")
+        (txnGrouped.label || '')
           .toLowerCase()
           .includes($store.searchTerm.toLowerCase()) ||
-        (txnGrouped.memo || "")
+        (txnGrouped.memo || '')
           .toLowerCase()
           .includes($store.searchTerm.toLowerCase()) ||
         txnGrouped.from_name
@@ -198,10 +203,10 @@ export const arrays = derived(store, $store => {
 
     balancesByAccountByDay: balancesByAccountByDay_,
     envelopes: Object.values($store.accounts)
-      .filter(b => b.type === "envelope")
+      .filter(b => b.type === 'envelope')
       .sort(comparator((a, b) => a.name < b.name)),
     accounts: Object.values($store.accounts)
-      .filter(b => b.type === "account")
+      .filter(b => b.type === 'account')
       .sort(comparator((a, b) => a.name < b.name)),
     labelQuickFills,
     tags: uniq(
@@ -210,7 +215,7 @@ export const arrays = derived(store, $store => {
           .map(account => account.tags)
           .map(tags => Object.keys(tags))
       )
-    ).sort()
+    ).sort(),
   };
 });
 
@@ -225,20 +230,20 @@ function setLoaded(key) {
 }
 
 async function setPouchData(localDB, key, data) {
-  debug("Storing data in Pouch: %o", data);
+  debug('Storing data in Pouch: %o', data);
   const incoming = Object.values(data);
   const incomingInPouchForm = incoming.map(doc => ({
     ...doc,
-    type_: key.replace(/s$/, ""),
+    type_: key.replace(/s$/, ''),
     // TODO: Migrate 100% couch before this bites us with txns referencing accounts starting with an underscore
-    _id: doc.id.replace(/^_+/, "☃︎"), // Couch reserves IDs starting with underscores for special things
-    __typename: undefined
+    _id: doc.id.replace(/^_+/, '☃︎'), // Couch reserves IDs starting with underscores for special things
+    __typename: undefined,
   }));
-  incomingInPouchForm.forEach(doc => delete doc["__typename"]);
+  incomingInPouchForm.forEach(doc => delete doc['__typename']);
   const incomingDocIdsSet = new Set(incomingInPouchForm.map(({ _id }) => _id));
 
   const searchResults = await localDB.bulkGet({
-    docs: Array.from(incomingDocIdsSet).map(id => ({ id }))
+    docs: Array.from(incomingDocIdsSet).map(id => ({ id })),
   });
   const existingDocs = flatten(
     searchResults.results.map(({ docs }) =>
@@ -246,8 +251,8 @@ async function setPouchData(localDB, key, data) {
     )
   );
 
-  debug("Incoming docs: %o", incomingInPouchForm);
-  debug("Existing Pouch docs: %o", existingDocs);
+  debug('Incoming docs: %o', incomingInPouchForm);
+  debug('Existing Pouch docs: %o', existingDocs);
 
   await Promise.all(
     existingDocs.map(existingDoc => {
@@ -270,19 +275,19 @@ async function setPouchData(localDB, key, data) {
     })
     .filter(identity);
 
-  debug("Insertion result: %o", await localDB.bulkDocs(toInsert));
+  debug('Insertion result: %o', await localDB.bulkDocs(toInsert));
 }
 
 export async function subscribe(graphql) {
   const pendingData = {
     accounts: null,
-    transactions: null
+    transactions: null,
   };
 
   let pouchIsInitialized = false;
   if (window._env_.USE_POUCH) {
     try {
-      await graphql.localDB.get("initialized");
+      await graphql.localDB.get('initialized');
       pouchIsInitialized = true;
     } catch (ex) {
       if (ex.status !== 404) {
@@ -293,7 +298,7 @@ export async function subscribe(graphql) {
 
   const setData = async function setData(key, data, fromLocal = false) {
     debug(
-      "setData called with key %s and data quantity %s",
+      'setData called with key %s and data quantity %s',
       key,
       Object.values(data).length
     );
@@ -308,102 +313,130 @@ export async function subscribe(graphql) {
     const isReady = Object.values(pendingData).every(identity);
     if (isReady) {
       debug(
-        "Store is ready, setting data %o",
+        'Store is ready, setting data %o',
         Object.values(pendingData).map(o => Object.values(o).length)
       );
       store.update($store => ({
         ...$store,
-        ...pendingData
+        ...pendingData,
       }));
     }
     //if (!fromLocal) setLoaded(key);
     setLoaded(key); // TODO: Distinguish loading from disk vs loading from network
 
-    if (window._env_.USE_POUCH && !window._env_.POUCH_ONLY && !fromLocal && !pouchIsInitialized) {
-      debug("Initializing pouchdb with data %o", pendingData);
-      await setPouchData(graphql.localDB, "accounts", pendingData.accounts);
+    if (
+      window._env_.USE_POUCH &&
+      !window._env_.POUCH_ONLY &&
+      !fromLocal &&
+      !pouchIsInitialized
+    ) {
+      debug('Initializing pouchdb with data %o', pendingData);
+      await setPouchData(graphql.localDB, 'accounts', pendingData.accounts);
       await setPouchData(
         graphql.localDB,
-        "transactions",
+        'transactions',
         pendingData.transactions
       );
-      await graphql.localDB.upsert("initialized", () => ({
-        _id: "initialized",
-        initialized: true
+      await graphql.localDB.upsert('initialized', () => ({
+        _id: 'initialized',
+        initialized: true,
       }));
-      debug("Initialized PouchDB");
+      debug('Initialized PouchDB');
     }
   };
 
-  if (window._env_.USE_POUCH && (window._env_.POUCH_ONLY || pouchIsInitialized)) {
-    debug("Reading data from Pouch");
+  if (
+    window._env_.USE_POUCH &&
+    (window._env_.POUCH_ONLY || pouchIsInitialized)
+  ) {
+    debug('Reading data from Pouch');
     const pouchTransactions = new PouchTransactions(graphql.localDB);
     const pouchAccounts = new PouchAccounts(graphql.localDB);
     const txns = await pouchTransactions.loadAll();
     const accounts = await pouchAccounts.loadAll();
     setData(
-      "accounts",
+      'accounts',
       fromPairs(accounts.map(account => [account.id, account])),
       true
     );
-    setData("transactions", fromPairs(txns.map(txn => [txn.id, txn])), true);
+    setData('transactions', fromPairs(txns.map(txn => [txn.id, txn])), true);
 
-    debug("Registering pouchdb changes listener");
-    graphql.localDB
-      .changes({ live: true, since: "now", include_docs: true })
-      .on("change", ({ id, doc, deleted }) => {
-        const transactionType = id.split("/")[0];
-        // We had a period where transaction IDs didn't have 'transaction/'
-        // prepended, so we can't detect them by looking for that
-        const storeKey =
-          transactionType === "account" || transactionType === "category"
-            ? "accounts"
-            : "transactions";
+    function myDebounce(fn, wait) {
+      let capturedArgs = [];
+      let timeout = null;
+      return arg => {
+        capturedArgs.push(arg);
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          timeout = null;
+          fn(capturedArgs);
+        }, wait);
+      };
+    }
+    const onPouchEvent = myDebounce(
+      args =>
         store.update($store => {
-          if (deleted) {
-            debug("Doc was deleted");
-            delete $store[storeKey][id];
-            return {...$store};
-          } else {
-            debug('Received an update for %s %s: %O', storeKey, id, doc);
-            $store[storeKey][id] = doc;
-            return {...$store};
-          }
-        });
-      })
-      .on("error", console.error);
+          args.forEach(({ id, doc, deleted }) => {
+            debug('Saw a DB change for %s', id);
+            const transactionType = id.split('/')[0];
+            // We had a period where transaction IDs didn't have 'transaction/'
+            // prepended, so we can't detect them by looking for that
+            const storeKey =
+              transactionType === 'account' || transactionType === 'category'
+                ? 'accounts'
+                : 'transactions';
+            if (deleted) {
+              debug('Doc was deleted');
+              delete $store[storeKey][id];
+            } else {
+              debug('Received an update for %s %s: %O', storeKey, id, doc);
+              $store[storeKey][id] = doc;
+            }
+          });
+          return $store;
+        }),
+      500
+    );
+
+    debug('Registering pouchdb changes listener');
+    graphql.localDB
+      .changes({ live: true, since: 'now', include_docs: true })
+      .on('change', onPouchEvent)
+      .on('error', console.error);
   } else {
-    debug("Reading data from Hasura");
+    debug('Reading data from Hasura');
     const [accounts, transactions] = await Promise.all([
-      getIdb("accounts"),
-      getIdb("transactions")
+      getIdb('accounts'),
+      getIdb('transactions'),
     ]);
     debug(
-      "Setting data from IndexedDB: %s, %s",
+      'Setting data from IndexedDB: %s, %s',
       Object.values(accounts || {}).length,
       Object.values(transactions || {}).length
     );
-    if (accounts) setData("accounts", accounts, true);
-    if (transactions) setData("transactions", transactions, true);
+    if (accounts) setData('accounts', accounts, true);
+    if (transactions) setData('transactions', transactions, true);
 
     Accounts.subscribe(graphql, async ({ data }) => {
       setData(
-        "accounts",
+        'accounts',
         fromPairs(data.accounts.map(account => [account.id, account]))
       );
-      await setIdb("accounts", pendingData.accounts);
+      await setIdb('accounts', pendingData.accounts);
     });
     Transactions.subscribe(graphql, async ({ data }) => {
       setData(
-        "transactions",
+        'transactions',
         fromPairs(data.transactions.map(txn => [txn.id, txn]))
       );
-      await setIdb("transactions", pendingData.transactions);
+      await setIdb('transactions', pendingData.transactions);
     });
   }
 }
 
-export const pouchStore = writable(immer({state: 'offline', stateDetail: null}, identity));
+export const pouchStore = writable(
+  immer({ state: 'offline', stateDetail: null }, identity)
+);
 
 window.store = store;
 window.derivedStore = arrays;

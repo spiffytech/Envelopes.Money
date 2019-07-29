@@ -62,7 +62,7 @@ export function signUp(localDB, { email, password }) {
 export function sync(localDB, pouchStore) {
     debug("Setting up PouchDB replication");
     localDB
-        .sync(localDB.remoteDB, { live: true, retry: true, heartbeat: 10000 })
+        .sync(localDB.remoteDB, { live: true, retry: true, heartbeat: 10000, batch_size: 6000 })
         .on("paused", err =>
             pouchStore.update($store =>
                 immer($store, s => ({

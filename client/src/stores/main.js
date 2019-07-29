@@ -379,13 +379,19 @@ export async function subscribe(graphql) {
         store.update($store => {
           args.forEach(({ id, doc, deleted }) => {
             debug('Saw a DB change for %s', id);
-            const transactionType = id.split('/')[0];
+            const transactionType = doc.type;
             // We had a period where transaction IDs didn't have 'transaction/'
             // prepended, so we can't detect them by looking for that
             const storeKey =
-              transactionType === 'account' || transactionType === 'category'
+              transactionType === 'account' || transactionType === 'category' || transactionType === 'envelope'
                 ? 'accounts'
-                : 'transactions';
+                : doc.type === 'envelopeTransfer' ||
+                  doc.type === 'accountTransfer' ||
+                  doc.type === 'banktxn' ||
+                  doc.type === 'fill'
+                ? 'transactions'
+                : null;
+            if (!storeKey) return;
             if (deleted) {
               debug('Doc was deleted');
               delete $store[storeKey][id];

@@ -38,7 +38,7 @@
     const txns = fills
       .map((fill, i) => {
         const txn = {
-          id: shortid.generate(),
+          id: `transaction/${shortid.generate()}`,
           user_id: creds.userId,
           memo: "",
           date: new Date(),

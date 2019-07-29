@@ -369,7 +369,8 @@ export async function subscribe(graphql) {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(() => {
           timeout = null;
-          fn(capturedArgs);
+          fn(capturedArgs.slice());
+          capturedArgs = [];
         }, wait);
       };
     }

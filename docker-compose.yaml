@@ -44,7 +44,7 @@ services:
       - ./couchdb.ini:/opt/couchdb/etc/local.d/docker.ini
       - couchdb_data:/opt/couchdb/data
     ports:
-      - 8008:5984
+      - 5984:5984
 volumes:
   db_data:
   couchdb_data:

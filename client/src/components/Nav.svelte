@@ -10,8 +10,10 @@
     <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
 
     {#if window._env_.POUCH_ONLY && !$pouchStore.loggedIn}
-      <p>Sign In</p>
+      <button class="btn">Sign In</button>
     {/if}
+
+    <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn">Say hello!</a>
 
     {#if $pouchStore.state === 'active'}<p>⌛</p>{/if}
     {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail} on:click={() => alert($pouchStore.stateDetail)}>❗</p>{/if}

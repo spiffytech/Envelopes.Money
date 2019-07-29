@@ -356,10 +356,10 @@ export async function subscribe(graphql) {
     const accounts = await pouchAccounts.loadAll();
     setData(
       'accounts',
-      fromPairs(accounts.map(account => [account.id, account])),
+      fromPairs(accounts.map(account => [account._id, account])),
       true
     );
-    setData('transactions', fromPairs(txns.map(txn => [txn.id, txn])), true);
+    setData('transactions', fromPairs(txns.map(txn => [txn._id, txn])), true);
 
     function myDebounce(fn, wait) {
       let capturedArgs = [];

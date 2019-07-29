@@ -24,6 +24,8 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
+import PouchDB from 'pouchdb';
+
 Cypress.Commands.add('register', () => {
     cy.exec('npm run --silent generate_test_credentials').then((result) => {
         const [email, password] = result.stdout.trim().split(',');
@@ -57,6 +59,7 @@ Cypress.Commands.add('loadAccounts', (suffix) => {
     // This `visit` is necessary, otherwise we have a window object from a
     // previous test
     cy.fixture('accounts').then((fixture) => {
+        cy.window().should('have.property', 'libPouch');
         cy.window().then(async (window) => {
             const pouchAccounts = new window.libPouch.PouchAccounts(window.localDB);
             for(let account of fixture) {
@@ -69,4 +72,13 @@ Cypress.Commands.add('loadAccounts', (suffix) => {
             }
         });
     });
+});
+
+Cypress.Commands.add('clearData', () => {
+  cy.window().then(window =>
+    Promise.all([
+      new PouchDB("meta").destroy(),
+      new PouchDB("envelopes.money").destroy()
+    ])
+  );
 });

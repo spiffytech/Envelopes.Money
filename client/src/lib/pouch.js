@@ -4,6 +4,7 @@ import PouchDB from "pouchdb";
 import PouchDBAuthenticaton from "pouchdb-authentication";
 import PouchDBFind from "pouchdb-find";
 import PouchDBUpsert from "pouchdb-upsert";
+import shortid from 'shortid';
 
 if (window._env_.USE_POUCH && !window._env_.COUCHDB) throw new Error('CouchDB setting is missing');
 
@@ -42,17 +43,35 @@ export default function init() {
 
     localDB.createIndex(txnIdIndex).catch(console.error);
     localDB.createIndex(recordTypeIndex).catch(console.error);
+    const ddoc = {
+      _id: '_design/balances',
+      views: {
+        balances: {
+          map: function (doc) {
+            if (doc.type_ !== 'transaction') return;
+            emit([doc.from_id, doc.date], doc.amount);
+            emit([doc.to_id, doc.date], doc.amount * doc.type === 'banktxn' ? -1 : 1);
+          }.toString(),
+          reduce: '_sum'
+        }
+      }
+    };
+    localDB.upsert(ddoc._id, (doc) => ({...ddoc, _rev: doc._rev})).catch((err) => console.error(err));
 
     return localDB;
 }
 
-export async function initRemote(creds, localDB, pouchStore) {
-  debug('Connecting to the remote CouchDB');
-  const remoteDB = new PouchDB(window._env_.COUCHDB + "/userdb-" + toHex(creds.email), {
+export function mkRemote(username) {
+  return new PouchDB(window._env_.COUCHDB + "/userdb-" + toHex(username), {
       skip_setup: true
   });
+}
+
+export async function initRemote(creds, localDB, pouchStore) {
+  debug('Connecting to the remote CouchDB');
+  const remoteDB = mkRemote(creds.email);
   localDB.remoteDB = remoteDB;
-  await login(localDB, creds);
+  await logIn(localDB, creds);
   sync(localDB, pouchStore);
 }
 
@@ -162,6 +181,28 @@ export class PouchTransactions {
 export class PouchAccounts {
     constructor(localDB) {
         this.localDB = localDB;
+    }
+
+    async initializeSystemAccounts() {
+      const accounts = await this.loadAll();
+      const systemAccounts = accounts.filter((account) => account.name.match(/\[.*\]/));
+      if (!systemAccounts.find((account) => account.name === '[Unallocated]')) {
+        await this.save({
+          id: shortid.generate(),
+          name: '[Unallocated]',
+          type: 'envelope',
+          extra: {},
+          tags: {}
+        });
+      }
+      if (!systemAccounts.find((account) => account.name === '[Equity]')) {
+        await this.save({
+          id: shortid.generate(),
+          name: '[Equity]',
+          type: 'account',
+          extra: {}
+        });
+      }
     }
 
     async loadAll() {

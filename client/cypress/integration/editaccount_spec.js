@@ -2,6 +2,7 @@ import * as shortid from 'shortid';
 
 describe('Creating a new account', () => {
     beforeEach(() => {
+        cy.clearData();
         cy.visit('#!/editAccount');
     });
 

@@ -15,7 +15,7 @@ if (window._env_.ALERT_ON_ERROR) {
 
 async function main() {
   if (window._env_.POUCH_ONLY && !window._env_.USE_POUCH) {
-    alert('INvalid settings');
+    alert('Invalid settings');
     throw new Error('Must use pouch if using Pouch only');
   }
 

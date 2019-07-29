@@ -80,6 +80,8 @@
     let localDB
     if (window._env_.USE_POUCH) {
       localDB = initPouch();
+      const pouchAccounts = new libPouch.PouchAccounts(localDB);
+      pouchAccounts.initializeSystemAccounts();
       if (creds) initRemote(creds, localDB, pouchStore);
     }
     const graphql = {

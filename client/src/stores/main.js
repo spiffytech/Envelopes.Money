@@ -212,6 +212,7 @@ export const arrays = derived(store, $store => {
     tags: uniq(
       flatten(
         Object.values($store.accounts)
+          .filter(account => account.type === 'envelope')
           .map(account => account.tags)
           .map(tags => Object.keys(tags))
       )

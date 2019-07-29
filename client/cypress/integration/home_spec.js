@@ -1,9 +1,8 @@
 describe('Visiting the empty home page', () => {
     before(() => {
-        cy.register();
+        cy.clearData();
     });
     beforeEach(() => {
-        cy.setLogin();
         cy.visit('/');
     });
 

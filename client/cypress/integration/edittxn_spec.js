@@ -1,12 +1,9 @@
 import * as shortid from 'shortid';
 
 describe('Editing a txn in an empty user account', () => {
-    before(() => {
-        cy.register();
-    });
+    before(() => cy.clearData());
     beforeEach(() => {
-        cy.setLogin();
-        cy.visit('#!/editTxn');
+      cy.visit('#!/editTxn');
     });
 
     it('tells us to create some accounts and envelopes', () => {

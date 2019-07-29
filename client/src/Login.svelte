@@ -23,15 +23,9 @@
           }
           if (window._env_.USE_POUCH) {
             debug('Logging in with CouchDB');
-            debug('Stored the user\'s credentials');
-            const localDB = await initPouch(email, password);
+            const remoteDB = libPouch.mkRemote(email);
             debug('Initialized main PouchDB');
-            try {
-              debug('Login results: %o', await libPouch.logIn(localDB, {email, password}));
-            } catch (ex) {
-              if (ex.status !== 401) throw ex;
-              debug('Signing up: %O', await libPouch.signUp(localDB, {email, password}));
-            }
+            debug('Login results: %o', await remoteDB.logIn(email, password));
             const metaDB = libPouch.initMetaDB();
             debug('Stored credentials: %O', await metaDB.upsert('creds', doc => ({email, password, _id: 'creds', _rev: doc._rev})));
           }
@@ -39,6 +33,8 @@
         } catch (ex) {
           if (ex.response) {
             error = ex.response.data.error;
+          } else if (ex.status === 401) {
+            error = ex.message;
           } else {
             throw ex;
           }

@@ -1,14 +1,6 @@
 describe('Visiting the login page with invalid credentials', () => {
     beforeEach(() => {
-        cy.visit('/');
-    });
-
-    it('redirects to the login page', () => {
-        cy.url().should('include', '#!/login');
-    });
-
-    it('should not include the nav bar', () => {
-        cy.get('[data-cy=nav-buttons').should('not.exist');
+      cy.visit('#!/login');
     });
 
     // Browser will handle rejecting for us, validate that we set that up right
@@ -49,17 +41,16 @@ describe('Visiting the login page with invalid credentials', () => {
         cy.get('input[type=email]').should('have.value', 'foo@example.com');
         cy.get('input[type=password]').should('have.value', 'bar');
 
-        cy.get('.error').should('have.text', 'Invalid credentials');
+        cy.get('.error').should('have.text', 'Name or password is incorrect.');
     });
 });
 
-describe('Visiting the login page with partial credentials', () => {
+describe.skip('Visiting the login page with partial credentials', () => {
     before(() => {
-        cy.register();
-        cy.clearCookies();
+        cy.clearData();
     });
     beforeEach(() => {
-        cy.visit('/');
+      cy.visit('#!/login');
     });
 
     it('should present an error if the password is valid but the email doesn\'t match', () => {
@@ -74,7 +65,7 @@ describe('Visiting the login page with partial credentials', () => {
         cy.get('input[type=email]').should('have.value', 'foo@example.com');
         cy.get('input[type=password]').should('have.value', Cypress.env('password'));
 
-        cy.get('.error').should('have.text', 'Invalid credentials');
+        cy.get('.error').should('have.text', 'Name or password is incorrect.');
     });
 
     it('should redirect on login', () => {

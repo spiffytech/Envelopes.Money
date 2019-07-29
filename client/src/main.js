@@ -67,13 +67,20 @@ main();
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/service-worker.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
+    if (!window._env_.DISABLE_SERVICE_WORKER) {
+      navigator.serviceWorker
+        .register('/service-worker.js')
+        .then(registration => {
+          debug('SW registered: %s', registration);
+        })
+        .catch(registrationError => {
+          console.error('SW registration failed: ', registrationError);
+        });
+    } else {
+      debug('Unregistering the service worker');
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach((registration) => registration.unregister())
       });
+    }
   });
 }

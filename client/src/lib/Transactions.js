@@ -68,7 +68,7 @@ export async function subscribe({ userId, wsclient }, onData) {
 
 export function mkEmptyTransaction(userId) {
   return {
-    id: shortid.generate(),
+    id: `transaction/${shortid.generate()}`,
     user_id: userId,
     memo: "",
     date: formatDate(new Date()),

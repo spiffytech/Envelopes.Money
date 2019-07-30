@@ -32,7 +32,7 @@
   });
 
   let finalTxnId;
-  $: finalTxnId = txnId || `transaction/${shortid.generate()}`;
+  $: finalTxnId = txnId || shortid.generate();
   let derivedTxns;
   $: derivedTxns = txns
     .map(txn => ({

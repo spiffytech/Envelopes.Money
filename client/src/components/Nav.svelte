@@ -1,5 +1,8 @@
 <script>
   import {pouchStore} from '../stores/main';
+  import Login from "../Login.svelte";
+
+  let showLogIn = false;
 </script>
 
 <div class="stripe bg-orange h-1" />
@@ -10,7 +13,7 @@
     <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
 
     {#if window._env_.POUCH_ONLY && !$pouchStore.loggedIn}
-      <button class="btn">Sign In</button>
+      <button class="btn" on:click|preventDefault={() => showLogIn = true}>Log In</button>
     {/if}
 
     <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn">Say hello!</a>
@@ -36,3 +39,9 @@
     </a>
   </div>
 </div>
+
+<dialog open={showLogIn} class="shadow-md rounded-lg">
+  <button on:click|preventDefault={() => showLogIn = false} class="float-right">Close</button>
+  <Login />
+
+</dialog>

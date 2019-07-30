@@ -10,19 +10,6 @@
   export let balance;
   export let defaultDaysToRender;
 
-function calcDaysToRender(account, defaultDaysToRender) {
-  if (account.type === "envelope") {
-    if (account.extra.interval === "total") {
-      return defaultDaysToRender + 1;
-    }
-    if (account.extra.interval) {
-      return durations[account.extra.interval] + 1;
-    }
-    return defaultDaysToRender;
-  }
-  return defaultDaysToRender + 1;
-}
-
 function calcDaysInPeriod(
   periodStart,
   days = [],
@@ -33,9 +20,8 @@ function calcDaysInPeriod(
   return calcDaysInPeriod(nextDate, [...days, nextDate], periodEnd);
 }
 
-  $: daysToRender = calcDaysToRender(balance.account, defaultDaysToRender);
   $: datesToRender = calcDaysInPeriod(
-    new Date(new Date().getTime() - 86400000 * daysToRender)
+    new Date(new Date().getTime() - 86400000 * defaultDaysToRender)
   );
   $: renderableDatapoints = datesToRender.map(
     date => (balance.balances[formatDate(date)] || 0) / 100

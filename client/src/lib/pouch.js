@@ -43,8 +43,8 @@ export default function init() {
 
     localDB.createIndex(txnIdIndex).catch(console.error);
     localDB.createIndex(recordTypeIndex).catch(console.error);
-    const ddoc = {
-      _id: '_design/balances',
+    const balancesByDateDdoc = {
+      _id: '_design/balances-by-date',
       views: {
         balances: {
           map: function (doc) {
@@ -56,7 +56,22 @@ export default function init() {
         }
       }
     };
-    localDB.upsert(ddoc._id, (doc) => ({...ddoc, _rev: doc._rev})).catch((err) => console.error(err));
+    localDB.upsert(balancesByDateDdoc._id, (doc) => ({...balancesByDateDdoc, _rev: doc._rev})).catch((err) => console.error(err));
+
+    const balancesDdoc = {
+      _id: '_design/balances',
+      views: {
+        balances: {
+          map: function (doc) {
+            if (doc.type_ !== 'transaction') return;
+            emit(doc.from_id, doc.amount);
+            emit(doc.to_id, doc.amount * (doc.type === 'banktxn' ? -1 : 1));
+          }.toString(),
+          reduce: '_sum'
+        }
+      }
+    };
+    localDB.upsert(balancesDdoc._id, (doc) => ({...balancesDdoc, _rev: doc._rev})).catch((err) => console.error(err));
 
     return localDB;
 }

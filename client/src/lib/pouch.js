@@ -50,7 +50,7 @@ export default function init() {
           map: function (doc) {
             if (doc.type_ !== 'transaction') return;
             emit([doc.from_id, doc.date], doc.amount);
-            emit([doc.to_id, doc.date], doc.amount * doc.type === 'banktxn' ? -1 : 1);
+            emit([doc.to_id, doc.date], doc.amount * (doc.type === 'banktxn' ? -1 : 1));
           }.toString(),
           reduce: '_sum'
         }

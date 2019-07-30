@@ -10,11 +10,12 @@
   import { formatDate } from "./lib/utils";
   import { arrays as derivedStore} from "./stores/main";
 
+  const today = formatDate(new Date());
+
   $: sortFns = {
     name: (a, b) => (a.name < b.name ? -1 : 1),
     balance: (a, b) => {
-      const currentDateStr = formatDate(new Date());
-      return $derivedStore.balancesByAccountByDay[a.id].balances[currentDateStr] < $derivedStore.balancesByAccountByDay[b.id].balances[currentDateStr] ? 1 : -1;
+      return $derivedStore.balancesByAccountByDay[a.id].balances[today] < $derivedStore.balancesByAccountByDay[b.id].balances[today] ? 1 : -1;
     }
   };
 
@@ -44,13 +45,12 @@
 
   $: totalBalancesByTag = fromPairs(
     Object.entries(envelopesByTag).map(([tag, envelopeBalancesForTag]) => {
-      const currentDateStr = formatDate(new Date());
       return [
         tag,
         envelopeBalancesForTag
           .map(({ id }) => {
             if ($derivedStore.balancesByAccountByDay[id]) {
-              return $derivedStore.balancesByAccountByDay[id].balances[currentDateStr]
+              return $derivedStore.balancesByAccountByDay[id].balances[today]
             }
             return 0;
           })
@@ -91,15 +91,16 @@
   </div>
 
   {#if showAccounts}
-    <div class="flex flex-wrap -m-3">
-      {#each accounts as account}
+    {#each accounts as account}
+      <details class="border-b border-dashed">
+        <summary class="flex justify-between"><span class="flex-auto">{account.name}:</span> <span>{toDollars($derivedStore.balancesByAccountByDay[account.id].balances[today])}</span></summary>
         <a
           href={`/editAccount/${encodeURIComponent(encodeURIComponent(account.id))}`}
           style="display: contents; color: inherit; text-decoration: inherit;">
-          <Balance balance={$derivedStore.balancesByAccountByDay[account.id]} defaultDaysToRender={15} />
+            <Balance balance={$derivedStore.balancesByAccountByDay[account.id]} defaultDaysToRender={15} />
         </a>
-      {/each}
-    </div>
+      </details>
+    {/each}
   {/if}
 
   <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
@@ -125,17 +126,18 @@
         </span>
       </header>
       <div data-cy='total-balance'>Total balance: {toDollars(totalBalancesByTag[tagValue])}</div>
-      <div class="flex flex-wrap -m-3">
-        {#each envelopesByTag[tagValue] as envelope}
+      {#each envelopesByTag[tagValue] as envelope}
+        <details class="border-b border-dashed">
+          <summary class="flex justify-between"><span class="flex-auto">{envelope.name}:</span> <span>{toDollars($derivedStore.balancesByAccountByDay[envelope.id].balances[today])}</span></summary>
           <a
             href={`/editAccount/${encodeURIComponent(encodeURIComponent(envelope.id))}`}
             style="display: contents; color: inherit; text-decoration: inherit;"
             data-cy="envelope"
             data-account-name={envelope.name}>
-            <Balance balance={$derivedStore.balancesByAccountByDay[envelope.id]} defaultDaysToRender={15} />
+              <Balance balance={$derivedStore.balancesByAccountByDay[envelope.id]} defaultDaysToRender={15} />
           </a>
-        {/each}
-      </div>
+        </details>
+      {/each}
     </div>
   {/each}
 </div>

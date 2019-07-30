@@ -75,7 +75,7 @@ Cypress.Commands.add('loadAccounts', (suffix) => {
 });
 
 Cypress.Commands.add('clearData', () => {
-  cy.window().then(window =>
+  cy.window().then(() =>
     Promise.all([
       new PouchDB("meta").destroy(),
       new PouchDB("envelopes.money").destroy()

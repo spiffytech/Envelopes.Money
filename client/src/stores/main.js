@@ -15,27 +15,25 @@ import { derived, get as storeGet, writable } from 'svelte/store';
 
 import * as Accounts from '../lib/Accounts';
 import * as Transactions from '../lib/Transactions';
-import { formatDate } from '../lib/utils';
+import { formatDate, myDebounce } from '../lib/utils';
 import { PouchAccounts, PouchTransactions } from '../lib/pouch';
 
 const debug = Debug('Envelopes.Money:store');
 window.storeGet = storeGet;
 
-// TODO: Trampoline this because it's going to overflow
 const calcDaysInPeriod = memoizeWith(
   date => date.toString(),
   function calcDaysInPeriod(periodStart) {
     const dates = [periodStart];
-    const today = new Date();
-    while (true) {
-      const baseDate = dates[dates.length - 1];
-      if (baseDate > new Date()) break;
+    let baseDate = dates[dates.length - 1];
+    while (baseDate <= new Date()) {
       const date = new Date(
         baseDate.getFullYear(),
         baseDate.getMonth(),
         baseDate.getDate() + 1
       );
       dates.push(date);
+      baseDate = dates[dates.length - 1];
     }
     return dates;
   }
@@ -364,19 +362,6 @@ export async function subscribe(graphql) {
     );
     setData('transactions', fromPairs(txns.map(txn => [txn._id, txn])), true);
 
-    function myDebounce(fn, wait) {
-      let capturedArgs = [];
-      let timeout = null;
-      return arg => {
-        capturedArgs.push(arg);
-        if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          timeout = null;
-          fn(capturedArgs.slice());
-          capturedArgs = [];
-        }, wait);
-      };
-    }
     const onPouchEvent = myDebounce(
       args =>
         store.update($store => {

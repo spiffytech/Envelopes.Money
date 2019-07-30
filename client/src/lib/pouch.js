@@ -142,11 +142,12 @@ export class PouchTransactions {
     }
 
     async loadAll() {
-        const results = await this.localDB.find({
-            selector: { type_: "transaction" },
-            index: "record_type_index"
+        const results = await this.localDB.allDocs({
+          startkey: 'transaction/',
+          endkey: 'transaction/\ufff0',
+          include_docs: true
         });
-        return results.docs;
+      return results.rows.map((row) => row.doc);
     }
 
     /**
@@ -221,11 +222,26 @@ export class PouchAccounts {
     }
 
     async loadAll() {
-        const results = await this.localDB.find({
-            selector: { type_: "account" },
-            index: "record_type_index"
-        });
-        return results.docs;
+      const [{rows: accountRows}, {rows: categoryRows}, {rows: envelopeRows}] = await Promise.all([
+        this.localDB.allDocs({
+          startkey: 'account/',
+          endkey: 'account/\ufff0',
+          include_docs: true
+        }),
+        this.localDB.allDocs({
+          startkey: 'category/',
+          endkey: 'category/\ufff0',
+          include_docs: true
+        }),
+        this.localDB.allDocs({
+          startkey: 'envelope/',
+          endkey: 'envelope/\ufff0',
+          include_docs: true
+        }),
+      ]);
+
+      return [...accountRows, ...categoryRows, ...envelopeRows].
+        map((row) => row.doc);
     }
 
     async save(account) {

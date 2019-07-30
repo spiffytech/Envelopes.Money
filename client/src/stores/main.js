@@ -332,12 +332,14 @@ export async function subscribe(graphql) {
       !pouchIsInitialized
     ) {
       debug('Initializing pouchdb with data %o', pendingData);
-      await setPouchData(graphql.localDB, 'accounts', pendingData.accounts);
-      await setPouchData(
-        graphql.localDB,
-        'transactions',
-        pendingData.transactions
-      );
+      await Promise.all([
+        setPouchData(graphql.localDB, 'accounts', pendingData.accounts),
+        setPouchData(
+          graphql.localDB,
+          'transactions',
+          pendingData.transactions
+        )
+      ]);
       await graphql.localDB.upsert('initialized', () => ({
         _id: 'initialized',
         initialized: true,

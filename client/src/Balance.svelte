@@ -74,7 +74,7 @@ function calcDaysInPeriod(
         </div>
         <div>
           <span class="p-2 border border-black rounded-lg">
-            {periodOverPeriod >= 0 ? "🡅" : "🡇"} {periodOverPeriod.toFixed(2)}
+            {periodOverPeriod >= 0 ? "⬆️" : "⬇️"} {periodOverPeriod.toFixed(2)}
           </span>
         </div>
       </div>

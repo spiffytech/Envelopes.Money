@@ -70,16 +70,6 @@
 </script>
 
 <div class="m-3">
-  <div class="shadow-md p-3 rounded-lg mb-3 b-white max-w-sm">
-    <label>
-      Sort By:
-      <select on:change={event => (sortBy = event.target.value)}>
-        <option value="name">Name</option>
-        <option value="balance">Balance</option>
-      </select>
-    </label>
-  </div>
-
   <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
     <header
       class="font-bold text-lg small-caps cursor-pointer"
@@ -102,6 +92,16 @@
       </details>
     {/each}
   {/if}
+
+  <div class="shadow-md p-3 rounded-lg mb-3 b-white max-w-sm">
+    <label>
+      Sort By:
+      <select on:change={event => (sortBy = event.target.value)}>
+        <option value="name">Name</option>
+        <option value="balance">Balance</option>
+      </select>
+    </label>
+  </div>
 
   <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
     <header class="font-bold text-lg small-caps cursor-pointer">

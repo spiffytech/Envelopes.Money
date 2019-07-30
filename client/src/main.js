@@ -55,6 +55,13 @@ async function main() {
     props: { creds },
   });
 
+  if (navigator.storage && navigator.storage.persist) {
+    const persistent = await navigator.storage.persist();
+    debug('Storage is persistent? %s', persistent);
+  } else {
+    debug('Persistent storage not supported on this device');
+  }
+
   if (window._env_.LOGROCKET_APP) {
     LogRocket.init(window._env_.LOGROCKET_APP, {
       network: { isEnabled: false },

@@ -65,8 +65,9 @@ module.exports = {
           // and not allow any straggling "old" SWs to hang around
           clientsClaim: true,
           skipWaiting: true,
+          exclude: [/index.html/],
           runtimeCaching: [{
-            urlPattern: /(.*env\.js|global.css|bundle.css)/,
+            urlPattern: /(.*env\.js|global.css|bundle.css|index.html)/,
             handler: 'NetworkFirst',
             options: {
                 networkTimeoutSeconds: 5,

@@ -10,7 +10,11 @@ const prod = mode === 'production';
 
 module.exports = {
     devServer: {
-        port: 8080,
+      port: 8080,
+      // So we can test on phones
+      allowedHosts: [
+        '.ngrok.io'
+      ]
     },
 	entry: {
 		bundle: ['./src/main.js']

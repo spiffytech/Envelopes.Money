@@ -143,7 +143,7 @@
               data-cy="envelope"
               data-account-name={envelope.name}>
               <tr class="border-b border-black border-dashed">
-                <td>{envelope.name}</td>
+                <td class="w-full">{envelope.name}</td>
                 <td class="text-right">
                   {toDollars($balancesStore[envelope.id])}
                 </td>

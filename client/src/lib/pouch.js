@@ -82,9 +82,8 @@ export function mkRemote(username) {
   });
 }
 
-export async function initRemote(creds, localDB, pouchStore) {
+export async function initRemote(creds, localDB, remoteDB, pouchStore) {
   debug('Connecting to the remote CouchDB');
-  const remoteDB = mkRemote(creds.email);
   localDB.remoteDB = remoteDB;
   await logIn(localDB, creds);
   sync(localDB, pouchStore);

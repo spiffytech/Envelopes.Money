@@ -84,32 +84,34 @@
       );
     }
 
-    let localDB;
+    let chosenDB;
     if (window._env_.USE_POUCH) {
-      localDB = initPouch();
+      const localDB = initPouch();
+      localDB.remoteDB = libPouch.mkRemote(creds.email);
       const pouchAccounts = new libPouch.PouchAccounts(localDB);
       pouchAccounts.initializeSystemAccounts().then(async () => {
-        if (creds) initRemote(creds, localDB, pouchStore);
+        if (creds) initRemote(creds, localDB, localDB.remoteDB, pouchStore);
         balancesStore.set(await loadBalances(localDB));
       });
+      chosenDB = localDB;
     }
     const graphql = {
       wsclient,
-      pouch: localDB,
-      localDB,
+      pouch: chosenDB,
+      localDB: chosenDB,
       userId: window._env_.POUCH_ONLY ? null : creds.userId,
       apikey: window._env_.POUCH_ONLY ? null : creds.apikey,
     };
     setContext('graphql', graphql);
     setContext('creds', graphql);
     setContext('balancesStore', balancesStore);
-    setContext('localDB', localDB);
+    setContext('localDB', chosenDB);
     if (window.Cypress) {
       window.creds = creds;
       window.graphql = graphql;
       window.libPouch = libPouch;
     }
-    window.localDB = localDB;
+    window.localDB = chosenDB;
 
     mainStore.subscribe(graphql);
   } else {

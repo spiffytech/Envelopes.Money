@@ -42,7 +42,7 @@
     const balanceByDate = dates.reduce((acc, date) => {
       // Calculate today's ending balance by undoing tomorrow's transactions
       const tomorrow = new Date(date.setDate(date.getDate() + 1));
-      const tomorrowsBalance = acc[0] || $balancesStore[account.id];
+      const tomorrowsBalance = acc[0] || $balancesStore[account.id] || 0;
       const tomorrowsBalanceChange =
         balanceChangesByDate[formatDate(tomorrow)] || 0;
       return [tomorrowsBalance - tomorrowsBalanceChange, ...acc];

@@ -81,16 +81,22 @@
   </div>
 
   {#if showAccounts}
-    {#each accounts as account}
-      <details class="border-b border-dashed">
-        <summary class="flex justify-between"><span class="flex-auto">{account.name}:</span> <span>{toDollars($balancesStore[account.id])}</span></summary>
-        <a
-          href={`/editAccount/${encodeURIComponent(encodeURIComponent(account.id))}`}
-          style="display: contents; color: inherit; text-decoration: inherit;">
-          <Balance {account} defaultDaysToRender={15} />
-        </a>
-      </details>
-    {/each}
+    <table class="border-collapse">
+      <tbody>
+        {#each accounts as account}
+          <a
+            href={`/editAccount/${encodeURIComponent(encodeURIComponent(account.id))}`}
+            style="display: contents; color: inherit; text-decoration: inherit;"
+            data-cy="account"
+            data-account-name={account.name}>
+            <tr class="border-b border-black border-dashed">
+              <td>{account.name}</td>
+              <td class="text-right">{toDollars($balancesStore[account.id])}</td>
+            </tr>
+          </a>
+        {/each}
+      </tbody>
+    </table>
   {/if}
 
   <div class="shadow-md p-3 rounded-lg mb-3 b-white max-w-sm">
@@ -126,18 +132,22 @@
         </span>
       </header>
       <div data-cy='total-balance'>Total balance: {toDollars(totalBalancesByTag[tagValue])}</div>
-      {#each envelopesByTag[tagValue] as envelope}
-        <details class="border-b border-dashed">
-          <summary class="flex justify-between"><span class="flex-auto">{envelope.name}:</span> <span>{toDollars($balancesStore[envelope.id])}</span></summary>
-          <a
-            href={`/editAccount/${encodeURIComponent(encodeURIComponent(envelope.id))}`}
-            style="display: contents; color: inherit; text-decoration: inherit;"
-            data-cy="envelope"
-            data-account-name={envelope.name}>
-            <Balance account={envelope} defaultDaysToRender={15} />
-          </a>
-        </details>
-      {/each}
+      <table class="border-collapse">
+        <tbody>
+          {#each envelopesByTag[tagValue] as envelope}
+            <a
+              href={`/editAccount/${encodeURIComponent(encodeURIComponent(envelope.id))}`}
+              style="display: contents; color: inherit; text-decoration: inherit;"
+              data-cy="envelope"
+              data-account-name={envelope.name}>
+              <tr class="border-b border-black border-dashed">
+                <td>{envelope.name}</td>
+                <td class="text-right">{toDollars($balancesStore[envelope.id])}</td>
+              </tr>
+            </a>
+          {/each}
+        </tbody>
+      </table>
     </div>
   {/each}
 </div>

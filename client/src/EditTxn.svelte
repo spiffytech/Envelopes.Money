@@ -12,6 +12,7 @@
   import { PouchTransactions } from './lib/pouch';
 
   const balancesStore = getContext('balancesStore');
+  const localDB = getContext('localDB');
 
   export let params;
   let txnId;
@@ -28,11 +29,15 @@
   // This takes care of when our props change
   onMount(async () => {
     if (!txnId) return;
-    txns = Object.values($derivedStore.transactions).filter(
-      transaction => transaction.txn_id === txnId
-    );
-    if (txns.length === 0) return page('/404');
-    type = txns[0].type;
+    const {docs: txnsByGroupId} = await localDB.find({
+        selector: {
+            txn_id: txnId
+        },
+        use_index: "txns_txn_id_index"
+    });
+    if (txnsByGroupId.length === 0) return page('/404');
+    txns = txnsByGroupId;
+    type = txnsByGroupId[0].type;
   });
 
   let finalTxnId;

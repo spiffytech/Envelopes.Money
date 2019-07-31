@@ -3,13 +3,15 @@
   import page from "page";
   import groupBy from "ramda/es/groupBy";
   import * as shortid from "shortid";
-  import { onMount } from "svelte";
+  import { getContext, onMount } from "svelte";
 
   import { toDollars } from "./lib/pennies";
   import * as Transactions from "./lib/Transactions";
   import { formatDate, guardCreds } from "./lib/utils";
   import { arrays as derivedStore } from "./stores/main";
   import {PouchTransactions} from './lib/pouch';
+
+  const balancesStore = getContext('balancesStore');
 
   export let params;
   let txnId;
@@ -62,7 +64,7 @@
     ...Object.values($derivedStore.accounts)
   ].map(account => ({
     ...account,
-    balance: $derivedStore.balancesByAccountByDay[account.id].balances[today]
+    balance: $balancesStore[account.id]
   }));
   let accounts;
   $: accounts = groupBy(b => b.type, balances);

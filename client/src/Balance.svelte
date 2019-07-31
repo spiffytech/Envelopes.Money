@@ -1,34 +1,50 @@
 <script>
   import {scaleLinear, scaleSqrt} from 'd3-scale';
   import {line} from 'd3-shape';
+  import fromPairs from 'ramda/es/fromPairs';
   import head from 'ramda/es/head'
   import last from 'ramda/es/last';
+  import {getContext, onMount} from 'svelte';
 
   import {toDollars} from './lib/pennies';
   import {durations, formatDate} from './lib/utils';
 
-  export let balance;
+  export let account;
   export let defaultDaysToRender;
 
-function calcDaysInPeriod(
-  periodStart,
-  days = [],
-  periodEnd = new Date()
-) {
-  const nextDate = new Date(periodStart.getTime() + 86400000);
-  if (nextDate > periodEnd) return days;
-  return calcDaysInPeriod(nextDate, [...days, nextDate], periodEnd);
-}
+  const balancesStore = getContext('balancesStore');
+  const localDB = getContext('localDB');
 
-  $: datesToRender = calcDaysInPeriod(
-    new Date(new Date().getTime() - 86400000 * defaultDaysToRender)
-  );
-  $: renderableDatapoints = datesToRender.map(
-    date => (balance.balances[formatDate(date)] || 0) / 100
-  );
+  let datesToRender = new Array(defaultDaysToRender).fill(new Date());
+  let renderableDatapoints = new Array(defaultDaysToRender).fill(0);
+
+  onMount(async () => {
+    const {rows: balanceChanges} = await localDB.query('balances-by-date/balances', {group: true, reduce: true, startkey: [account.id, ''], endkey: [account.id, '\ufff0']});
+
+    const balanceChangesByDate = fromPairs(balanceChanges.map(change => [change.key[1], change.value]));
+    const today = formatDate(new Date());
+
+    const dates = new Array(defaultDaysToRender).fill(null).map((_, i) => {
+      const date = new Date();
+      date.setHours(0,0,0,0);
+      date.setDate(date.getDate()-i);
+      return date;
+    });
+    const balanceByDate = dates.reduce(
+      (acc, date) => {
+        // Calculate today's ending balance by undoing tomorrow's transactions
+        const tomorrow = new Date(date.setDate(date.getDate()+1));
+        const tomorrowsBalance = acc[0] || $balancesStore[account.id];
+        const tomorrowsBalanceChange = balanceChangesByDate[formatDate(tomorrow)] || 0;
+        return [tomorrowsBalance - tomorrowsBalanceChange, ...acc];
+      },
+      []
+    );
+    datesToRender = dates.reverse();
+    renderableDatapoints = balanceByDate.map((balance) => balance);
+  });
 
   const currentDateStr = formatDate(new Date());
-  $: currentBalance = toDollars(balance.balances[currentDateStr]);
   $: periodOverPeriod =
     (last(renderableDatapoints) || 0) - (head(renderableDatapoints) || 0);
   $: xScale = 
@@ -69,12 +85,12 @@ function calcDaysInPeriod(
     >
       <div class="flex justify-between">
         <div>
-          <div class="text-sm small-caps" data-cy="account-name">{balance.account.name}</div>
-          <div class="text-xl font-bold" data-cy="account-balance">{currentBalance}</div>
+          <div class="text-sm small-caps" data-cy="account-name">{account.name}</div>
+          <div class="text-xl font-bold" data-cy="account-balance">{toDollars($balancesStore[account.id])}</div>
         </div>
         <div>
           <span class="p-2 border border-black rounded-lg">
-            {periodOverPeriod >= 0 ? "⬆️" : "⬇️"} {periodOverPeriod.toFixed(2)}
+            {periodOverPeriod >= 0 ? "⬆️" : "⬇️"} {toDollars(periodOverPeriod)}
           </span>
         </div>
       </div>
@@ -94,7 +110,7 @@ function calcDaysInPeriod(
             color="purple"
           >
             <title>
-              {circle.date.toLocaleDateString()} - {circle.data}
+              {circle.date.toLocaleDateString()}: {toDollars(circle.data)}
             </title>
           </circle>
         {/each}

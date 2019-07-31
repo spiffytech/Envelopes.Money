@@ -1,5 +1,6 @@
 <script>
   import Debug from 'debug';
+  import immer from 'immer';
   import page from "page";
   import { setContext } from "svelte";
 
@@ -10,8 +11,9 @@
   import FillEnvelopes from "./FillEnvelopes.svelte";
   import Home from "./Home.svelte";
   import Nav from './components/Nav.svelte';
+  import loadBalances from './lib/loadBalances';
   import * as mainStore from "./stores/main";
-  import {store} from './stores/main';
+  import {store, balancesStore} from './stores/main';
   import { arrays as derivedStore, pouchStore } from "./stores/main";
   import Login from "./Login.svelte";
   import {mkClient as mkWSClient} from './lib/graphql';
@@ -81,8 +83,11 @@
     if (window._env_.USE_POUCH) {
       localDB = initPouch();
       const pouchAccounts = new libPouch.PouchAccounts(localDB);
-      pouchAccounts.initializeSystemAccounts();
-      if (creds) initRemote(creds, localDB, pouchStore);
+      pouchAccounts.initializeSystemAccounts().
+        then(async () => {
+          if (creds) initRemote(creds, localDB, pouchStore);
+          balancesStore.set(await loadBalances(localDB));
+        });
     }
     const graphql = {
       wsclient,
@@ -93,6 +98,8 @@
     };
     setContext("graphql", graphql);
     setContext("creds", graphql);
+    setContext('balancesStore', balancesStore);
+    setContext('localDB', localDB);
     if (window.Cypress) {
       window.creds = creds;
       window.graphql = graphql;

@@ -1,6 +1,7 @@
 <script>
   import page from "page";
   import * as shortid from "shortid";
+  import {getContext} from 'svelte';
 
   import Balance from "./Balance.svelte";
   import * as Balances from "./lib/Balances";
@@ -12,10 +13,11 @@
 
   const creds = guardCreds();
 
-  const today = formatDate(new Date());
+  const balancesStore = getContext('balancesStore');
+
   let fills = $derivedStore.envelopes.map((envelope) => ({
       amount: 0,
-      envelope: {...envelope, balance: $derivedStore.balancesByAccountByDay[envelope.id].balances[today]}
+      envelope: {...envelope, balance: $balancesStore[envelope.id]}
     }));
   $: sumOfFills = fills
     .map(fill => fill.amount)
@@ -81,7 +83,7 @@
                 <div class="flex justify-between bubble">
                     <div>
                         <div>
-                            <Balance balance={$derivedStore.balancesByAccountByDay[fill.envelope.id]} defaultDaysToRender={15} />
+                            <Balance account={fill.envelope} defaultDaysToRender={15} />
 
                             <button
                                 class="border btn btn-secondary"

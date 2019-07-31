@@ -14,83 +14,13 @@ import uniq from 'ramda/es/uniq';
 import { derived, get as storeGet, writable } from 'svelte/store';
 
 import * as Accounts from '../lib/Accounts';
+import loadBalances from '../lib/loadBalances';
 import * as Transactions from '../lib/Transactions';
 import { formatDate, myDebounce } from '../lib/utils';
 import { PouchAccounts, PouchTransactions } from '../lib/pouch';
 
 const debug = Debug('Envelopes.Money:store');
 window.storeGet = storeGet;
-
-const calcDaysInPeriod = memoizeWith(
-  date => date.toString(),
-  function calcDaysInPeriod(periodStart) {
-    const dates = [periodStart];
-    let baseDate = dates[dates.length - 1];
-    while (baseDate <= new Date()) {
-      const date = new Date(
-        baseDate.getFullYear(),
-        baseDate.getMonth(),
-        baseDate.getDate() + 1
-      );
-      dates.push(date);
-      baseDate = dates[dates.length - 1];
-    }
-    return dates;
-  }
-);
-
-function calcBalancesForAccount(txnsForAccount) {
-  const amountsByDate = groupBy(amount => amount.date, txnsForAccount);
-  const minDate =
-    txnsForAccount.map(({ date }) => date).sort()[0] || new Date();
-  const dates = calcDaysInPeriod(new Date(minDate));
-  const { ret: finalRet } = dates.reduce(
-    ({ ret, lastValue }, date) => {
-      const dateStr = formatDate(date);
-      const newValue =
-        lastValue +
-        (amountsByDate[dateStr] || []).reduce(
-          (acc, item) => acc + item.amount,
-          0
-        );
-      // Using a mutable assignment is much, much faster than spreading this for every single loop through this operation
-      ret[dateStr] = newValue;
-      return { ret, lastValue: newValue };
-    },
-    { ret: {}, lastValue: 0 }
-  );
-
-  return finalRet;
-}
-
-function balancesByAccountByDay(transactionsArr, accounts) {
-  const txnsByAccount = flatten(
-    transactionsArr.map(txn => [
-      { accountId: txn.from_id, date: txn.date, amount: -txn.amount },
-      {
-        accountId: txn.to_id,
-        date: txn.date,
-        amount: txn.amount * (txn.type === 'banktxn' ? -1 : 1),
-      },
-    ])
-  );
-
-  const txnAmountsByAccount = groupBy(
-    account => account.accountId,
-    txnsByAccount
-  );
-  const ret = fromPairs(
-    Object.values(accounts).map(account => [
-      account.id,
-      {
-        account,
-        balances: calcBalancesForAccount(txnAmountsByAccount[account.id] || []),
-      },
-    ])
-  );
-
-  return ret;
-}
 
 /**
  * Given a bunch of transactions, calculates which from+to account combo is the
@@ -168,13 +98,6 @@ export const arrays = derived(store, $store => {
       )
     );
 
-  debug('Computing balances');
-  const balancesByAccountByDay_ = balancesByAccountByDay(
-    txnsArr,
-    $store.accounts
-  );
-  debug('Computed balances');
-
   const labelQuickFills = calcFieldsForLabel(txnsArr);
 
   return {
@@ -199,7 +122,6 @@ export const arrays = derived(store, $store => {
           .includes($store.searchTerm.toLowerCase())
     ),
 
-    balancesByAccountByDay: balancesByAccountByDay_,
     envelopes: Object.values($store.accounts)
       .filter(b => b.type === 'envelope')
       .sort(comparator((a, b) => a.name < b.name)),
@@ -363,7 +285,7 @@ export async function subscribe(graphql) {
     setData('transactions', fromPairs(txns.map(txn => [txn._id, txn])), true);
 
     const onPouchEvent = myDebounce(
-      args =>
+      async args => {
         store.update($store => {
           args.forEach(({ id, doc, deleted }) => {
             debug('Saw a DB change for %s', id);
@@ -389,7 +311,10 @@ export async function subscribe(graphql) {
             }
           });
           return $store;
-        }),
+        });
+
+        balancesStore.set(immer(await loadBalances(graphql.localDB), identity));
+      },
       500
     );
 
@@ -433,5 +358,10 @@ export const pouchStore = writable(
   immer({ state: 'offline', stateDetail: null }, identity)
 );
 
+export const balancesStore = writable(
+  immer({}, identity)
+);
+
 window.store = store;
 window.derivedStore = arrays;
+window.balancesStore = balancesStore;

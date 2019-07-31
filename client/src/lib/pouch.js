@@ -49,7 +49,7 @@ export default function init() {
         balances: {
           map: function (doc) {
             if (doc.type_ !== 'transaction') return;
-            emit([doc.from_id, doc.date], doc.amount);
+            emit([doc.from_id, doc.date], -doc.amount);
             emit([doc.to_id, doc.date], doc.amount * (doc.type === 'banktxn' ? -1 : 1));
           }.toString(),
           reduce: '_sum'
@@ -64,7 +64,7 @@ export default function init() {
         balances: {
           map: function (doc) {
             if (doc.type_ !== 'transaction') return;
-            emit(doc.from_id, doc.amount);
+            emit(doc.from_id, -doc.amount);
             emit(doc.to_id, doc.amount * (doc.type === 'banktxn' ? -1 : 1));
           }.toString(),
           reduce: '_sum'

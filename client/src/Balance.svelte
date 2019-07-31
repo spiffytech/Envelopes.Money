@@ -19,17 +19,16 @@
   let renderableDatapoints = new Array(defaultDaysToRender).fill(0);
 
   beforeUpdate(async () => {
-    const {rows: balanceChanges} = await localDB.query('balances-by-date/balances', {group: true, reduce: true, startkey: [account.id, ''], endkey: [account.id, '\ufff0']});
-
-    const balanceChangesByDate = fromPairs(balanceChanges.map(change => [change.key[1], change.value]));
-    const today = formatDate(new Date());
-
     const dates = new Array(defaultDaysToRender).fill(null).map((_, i) => {
       const date = new Date();
       date.setHours(0,0,0,0);
       date.setDate(date.getDate()-i);
       return date;
     });
+
+    const {rows: balanceChanges} = await localDB.query('balances-by-date/balances', {group: true, reduce: true, startkey: [account.id, formatDate(dates[dates.length - 1])], endkey: [account.id, formatDate(dates[0])]});
+    const balanceChangesByDate = fromPairs(balanceChanges.map(change => [change.key[1], change.value]));
+
     const balanceByDate = dates.reduce(
       (acc, date) => {
         // Calculate today's ending balance by undoing tomorrow's transactions

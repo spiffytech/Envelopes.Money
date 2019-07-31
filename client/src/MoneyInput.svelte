@@ -1,7 +1,7 @@
 <script>
-  import {createEventDispatcher} from 'svelte';
+  import { createEventDispatcher } from 'svelte';
 
-  import {toDollars} from './lib/pennies';
+  import { toDollars } from './lib/pennies';
 
   const dispatch = createEventDispatcher();
 
@@ -15,7 +15,10 @@
   $: {
     const newAmount = parseFloat(content);
     if ((newAmount === 0 || newAmount) && newAmount !== amount) {
-      dispatch('change', Math.round(newAmount * (type === defaultType ? 1 : -1) * 100));
+      dispatch(
+        'change',
+        Math.round(newAmount * (type === defaultType ? 1 : -1) * 100)
+      );
     }
   }
 </script>
@@ -26,13 +29,11 @@
     step="0.01"
     bind:value={content}
     placeholder={toDollars(amount)}
-    class="inline-block border w-24"
-  />
+    class="inline-block border w-24" />
 
   <select
     bind:value={type}
-    class={`inline-block border ${type === 'debit' ? 'bg-red-lightest' : 'bg-green-lightest'}`}
-  >
+    class={`inline-block border ${type === 'debit' ? 'bg-red-lightest' : 'bg-green-lightest'}`}>
     <option value="debit" class="bg-red-lightest">Debit</option>
     <option value="credit" class="bg-green-lightest">Credit</option>
   </select>

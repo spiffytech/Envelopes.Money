@@ -1,27 +1,29 @@
 <script>
-  import fuzzySort from "fuzzysort";
-  import page from "page";
-  import groupBy from "ramda/es/groupBy";
-  import * as shortid from "shortid";
-  import { getContext, onMount } from "svelte";
+  import fuzzySort from 'fuzzysort';
+  import page from 'page';
+  import groupBy from 'ramda/es/groupBy';
+  import * as shortid from 'shortid';
+  import { getContext, onMount } from 'svelte';
 
-  import { toDollars } from "./lib/pennies";
-  import * as Transactions from "./lib/Transactions";
-  import { formatDate, guardCreds } from "./lib/utils";
-  import { arrays as derivedStore } from "./stores/main";
-  import {PouchTransactions} from './lib/pouch';
+  import { toDollars } from './lib/pennies';
+  import * as Transactions from './lib/Transactions';
+  import { formatDate, guardCreds } from './lib/utils';
+  import { arrays as derivedStore } from './stores/main';
+  import { PouchTransactions } from './lib/pouch';
 
   const balancesStore = getContext('balancesStore');
 
   export let params;
   let txnId;
-  $: txnId = params.txnId ? decodeURIComponent(decodeURIComponent(params.txnId)) : undefined;
+  $: txnId = params.txnId
+    ? decodeURIComponent(decodeURIComponent(params.txnId))
+    : undefined;
 
   const creds = guardCreds();
 
   // This takes care of while we're initializing
   let txns = [Transactions.mkEmptyTransaction(creds.userId)];
-  let type = txns.map(txn => txn.type)[0] || "banktxn";
+  let type = txns.map(txn => txn.type)[0] || 'banktxn';
 
   // This takes care of when our props change
   onMount(async () => {
@@ -29,7 +31,7 @@
     txns = Object.values($derivedStore.transactions).filter(
       transaction => transaction.txn_id === txnId
     );
-    if (txns.length === 0) return page("/404");
+    if (txns.length === 0) return page('/404');
     type = txns[0].type;
   });
 
@@ -43,7 +45,7 @@
       memo: txns[0].memo,
       from_id: txns[0].from_id,
       type,
-      txn_id: finalTxnId
+      txn_id: finalTxnId,
     }))
     .map(txn => {
       const { __typename, insertion_order, _id, _rev, type_, ...rest } = txn;
@@ -54,40 +56,40 @@
   $: allLabels = $derivedStore.labelQuickFills;
   let suggestedLabels;
   $: suggestedLabels = fuzzySort
-    .go(txns[0].label || "", Object.keys(allLabels))
+    .go(txns[0].label || '', Object.keys(allLabels))
     .map(result => result.target)
     .slice(0, 5);
 
   const today = formatDate(new Date());
   $: balances = [
     ...Object.values($derivedStore.envelopes),
-    ...Object.values($derivedStore.accounts)
+    ...Object.values($derivedStore.accounts),
   ].map(account => ({
     ...account,
-    balance: $balancesStore[account.id]
+    balance: $balancesStore[account.id],
   }));
   let accounts;
   $: accounts = groupBy(b => b.type, balances);
   let from;
   $: from =
-    type === "banktxn"
-      ? accounts["account"]
-      : type === "accountTransfer"
-      ? accounts["account"]
-      : accounts["envelope"];
+    type === 'banktxn'
+      ? accounts['account']
+      : type === 'accountTransfer'
+      ? accounts['account']
+      : accounts['envelope'];
   let to;
   $: to =
-    type === "banktxn"
-      ? accounts["envelope"]
-      : type === "accountTransfer"
-      ? accounts["account"]
-      : accounts["envelope"];
+    type === 'banktxn'
+      ? accounts['envelope']
+      : type === 'accountTransfer'
+      ? accounts['account']
+      : accounts['envelope'];
 
   function setSuggestion(suggestion) {
     txns = txns.map(txn => ({ ...txn, label: suggestion }));
     txns[0].to_id = allLabels[suggestion].to_id;
     txns[0].from_id = allLabels[suggestion].from_id;
-    console.log("here", txns);
+    console.log('here', txns);
   }
 
   let error = null;
@@ -104,7 +106,7 @@
     }
 
     if (derivedTxns.length === 0) {
-      error = "You must have at least one non-zero split";
+      error = 'You must have at least one non-zero split';
       return;
     }
     error = null; // Reset it if we got here
@@ -116,12 +118,12 @@
       const pouchTransactions = new PouchTransactions(creds.localDB);
       pouchTransactions.saveAll(derivedTxns);
     }
-    page("/home");
+    page('/home');
   }
 
   async function deleteTransaction() {
     if (!txnId) return;
-    if (!confirm("Are you sure you want to delete this transaction?")) return;
+    if (!confirm('Are you sure you want to delete this transaction?')) return;
     if (!window._env_.POUCH_ONLY) {
       await Transactions.deleteTransactions(creds, txnId);
     }
@@ -129,7 +131,7 @@
       const pouchTransactions = new PouchTransactions(creds.localDB);
       await pouchTransactions.delete(txnId);
     }
-    page("/home");
+    page('/home');
   }
 
   function filterRealAccounts(account) {

@@ -3,12 +3,12 @@
   import fromPairs from 'ramda/es/fromPairs';
   import groupBy from 'ramda/es/groupBy';
   import uniq from 'ramda/es/uniq';
-  import { getContext, onMount } from "svelte";
+  import { getContext, onMount } from 'svelte';
 
-  import Balance from "./Balance.svelte";
-  import { toDollars } from "./lib/pennies";
-  import { formatDate } from "./lib/utils";
-  import { arrays as derivedStore} from "./stores/main";
+  import Balance from './Balance.svelte';
+  import { toDollars } from './lib/pennies';
+  import { formatDate } from './lib/utils';
+  import { arrays as derivedStore } from './stores/main';
 
   const balancesStore = getContext('balancesStore');
 
@@ -16,28 +16,25 @@
     name: (a, b) => (a.name < b.name ? -1 : 1),
     balance: (a, b) => {
       return $balancesStore[a.id] < $balancesStore[b.id] ? 1 : -1;
-    }
+    },
   };
 
   // Default for if the user hasn't selected a fill interval yet.
-  let interval = localStorage.getItem("fillInterval") || "monthly";
+  let interval = localStorage.getItem('fillInterval') || 'monthly';
 
   let showAccounts = false;
-  let sortBy = "name";
+  let sortBy = 'name';
   $: sortFn = sortFns[sortBy];
   let sortTag = null;
   $: localStorage.setItem('selectedTag', sortTag);
   $: accounts = $derivedStore.accounts.slice().sort(sortFn);
   $: envelopes = $derivedStore.envelopes.slice().sort(sortFn);
   $: allTags = uniq(
-    chain(
-      envelope => Object.keys(envelope.tags),
-      envelopes
-    ).sort()
+    chain(envelope => Object.keys(envelope.tags), envelopes).sort()
   );
 
   $: envelopesByTag = groupBy(
-    envelope => (sortTag ? envelope.tags[sortTag] : ""),
+    envelope => (sortTag ? envelope.tags[sortTag] : ''),
     envelopes
   );
 
@@ -57,14 +54,14 @@
           .reduce(
             (tagBalance, envelopeBalance) => tagBalance + envelopeBalance,
             0
-          )
+          ),
       ];
     })
   );
 
   onMount(() => {
     (async () => {
-      sortTag = await localStorage.getItem("selectedTag");
+      sortTag = await localStorage.getItem('selectedTag');
     })();
   });
 </script>
@@ -91,7 +88,9 @@
             data-account-name={account.name}>
             <tr class="border-b border-black border-dashed">
               <td>{account.name}</td>
-              <td class="text-right">{toDollars($balancesStore[account.id])}</td>
+              <td class="text-right">
+                {toDollars($balancesStore[account.id])}
+              </td>
             </tr>
           </a>
         {/each}
@@ -118,7 +117,7 @@
       <select on:change={event => (sortTag = event.target.value)}>
         <option value={'null'}>No Tag</option>
         {#each allTags as tag}
-          <option value={tag}> {tag} </option>
+          <option value={tag}>{tag}</option>
         {/each}
       </select>
     </label>
@@ -126,23 +125,28 @@
   {#each envelopeTagValues as tagValue}
     <div data-cy={`envelope-group-${tagValue || 'null'}`}>
       <header class="small-caps">
-         {sortTag === 'null' ? 'No tag selected' : sortTag}:
+        {sortTag === 'null' ? 'No tag selected' : sortTag}:
         <span class="font-bold small-caps">
-           {tagValue === 'undefined' ? 'No Value' : tagValue}
+          {tagValue === 'undefined' ? 'No Value' : tagValue}
         </span>
       </header>
-      <div data-cy='total-balance'>Total balance: {toDollars(totalBalancesByTag[tagValue])}</div>
+      <div data-cy="total-balance">
+        Total balance: {toDollars(totalBalancesByTag[tagValue])}
+      </div>
       <table class="border-collapse">
         <tbody>
           {#each envelopesByTag[tagValue] as envelope}
             <a
               href={`/editAccount/${encodeURIComponent(encodeURIComponent(envelope.id))}`}
-              style="display: contents; color: inherit; text-decoration: inherit;"
+              style="display: contents; color: inherit; text-decoration:
+              inherit;"
               data-cy="envelope"
               data-account-name={envelope.name}>
               <tr class="border-b border-black border-dashed">
                 <td>{envelope.name}</td>
-                <td class="text-right">{toDollars($balancesStore[envelope.id])}</td>
+                <td class="text-right">
+                  {toDollars($balancesStore[envelope.id])}
+                </td>
               </tr>
             </a>
           {/each}

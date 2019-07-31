@@ -1,24 +1,24 @@
 <script>
   import Debug from 'debug';
   import immer from 'immer';
-  import page from "page";
-  import { setContext } from "svelte";
+  import page from 'page';
+  import { setContext } from 'svelte';
 
-  import { endpoint } from "./lib/config";
-  import EditAccount from "./EditAccount.svelte";
-  import EditTags from "./EditTags.svelte";
-  import EditTxn from "./EditTxn.svelte";
-  import FillEnvelopes from "./FillEnvelopes.svelte";
-  import Home from "./Home.svelte";
+  import { endpoint } from './lib/config';
+  import EditAccount from './EditAccount.svelte';
+  import EditTags from './EditTags.svelte';
+  import EditTxn from './EditTxn.svelte';
+  import FillEnvelopes from './FillEnvelopes.svelte';
+  import Home from './Home.svelte';
   import Nav from './components/Nav.svelte';
   import loadBalances from './lib/loadBalances';
-  import * as mainStore from "./stores/main";
-  import {store, balancesStore} from './stores/main';
-  import { arrays as derivedStore, pouchStore } from "./stores/main";
-  import Login from "./Login.svelte";
-  import {mkClient as mkWSClient} from './lib/graphql';
+  import * as mainStore from './stores/main';
+  import { store, balancesStore } from './stores/main';
+  import { arrays as derivedStore, pouchStore } from './stores/main';
+  import Login from './Login.svelte';
+  import { mkClient as mkWSClient } from './lib/graphql';
   import initPouch from './lib/pouch';
-  import {initRemote, logIn, sync} from './lib/pouch';
+  import { initRemote, logIn, sync } from './lib/pouch';
   import * as libPouch from './lib/pouch';
 
   export let creds;
@@ -28,7 +28,7 @@
   let route;
   let routeParams;
 
-  setContext("endpoint", endpoint);
+  setContext('endpoint', endpoint);
 
   function setRoute(r) {
     return function({ params }) {
@@ -38,66 +38,70 @@
   }
 
   if (creds || window._env_.POUCH_ONLY) {
-    page("/", setRoute(Home));
-    page("/home", setRoute(Home));
-    page("/login", setRoute(Login));
-    page("/fill", setRoute(FillEnvelopes));
-    page("/editTags", setRoute(EditTags));
-    page("/editTxn", setRoute(EditTxn));
-    page("/editTxn/:txnId", setRoute(EditTxn));
-    page("/editAccount", setRoute(EditAccount));
-    page("/editAccount/:accountId", setRoute(EditAccount));
+    page('/', setRoute(Home));
+    page('/home', setRoute(Home));
+    page('/login', setRoute(Login));
+    page('/fill', setRoute(FillEnvelopes));
+    page('/editTags', setRoute(EditTags));
+    page('/editTxn', setRoute(EditTxn));
+    page('/editTxn/:txnId', setRoute(EditTxn));
+    page('/editAccount', setRoute(EditAccount));
+    page('/editAccount/:accountId', setRoute(EditAccount));
     page({ hashbang: true });
 
     let wsclient;
     if (!window._env_.POUCH_ONLY) {
-      wsclient = mkWSClient(
-        window._env_.GRAPHQL_WSS_HOST,
-        {
-            reconnect: true,
-            connectionParams: {
-              headers: {
-                'Authorization': `Bearer ${creds.apikey}`,
-              }
-            },
-          }
-      );
+      wsclient = mkWSClient(window._env_.GRAPHQL_WSS_HOST, {
+        reconnect: true,
+        connectionParams: {
+          headers: {
+            Authorization: `Bearer ${creds.apikey}`,
+          },
+        },
+      });
       wsclient.client.onConnecting(() =>
-        store.update($store => ({...$store, connecting: true}))
-      )
+        store.update($store => ({ ...$store, connecting: true }))
+      );
       wsclient.client.onConnected(() =>
-        store.update($store => ({...$store, connecting: false, connected: true}))
-      )
+        store.update($store => ({
+          ...$store,
+          connecting: false,
+          connected: true,
+        }))
+      );
       wsclient.client.onReconnecting(() =>
-        store.update($store => ({...$store, connecting: true}))
-      )
+        store.update($store => ({ ...$store, connecting: true }))
+      );
       wsclient.client.onReconnected(() =>
-        store.update($store => ({...$store, connecting: false, connected: true}))
-      )
+        store.update($store => ({
+          ...$store,
+          connecting: false,
+          connected: true,
+        }))
+      );
       wsclient.client.onDisconnected(() =>
-        store.update($store => ({...$store, connected: false}))
-      )
+        store.update($store => ({ ...$store, connected: false }))
+      );
     }
 
-    let localDB
+    let localDB;
     if (window._env_.USE_POUCH) {
       localDB = initPouch();
       const pouchAccounts = new libPouch.PouchAccounts(localDB);
-      pouchAccounts.initializeSystemAccounts().
-        then(async () => {
-          if (creds) initRemote(creds, localDB, pouchStore);
-          balancesStore.set(await loadBalances(localDB));
-        });
+      pouchAccounts.initializeSystemAccounts().then(async () => {
+        if (creds) initRemote(creds, localDB, pouchStore);
+        balancesStore.set(await loadBalances(localDB));
+      });
     }
     const graphql = {
       wsclient,
       pouch: localDB,
       localDB,
       userId: window._env_.POUCH_ONLY ? null : creds.userId,
-      apikey: window._env_.POUCH_ONLY ? null : creds.apikey
+      apikey: window._env_.POUCH_ONLY ? null : creds.apikey,
     };
-    setContext("graphql", graphql);
-    setContext("creds", graphql);
+    setContext('graphql', graphql);
+    setContext('creds', graphql);
     setContext('balancesStore', balancesStore);
     setContext('localDB', localDB);
     if (window.Cypress) {
@@ -109,23 +113,23 @@
 
     mainStore.subscribe(graphql);
   } else {
-    page("/login", setRoute(Login));
+    page('/login', setRoute(Login));
     page('*', setRoute(Login));
     page({ hashbang: true });
 
     debug('Paging to /login');
-    page("/login");
+    page('/login');
   }
 </script>
 
-{#if window.Cypress} 
+{#if window.Cypress}
   <p>{JSON.stringify(window.Cypress.env())}</p>
 {/if}
 
 {#if window._env_.POUCH_ONLY || (creds && creds.email && creds.password)}
   {#if $store.connecting}
     <p>🏃 Connecting to the database...</p>
-  {:else if ((window._env_.USE_POUCH || $store.connected) && $derivedStore.isLoading)}
+  {:else if (window._env_.USE_POUCH || $store.connected) && $derivedStore.isLoading}
     {#if window._env_.USE_POUCH}
       <p>Loading data from local store...</p>
     {:else}

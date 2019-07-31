@@ -27,6 +27,8 @@
     "js-base64": "^2.5.1",
     "mini-css-extract-plugin": "^0.6.0",
     "page": "^1.11.4",
+    "prettier": "^1.18.2",
+    "prettier-plugin-svelte": "^0.7.0",
     "ramda": "^0.26.1",
     "serve": "^11.0.0",
     "shortid": "^2.2.14",

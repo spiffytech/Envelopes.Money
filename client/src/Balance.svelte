@@ -4,7 +4,7 @@
   import fromPairs from 'ramda/es/fromPairs';
   import head from 'ramda/es/head'
   import last from 'ramda/es/last';
-  import {getContext, onMount} from 'svelte';
+  import {getContext, beforeUpdate} from 'svelte';
 
   import {toDollars} from './lib/pennies';
   import {durations, formatDate} from './lib/utils';
@@ -18,7 +18,7 @@
   let datesToRender = new Array(defaultDaysToRender).fill(new Date());
   let renderableDatapoints = new Array(defaultDaysToRender).fill(0);
 
-  onMount(async () => {
+  beforeUpdate(async () => {
     const {rows: balanceChanges} = await localDB.query('balances-by-date/balances', {group: true, reduce: true, startkey: [account.id, ''], endkey: [account.id, '\ufff0']});
 
     const balanceChangesByDate = fromPairs(balanceChanges.map(change => [change.key[1], change.value]));

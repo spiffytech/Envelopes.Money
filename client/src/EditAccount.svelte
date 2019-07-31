@@ -4,6 +4,7 @@
   import * as shortid from 'shortid';
   import {getContext, onMount} from 'svelte';
 
+  import Balance from "./Balance.svelte";
   import {PouchAccounts} from './lib/pouch';
   import Transaction from './components/Transaction';
   import * as accountsStore from './stores/accounts';
@@ -160,6 +161,8 @@
 
   <button type='submit' class='btn btn-primary'>Save {account.type}</button>
 </form>
+
+<Balance {account} defaultDaysToRender={15} />
 
 {#each txns.slice(pageNum * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
   <Transaction {txn} />

@@ -1,5 +1,6 @@
 <script>
   import { scaleLinear, scaleSqrt } from 'd3-scale';
+  import Debug from 'debug';
   import { line } from 'd3-shape';
   import fromPairs from 'ramda/es/fromPairs';
   import head from 'ramda/es/head';
@@ -9,16 +10,18 @@
   import { toDollars } from './lib/pennies';
   import { durations, formatDate } from './lib/utils';
 
+  const debug = Debug('Envelopes.Money:Balance.svelte');
+
   export let account;
   export let defaultDaysToRender;
 
   const balancesStore = getContext('balancesStore');
   const localDB = getContext('localDB');
 
-  let datesToRender = new Array(defaultDaysToRender).fill(new Date());
-  let renderableDatapoints = new Array(defaultDaysToRender).fill(0);
+  let datesToRender = [];
+  let renderableDatapoints = [];
 
-  beforeUpdate(async () => {
+  async function generateGraphData(account, balances) {
     const dates = new Array(defaultDaysToRender).fill(null).map((_, i) => {
       const date = new Date();
       date.setHours(0, 0, 0, 0);
@@ -26,6 +29,11 @@
       return date;
     });
 
+    debug(
+      'Loading daily balance changes from the DB for keys %o - %o',
+      [account.id, formatDate(dates[dates.length - 1])],
+      [account.id, formatDate(dates[0])]
+    );
     const { rows: balanceChanges } = await localDB.query(
       'balances-by-date/balances',
       {
@@ -35,23 +43,25 @@
         endkey: [account.id, formatDate(dates[0])],
       }
     );
+    debug('Loaded with %o, %o', balances, balanceChanges);
     const balanceChangesByDate = fromPairs(
       balanceChanges.map(change => [change.key[1], change.value])
     );
 
     const balanceByDate = dates.reduce((acc, date) => {
       // Calculate today's ending balance by undoing tomorrow's transactions
-      const tomorrow = new Date(date.setDate(date.getDate() + 1));
-      const tomorrowsBalance = acc[0] || $balancesStore[account.id] || 0;
+      const tomorrow = new Date(new Date(date).setDate(date.getDate() + 1));
+      const tomorrowsBalance = acc[0] || balances[account.id] || 0;
       const tomorrowsBalanceChange =
         balanceChangesByDate[formatDate(tomorrow)] || 0;
       return [tomorrowsBalance - tomorrowsBalanceChange, ...acc];
     }, []);
     datesToRender = dates.reverse();
     renderableDatapoints = balanceByDate.map(balance => balance);
-  });
+  }
 
-  const currentDateStr = formatDate(new Date());
+  $: generateGraphData(account, $balancesStore);
+
   $: periodOverPeriod =
     (last(renderableDatapoints) || 0) - (head(renderableDatapoints) || 0);
   $: xScale = scaleLinear()

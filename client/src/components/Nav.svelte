@@ -1,8 +1,5 @@
 <script>
   import {pouchStore} from '../stores/main';
-  import Login from "../Login.svelte";
-
-  let showLogIn = false;
 </script>
 
 <div class="stripe bg-orange h-1" />
@@ -13,13 +10,13 @@
     <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
 
     {#if window._env_.POUCH_ONLY && !$pouchStore.loggedIn}
-      <button class="btn" on:click|preventDefault={() => showLogIn = true}>Log In</button>
+      <a class="btn" href="#!/login">Log In</a>
     {/if}
 
     <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn">Say hello!</a>
 
-    {#if $pouchStore.state === 'active'}<p>⌛</p>{/if}
-    {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail} on:click={() => alert($pouchStore.stateDetail)}>❗</p>{/if}
+    {#if $pouchStore.state === 'active'}<p class="text-center">⌛</p>{/if}
+    {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail} on:click={() => alert($pouchStore.stateDetail)} class="text-center">❗</p>{/if}
   </div>
   <div data-cy="nav-buttons">
     <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">
@@ -39,9 +36,3 @@
     </a>
   </div>
 </div>
-
-<dialog open={showLogIn} class="shadow-md rounded-lg">
-  <button on:click|preventDefault={() => showLogIn = false} class="float-right">Close</button>
-  <Login />
-
-</dialog>

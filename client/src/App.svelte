@@ -87,10 +87,12 @@
     let chosenDB;
     if (window._env_.USE_POUCH) {
       const localDB = initPouch();
-      localDB.remoteDB = libPouch.mkRemote(creds.email);
       const pouchAccounts = new libPouch.PouchAccounts(localDB);
       pouchAccounts.initializeSystemAccounts().then(async () => {
-        if (creds) initRemote(creds, localDB, localDB.remoteDB, pouchStore);
+        if (creds) {
+					localDB.remoteDB = libPouch.mkRemote(creds.email);
+					initRemote(creds, localDB, localDB.remoteDB, pouchStore);
+				}
         balancesStore.set(await loadBalances(localDB));
       });
       chosenDB = localDB;

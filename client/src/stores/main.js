@@ -63,64 +63,11 @@ export const arrays = derived(store, $store => {
     comparator((a, b) => a.date > b.date)
   );
 
-  const txnsGrouped = Object.values(groupBy(txn => txn.txn_id, txnsArr))
-    .map(txnGroup => {
-      const toNames = txnGroup.map(txn =>
-        $store.accounts[txn.to_id] ? $store.accounts[txn.to_id].name : 'unknown'
-      );
-      const fromName = $store.accounts[txnGroup[0].from_id]
-        ? $store.accounts[txnGroup[0].from_id].name
-        : 'unknown';
-
-      return {
-        to_names: toNames.join(', '),
-        to_ids: txnGroup.map(txn => txn.to_id).join(','),
-        amount: txnGroup
-          .map(txn => -txn.amount)
-          .reduce((acc, item) => acc + item, 0),
-        txn_id: txnGroup[0].txn_id,
-        user_id: txnGroup[0].user_id,
-        label: txnGroup[0].label,
-        date: txnGroup[0].date,
-        memo: txnGroup[0].memo,
-        from_id: txnGroup[0].from_id,
-        from_name: fromName,
-        type: txnGroup[0].type,
-        insertionOrder: txnGroup[0].insertion_order,
-        cleared: txnGroup[0].cleared,
-      };
-    })
-    .sort(
-      comparator((a, b) =>
-        a.date === b.date
-          ? a.insertionOrder > b.insertionOrder
-          : a.date > b.date
-      )
-    );
-
   const labelQuickFills = calcFieldsForLabel(txnsArr);
 
   return {
     ...$store,
     isLoading: !Object.values($store.loadedItems).every(identity),
-    txnsGrouped: txnsGrouped.filter(
-      txnGrouped =>
-        (txnGrouped.label || '')
-          .toLowerCase()
-          .includes($store.searchTerm.toLowerCase()) ||
-        (txnGrouped.memo || '')
-          .toLowerCase()
-          .includes($store.searchTerm.toLowerCase()) ||
-        txnGrouped.from_name
-          .toLowerCase()
-          .includes($store.searchTerm.toLowerCase()) ||
-        txnGrouped.to_names
-          .toLowerCase()
-          .includes($store.searchTerm.toLowerCase()) ||
-        (txnGrouped.amount / 100)
-          .toFixed(2)
-          .includes($store.searchTerm.toLowerCase())
-    ),
 
     envelopes: Object.values($store.accounts)
       .filter(b => b.type === 'envelope')

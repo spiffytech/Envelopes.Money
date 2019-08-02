@@ -89,24 +89,6 @@ export default function init() {
     .upsert(balancesDdoc._id, doc => ({ ...balancesDdoc, _rev: doc._rev }))
     .catch(err => console.error(err));
 
-  const txnGroupsDdoc = {
-    _id: '_design/txn-groups',
-    views: {
-      groups: {
-        map: function(doc) {
-          if (doc.type_ !== 'transaction') return;
-          emit([doc.date, doc.txn_id], doc);
-        }.toString(),
-        reduce: function(keys, values, rereduce) {
-          return [].concat.apply([], values);
-        }.toString(),
-      },
-    },
-  };
-  localDB
-    .upsert(txnGroupsDdoc._id, doc => ({ ...txnGroupsDdoc, _rev: doc._rev }))
-    .catch(err => console.error(err));
-
   const transactionsDdoc = {
     _id: '_design/transactions',
     views: {
@@ -120,7 +102,7 @@ export default function init() {
     },
   };
   localDB
-    .upsert(txnGroupsDdoc._id, doc => ({ ...txnGroupsDdoc, _rev: doc._rev }))
+    .upsert(transactionsDdoc._id, doc => ({ ...transactionsDdoc, _rev: doc._rev }))
     .catch(err => console.error(err));
 
   return localDB;
@@ -318,19 +300,5 @@ export class PouchAccounts {
       type_: 'account',
       _rev,
     }));
-  }
-}
-
-export class PouchTxnGroups {
-  constructor(localDB) {
-    this.localDB = localDB;
-  }
-
-  async loadAll() {
-    const { rows } = await this.localDB.query('txn-groups/groups', {
-      group: true,
-      reduce: true,
-    });
-    return rows.map(({ doc }) => doc);
   }
 }

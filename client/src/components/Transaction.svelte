@@ -11,7 +11,6 @@
     const fromP = localDB.get(txn.from_id);
     const toP = Array.isArray(txn.to_ids) ? Promise.all(txn.to_ids.map(toId => localDB.get(toId))) : Promise.all([localDB.get(txn.to_id)]);
     const [from, to] = await Promise.all([fromP, toP]);
-    console.log(from, to);
 
     return {
       fromName: from.name,

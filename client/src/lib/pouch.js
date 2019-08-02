@@ -96,8 +96,8 @@ export default function init() {
       'by-account': {
         map: function(doc) {
           if (doc.type_ !== 'transaction') return;
-          emit(doc.from_id);
-          emit(doc.to_id);
+          emit([doc.from_id, doc.date]);
+          emit([doc.to_id, doc.date]);
         }.toString(),
       },
     },
@@ -296,8 +296,10 @@ export class PouchAccounts {
 
   async txnsForAccount(accountId) {
     const { rows } = await this.localDB.query('transactions/by-account', {
-      key: accountId,
+      startkey: [accountId, '\ufff0'],
+      endkey: [accountId, ''],
       include_docs: true,
+      descending: true
     });
     return rows.map(({ doc }) => doc);
   }

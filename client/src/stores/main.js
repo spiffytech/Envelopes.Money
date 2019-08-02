@@ -41,10 +41,6 @@ export const store = writable({
 });
 
 export const arrays = derived(store, $store => {
-  const txnsArr = Object.values($store.transactions).sort(
-    comparator((a, b) => a.date > b.date)
-  );
-
   return {
     ...$store,
     isLoading: !Object.values($store.loadedItems).every(identity),

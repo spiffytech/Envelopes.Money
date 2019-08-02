@@ -12,8 +12,6 @@
   const numItemsPerPage = 100;
   let pageNum = 0;
 
-  let activeTab = 'accounts';
-
   function triggerDownload(data) {
     var a = document.createElement('a');
     document.body.appendChild(a);
@@ -43,58 +41,4 @@
   }
 </script>
 
-<button
-  class="btn btn-tertiary"
-  on:click={() => (activeTab = 'transactions')}
-  data-cy="transactions">
-  Transactions
-</button>
-<button
-  class="btn btn-tertiary"
-  on:click={() => (activeTab = 'accounts')}
-  data-cy="accounts">
-  Accounts
-</button>
-{#if activeTab === 'transactions'}
-  <input
-    class="border w-full"
-    value={$store.searchTerm}
-    on:input={debounce(
-      event => store.update($s => ({ ...$s, searchTerm: event.target.value })),
-      250,
-      { trailing: true }
-    )}
-    placeholder="Search for transactions"
-    data-cy="transactions-search" />
-
-  <button
-    class="btn btn-tertiary"
-    on:click={exportTxns}
-    type="button"
-    data-cy="export-transactions">
-    Export Transactions
-  </button>
-
-  {#if txnsGrouped.length === 0}
-    <p data-cy="no-transactions">
-      You don't have any transactions yet! Go create some by clicking the button
-      in the top-right.
-    </p>
-  {/if}
-
-  {#each txnsGrouped.slice(pageNum * numItemsPerPage, (pageNum + 1) * numItemsPerPage) as txn}
-    <Transaction {txn} />
-  {/each}
-
-  {#each new Array(Math.ceil(txnsGrouped.length / numItemsPerPage))
-    .fill(null)
-    .map((_, i) => i) as btn_number}
-    <button
-      on:click|preventDefault={() => (pageNum = btn_number)}
-      class="btn btn-secondary">
-      Page {btn_number + 1}
-    </button>
-  {/each}
-{:else}
-  <Accounts />
-{/if}
+<Accounts />

@@ -100,6 +100,14 @@ export default function init() {
           emit([doc.to_id, doc.date]);
         }.toString(),
       },
+
+      labels: {
+        map: function(doc) {
+          if (doc.type_ !== 'transaction') return;
+          emit([doc.label, doc.from_id, doc.to_id]);
+        }.toString(),
+        reduce: '_count'
+      },
     },
   };
   localDB
@@ -299,7 +307,7 @@ export class PouchAccounts {
       startkey: [accountId, '\ufff0'],
       endkey: [accountId, ''],
       include_docs: true,
-      descending: true
+      descending: true,
     });
     return rows.map(({ doc }) => doc);
   }

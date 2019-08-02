@@ -26,24 +26,6 @@ window.storeGet = storeGet;
  * Given a bunch of transactions, calculates which from+to account combo is the
  * most commonly used so we can suggest that for the user to quick-fill
  */
-function calcFieldsForLabel(txnsArr) {
-  if (txnsArr.length === 0) return {};
-  txnsArr.sort(comparator((a, b) => a.date < b.date));
-
-  const txnsByLabel = filter(
-    arr => arr.length > 0,
-    groupBy(txn => txn.label, txnsArr)
-  );
-  return map(txnsForLabel => {
-    const groups = groupBy(txn => `${txn.from_id}-${txn.to_id}`, txnsForLabel);
-    const biggestGroup = Object.values(groups).reduce(
-      (biggest, item) => (item.length > biggest.length ? item : biggest),
-      []
-    );
-    return { from_id: biggestGroup[0].from_id, to_id: biggestGroup[0].to_id };
-  }, txnsByLabel);
-}
-
 export const store = writable({
   searchTerm: '',
   transactions: {},
@@ -63,8 +45,6 @@ export const arrays = derived(store, $store => {
     comparator((a, b) => a.date > b.date)
   );
 
-  const labelQuickFills = calcFieldsForLabel(txnsArr);
-
   return {
     ...$store,
     isLoading: !Object.values($store.loadedItems).every(identity),
@@ -75,7 +55,6 @@ export const arrays = derived(store, $store => {
     accounts: Object.values($store.accounts)
       .filter(b => b.type === 'account')
       .sort(comparator((a, b) => a.name < b.name)),
-    labelQuickFills,
     tags: uniq(
       flatten(
         Object.values($store.accounts)

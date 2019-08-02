@@ -1,5 +1,7 @@
 <script>
+  import comparator from 'ramda/es/comparator';
   import fuzzySort from 'fuzzysort';
+  import map from 'ramda/es/map';
   import page from 'page';
   import groupBy from 'ramda/es/groupBy';
   import * as shortid from 'shortid';
@@ -29,11 +31,11 @@
   // This takes care of when our props change
   onMount(async () => {
     if (!txnId) return;
-    const {docs: txnsByGroupId} = await localDB.find({
-        selector: {
-            txn_id: txnId
-        },
-        use_index: "txns_txn_id_index"
+    const { docs: txnsByGroupId } = await localDB.find({
+      selector: {
+        txn_id: txnId,
+      },
+      use_index: 'txns_txn_id_index',
     });
     if (txnsByGroupId.length === 0) return page('/404');
     txns = txnsByGroupId;
@@ -58,14 +60,35 @@
     })
     .filter(txn => txn.amount != 0);
 
-  $: allLabels = $derivedStore.labelQuickFills;
+  let allLabels = [];
+
+  /**
+    Searches our transactions database for all of the labels we've paid to, and
+    groups them by what accounts they're most likely to go with
+   */
+  async function setAllLabels() {
+    const { rows } = await localDB.query('transactions/labels', {
+      group: true,
+      reduce: true,
+    });
+    const byLabel = groupBy(row => row.key[0], rows);
+    Object.values(byLabel).forEach(rows =>
+      rows.sort(comparator((a, b) => a.value > b.value))
+    );
+    const topByLabel = map(rows => rows[0], byLabel); //.map(({key}) => ({from_id: key[1], to_id: key[2]})), byLabel);
+    allLabels = map(
+      ({ key }) => ({ from_id: key[1], to_id: key[2] }),
+      topByLabel
+    );
+  }
+  setAllLabels();
+
   let suggestedLabels;
   $: suggestedLabels = fuzzySort
     .go(txns[0].label || '', Object.keys(allLabels))
     .map(result => result.target)
     .slice(0, 5);
 
-  const today = formatDate(new Date());
   $: balances = [
     ...Object.values($derivedStore.envelopes),
     ...Object.values($derivedStore.accounts),
@@ -94,7 +117,6 @@
     txns = txns.map(txn => ({ ...txn, label: suggestion }));
     txns[0].to_id = allLabels[suggestion].to_id;
     txns[0].from_id = allLabels[suggestion].from_id;
-    console.log('here', txns);
   }
 
   let error = null;

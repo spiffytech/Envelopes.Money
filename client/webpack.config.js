@@ -55,7 +55,7 @@ module.exports = {
 	},
 	mode,
 	plugins: [
-		new HtmlWebpackPlugin({title: "Envelopes.money", template: 'public/index.html'}),
+		new HtmlWebpackPlugin({title: "Envelopes.money", template: 'public/index.tpl.html'}),
 		new MiniCssExtractPlugin({
 			filename: '[name].css'
 		}),

@@ -7,11 +7,6 @@
   import { toDollars } from './lib/pennies';
   import { arrays as derivedStore, store } from './stores/main';
 
-  let txnsGrouped;
-  $: txnsGrouped = $derivedStore.txnsGrouped;
-  const numItemsPerPage = 100;
-  let pageNum = 0;
-
   function triggerDownload(data) {
     var a = document.createElement('a');
     document.body.appendChild(a);
@@ -25,20 +20,10 @@
   }
 
   async function exportTxns() {
-    const dataStr = JSON.stringify(
-      txnsGrouped.map(t => ({
-        date: t.date,
-        amount: toDollars(t.amount),
-        from: t.from_name,
-        to: t.to_names,
-        memo: t.memo,
-        type: t.type,
-        label: t.label,
-      }))
-    );
-
+    const dataStr = JSON.stringify(Object.values($store.transactions, null, 4));
     triggerDownload(dataStr);
   }
 </script>
 
+<button class="btn btn-tertiary" on:click|preventDefault={exportTxns}>Export Transactions</button>
 <Accounts />

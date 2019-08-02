@@ -1,5 +1,6 @@
 import Debug from 'debug';
 import immer from 'immer';
+import groupBy from 'ramda/es/groupBy';
 import PouchDB from 'pouchdb';
 import PouchDBAuthenticaton from 'pouchdb-authentication';
 import PouchDBFind from 'pouchdb-find';
@@ -95,14 +96,17 @@ export default function init() {
       'by-account': {
         map: function(doc) {
           if (doc.type_ !== 'transaction') return;
-          emit([doc.from_id]);
-          emit([doc.to_id]);
+          emit(doc.from_id);
+          emit(doc.to_id);
         }.toString(),
       },
     },
   };
   localDB
-    .upsert(transactionsDdoc._id, doc => ({ ...transactionsDdoc, _rev: doc._rev }))
+    .upsert(transactionsDdoc._id, doc => ({
+      ...transactionsDdoc,
+      _rev: doc._rev,
+    }))
     .catch(err => console.error(err));
 
   return localDB;
@@ -186,6 +190,32 @@ export class PouchTransactions {
     return results.rows.map(row => row.doc);
   }
 
+  groupTxns(txns) {
+    const groups = groupBy(txn => txn.txn_id, txns);
+    return Object.values(groups).map(txnGroup => ({
+      to_ids: txnGroup.map(txn => txn.to_id),
+      amount: txnGroup
+        .map(txn => -txn.amount)
+        .reduce((acc, item) => acc + item, 0),
+      txn_id: txnGroup[0].txn_id,
+      user_id: txnGroup[0].user_id,
+      label: txnGroup[0].label,
+      date: txnGroup[0].date,
+      memo: txnGroup[0].memo,
+      from_id: txnGroup[0].from_id,
+      type: txnGroup[0].type,
+      insertionOrder: txnGroup[0].insertion_order,
+      cleared: txnGroup[0].cleared,
+    }));
+  }
+
+  async loadTxns(txnIds) {
+    const { results } = await this.localDB.bulkGet({
+      docs: txnIds.map(txnId => ({ id: txnId })),
+    });
+    return results;
+  }
+
   /**
    * @param {ITransaction[]} txns
    */
@@ -262,6 +292,14 @@ export class PouchAccounts {
       index: 'account_name_index',
     });
     return docs;
+  }
+
+  async txnsForAccount(accountId) {
+    const { rows } = await this.localDB.query('transactions/by-account', {
+      key: accountId,
+      include_docs: true,
+    });
+    return rows.map(({ doc }) => doc);
   }
 
   async loadAll() {

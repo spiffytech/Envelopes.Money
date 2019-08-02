@@ -1,7 +1,25 @@
 <script>
+  import { getContext } from 'svelte';
+
   import { toDollars } from "../lib/pennies";
 
   export let txn;
+
+  const localDB = getContext('localDB');
+
+  async function loadAccountNames(txn) {
+    const fromP = localDB.get(txn.from_id);
+    const toP = Array.isArray(txn.to_ids) ? Promise.all(txn.to_ids.map(toId => localDB.get(toId))) : Promise.all([localDB.get(txn.to_id)]);
+    const [from, to] = await Promise.all([fromP, toP]);
+    console.log(from, to);
+
+    return {
+      fromName: from.name,
+      toNames: to.map(t => t.name)
+    };
+  }
+
+  $: accountNamesP = loadAccountNames(txn);
 </script>
 
 <a
@@ -25,13 +43,17 @@
       </div>
 
       <div class="flex flex-1 text-xs italic">
-        <span class="whitespace-no-wrap">{txn.from_name}</span>
-        &nbsp;→&nbsp;
-        <span
-          style="text-overflow: ellipsis"
-          class="whitespace-no-wrap overflow-hidden">
-          {txn.to_names}
-        </span>
+        {#await accountNamesP}
+          <p>Loading...</p>
+        {:then accountNames}
+          <span class="whitespace-no-wrap">{accountNames.fromName}</span>
+          &nbsp;→&nbsp;
+          <span
+            style="text-overflow: ellipsis"
+            class="whitespace-no-wrap overflow-hidden">
+            {accountNames.toNames.join(', ')}
+          </span>
+        {/await}
       </div>
     </div>
 

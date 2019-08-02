@@ -5,7 +5,7 @@
   import { getContext, onMount } from 'svelte';
 
   import Balance from './Balance.svelte';
-  import { PouchAccounts } from './lib/pouch';
+  import { PouchAccounts, PouchTransactions } from './lib/pouch';
   import Transaction from './components/Transaction';
   import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
@@ -15,6 +15,7 @@
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
   const graphql = getContext('graphql');
+  const localdb = getContext('localDB');
 
   export let params;
 
@@ -25,13 +26,11 @@
   let tags = $derivedStore.tags;
   let newTag = { key: '', value: '' };
 
-  $: txns = $derivedStore.txnsGrouped.filter(
-    txn => txn.from_id === accountId || txn.to_ids.includes(accountId)
-  );
+  let txns = [];
   const numItemsPerPage = 100;
   let pageNum = 0;
 
-  onMount(() => {
+  onMount(async () => {
     if (accountId) {
       const account_ = $store.accounts[accountId];
       debug('Loading page with account ID %s', accountId);
@@ -41,6 +40,15 @@
       } else {
         account = account_;
         canChangeType = false;
+        const pouchAccounts = new PouchAccounts(localDB);
+        const pouchTransactions = new PouchTransactions(localDB);
+        const foundTxns = await pouchAccounts.txnsForAccount(accountId);
+        debug('Found the following transactions for this account: %o', foundTxns);
+        if (account.type === 'account') {
+          txns = pouchTransactions.groupTxns(foundTxns);
+        } else {
+          txns = foundTxns;
+        }
       }
     }
   });

@@ -15,20 +15,14 @@ import { derived, get as storeGet, writable } from 'svelte/store';
 
 import * as Accounts from '../lib/Accounts';
 import loadBalances from '../lib/loadBalances';
-import * as Transactions from '../lib/Transactions';
 import { formatDate, myDebounce } from '../lib/utils';
-import { PouchAccounts, PouchTransactions } from '../lib/pouch';
+import { PouchAccounts } from '../lib/pouch';
 
 const debug = Debug('Envelopes.Money:store');
 window.storeGet = storeGet;
 
-/**
- * Given a bunch of transactions, calculates which from+to account combo is the
- * most commonly used so we can suggest that for the user to quick-fill
- */
 export const store = writable({
   searchTerm: '',
-  transactions: {},
   accounts: {},
   periodLength: 15,
 
@@ -36,7 +30,6 @@ export const store = writable({
   connected: false,
   loadedItems: {
     accounts: false,
-    transactions: false,
   },
 });
 
@@ -124,7 +117,6 @@ async function setPouchData(localDB, key, data) {
 export async function subscribe(graphql) {
   const pendingData = {
     accounts: null,
-    transactions: null,
   };
 
   let pouchIsInitialized = false;
@@ -166,28 +158,6 @@ export async function subscribe(graphql) {
     }
     //if (!fromLocal) setLoaded(key);
     setLoaded(key); // TODO: Distinguish loading from disk vs loading from network
-
-    if (
-      window._env_.USE_POUCH &&
-      !window._env_.POUCH_ONLY &&
-      !fromLocal &&
-      !pouchIsInitialized
-    ) {
-      debug('Initializing pouchdb with data %o', pendingData);
-      await Promise.all([
-        setPouchData(graphql.localDB, 'accounts', pendingData.accounts),
-        setPouchData(
-          graphql.localDB,
-          'transactions',
-          pendingData.transactions
-        )
-      ]);
-      await graphql.localDB.upsert('initialized', () => ({
-        _id: 'initialized',
-        initialized: true,
-      }));
-      debug('Initialized PouchDB');
-    }
   };
 
   if (
@@ -195,16 +165,13 @@ export async function subscribe(graphql) {
     (window._env_.POUCH_ONLY || pouchIsInitialized)
   ) {
     debug('Reading data from Pouch');
-    const pouchTransactions = new PouchTransactions(graphql.localDB);
     const pouchAccounts = new PouchAccounts(graphql.localDB);
-    const txns = await pouchTransactions.loadAll();
     const accounts = await pouchAccounts.loadAll();
     setData(
       'accounts',
       fromPairs(accounts.map(account => [account._id, account])),
       true
     );
-    setData('transactions', fromPairs(txns.map(txn => [txn._id, txn])), true);
 
     const onPouchEvent = myDebounce(
       async args => {
@@ -247,17 +214,12 @@ export async function subscribe(graphql) {
       .on('error', console.error);
   } else {
     debug('Reading data from Hasura');
-    const [accounts, transactions] = await Promise.all([
-      getIdb('accounts'),
-      getIdb('transactions'),
-    ]);
+    const accounts = await getIdb('accounts');
     debug(
-      'Setting data from IndexedDB: %s, %s',
+      'Setting data from IndexedDB: %s',
       Object.values(accounts || {}).length,
-      Object.values(transactions || {}).length
     );
     if (accounts) setData('accounts', accounts, true);
-    if (transactions) setData('transactions', transactions, true);
 
     Accounts.subscribe(graphql, async ({ data }) => {
       setData(
@@ -265,13 +227,6 @@ export async function subscribe(graphql) {
         fromPairs(data.accounts.map(account => [account.id, account]))
       );
       await setIdb('accounts', pendingData.accounts);
-    });
-    Transactions.subscribe(graphql, async ({ data }) => {
-      setData(
-        'transactions',
-        fromPairs(data.transactions.map(txn => [txn.id, txn]))
-      );
-      await setIdb('transactions', pendingData.transactions);
     });
   }
 }

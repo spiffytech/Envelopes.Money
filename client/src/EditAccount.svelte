@@ -6,7 +6,7 @@
 
   import Balance from './Balance.svelte';
   import { PouchAccounts, PouchTransactions } from './lib/pouch';
-  import Transaction from './components/Transaction';
+  import Transaction from './components/Transaction.svelte';
   import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';

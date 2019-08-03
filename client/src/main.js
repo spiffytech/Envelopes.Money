@@ -1,3 +1,6 @@
+import "core-js";
+import "regenerator-runtime/runtime";
+
 import axios from 'axios';
 import Debug from 'debug';
 import LogRocket from 'logrocket';

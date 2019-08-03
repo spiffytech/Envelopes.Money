@@ -239,6 +239,11 @@ export const balancesStore = writable(
   immer({}, identity)
 );
 
+export const transactionsStore = writable(immer({}, identity));
+export const accountsStore = writable(immer({}, identity));
+
 window.store = store;
 window.derivedStore = arrays;
 window.balancesStore = balancesStore;
+window.transactionsStore = transactionsStore;
+window.accountsStore = accountsStore;

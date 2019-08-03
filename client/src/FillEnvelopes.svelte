@@ -9,6 +9,7 @@
   import { arrays as derivedStore} from "./stores/main";
   import * as Transactions from "./lib/Transactions";
   import { formatDate, guardCreds } from "./lib/utils";
+  import {PouchTransactions} from './lib/pouch';
 
   const creds = guardCreds();
 
@@ -41,7 +42,7 @@
           id: `transaction/${shortid.generate()}`,
           user_id: creds.userId,
           memo: "",
-          date: new Date(),
+          date: formatDate(new Date()),
           amount: fill.amount,
           label: null,
           type: "envelopeTransfer",
@@ -53,7 +54,13 @@
       })
       .filter(txn => txn.amount !== 0);
 
-    await Transactions.saveTransactions(creds, txns);
+    if (!window._env_.POUCH_ONLY) {
+      await Transactions.saveTransactions(creds, txns);
+    }
+    if (window._env_.USE_POUCH) {
+      const pouchTransactions = new PouchTransactions(creds.localDB);
+      pouchTransactions.saveAll(txns);
+    }
     page("/home");
   }
 </script>

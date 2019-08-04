@@ -8,7 +8,6 @@
   import { setContext } from 'svelte';
   import shortid from 'shortid';
 
-  import { endpoint } from './lib/config';
   import EditAccount from './EditAccount.svelte';
   import EditTags from './EditTags.svelte';
   import EditTxn from './EditTxn.svelte';
@@ -22,18 +21,12 @@
     transactionsStore,
   } from './stores/main';
   import Login from './Login.svelte';
-  import { mkClient as mkWSClient } from './lib/graphql';
-  import initPouch from './lib/pouch';
-  import { initRemote, logIn, sync } from './lib/pouch';
-  import * as libPouch from './lib/pouch';
 
   const debug = Debug('Envelopes.Money:App.svelte');
 
   let route;
   let routeParams;
 
-
-  setContext('endpoint', endpoint);
   setContext('balancesStore', balancesStore);
   setContext('accountsStore', accountsStore);
   setContext('transactionsStore', transactionsStore);
@@ -119,5 +112,7 @@
 <main>
   {#if storeIsLoaded}
     <svelte:component this={route} bind:params={routeParams} />
+  {:else}
+    Loading data...
   {/if}
 </main>

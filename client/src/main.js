@@ -5,7 +5,6 @@ import Debug from 'debug';
 import LogRocket from 'logrocket';
 
 import App from './App.svelte';
-import * as Envelope from './lib/Envelope';
 
 const debug = Debug('Envelopes.Money:main');
 
@@ -14,10 +13,6 @@ if (window._env_.ALERT_ON_ERROR) {
 }
 
 async function main() {
-  if (window.Cypress) {
-    window.Envelope = Envelope;
-  }
-
   new App({
     target: document.body,
     props: {},

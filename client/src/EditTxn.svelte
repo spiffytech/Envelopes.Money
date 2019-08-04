@@ -10,7 +10,6 @@
   import { toDollars } from './lib/pennies';
   import * as Transactions from './lib/Transactions';
   import { formatDate } from './lib/utils';
-  import { arrays as derivedStore } from './stores/main';
   import saveTransactions from './lib/transactions/saveTransactions';
   import deleteTransactions from './lib/transactions/deleteTransactions';
 

@@ -5,7 +5,6 @@
   import fromPairs from 'ramda/es/fromPairs';
   import { getContext, onMount } from 'svelte';
 
-  import { arrays as derivedStore, store } from './stores/main';
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
   import saveTags from './lib/accounts/saveTags';

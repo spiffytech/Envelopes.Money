@@ -1,11 +1,13 @@
 <script>
   import debounce from 'lodash/debounce';
   import page from 'page';
+  import {getContext} from 'svelte';
 
   import Accounts from './Accounts.svelte';
   import Transaction from './components/Transaction.svelte';
   import { toDollars } from './lib/pennies';
-  import { arrays as derivedStore, store } from './stores/main';
+
+  const transactionsStore = getContext('transactionsStore');
 
   function triggerDownload(data) {
     var a = document.createElement('a');
@@ -20,7 +22,7 @@
   }
 
   async function exportTxns() {
-    const dataStr = JSON.stringify(Object.values($store.transactions, null, 4));
+    const dataStr = JSON.stringify(Object.values($transactionsStore, null, 4));
     triggerDownload(dataStr);
   }
 </script>

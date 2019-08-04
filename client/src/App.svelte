@@ -15,13 +15,10 @@
   import FillEnvelopes from './FillEnvelopes.svelte';
   import Home from './Home.svelte';
   import Nav from './components/Nav.svelte';
-  import * as mainStore from './stores/main';
   import {
     accountsStore,
-    arrays as derivedStore,
     balancesStore,
     pouchStore,
-    store,
     transactionsStore,
   } from './stores/main';
   import Login from './Login.svelte';

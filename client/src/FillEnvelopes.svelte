@@ -7,13 +7,13 @@
   import * as Balances from './lib/Balances';
   import MoneyInput from './MoneyInput.svelte';
   import { toDollars } from './lib/pennies';
-  import { arrays as derivedStore } from './stores/main';
   import * as Transactions from './lib/Transactions';
   import { formatDate } from './lib/utils';
 
+  const accountsStore = getContext('accountsStore');
   const balancesStore = getContext('balancesStore');
 
-  let fills = $derivedStore.envelopes.map(envelope => ({
+  let fills = $accountsStore.filter(account => account.type === 'envelope').map(envelope => ({
     amount: 0,
     envelope: { ...envelope, balance: $balancesStore[envelope.id] },
   }));

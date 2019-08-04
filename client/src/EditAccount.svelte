@@ -1,5 +1,6 @@
 <script>
   import Debug from 'debug';
+  import flatten from 'ramda/es/flatten';
   import groupBy from 'ramda/es/groupBy';
   import page from 'page';
   import * as shortid from 'shortid';
@@ -7,15 +8,13 @@
 
   import Balance from './Balance.svelte';
   import Transaction from './components/Transaction.svelte';
-  import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
   import saveAccount from './lib/accounts/saveAccount';
   import * as Tags from './lib/Tags';
   import { formatDate } from './lib/utils';
-  import { arrays as derivedStore } from './stores/main';
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
-  const accountsStore_ = getContext('accountsStore');
+  const accountsStore = getContext('accountsStore');
   const {accountsColl} = getContext('kinto');
   const transactionsStore = getContext('transactionsStore');
 
@@ -25,7 +24,11 @@
   $: accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
   let account = Accounts.mkEmptyEnvelope();
   let canChangeType = true;
-  let tags = $derivedStore.tags;
+  let tags = Array.from(
+    new Set(
+      flatten($accountsStore.filter(account => account.type === 'envelope').map(({ tags }) => tags).map(tags => Object.keys(tags)))
+    )
+  );
   let newTag = { key: '', value: '' };
 
   let txns = [];
@@ -34,7 +37,7 @@
 
   onMount(async () => {
     if (accountId) {
-      const account_ = $accountsStore_.find((account) => account.id === accountId);
+      const account_ = $accountsStore.find((account) => account.id === accountId);
       debug('Loading page with account ID %s', accountId);
       debug('Found existing account? %s', !!account_);
       if (!account_) {
@@ -73,7 +76,7 @@
     const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
     const accountWithId = { ...rest, id: newAccountId };
 
-    await saveAccount({accountsStore: accountsStore_}, {accountsColl}, accountWithId);
+    await saveAccount({ accountsStore }, {accountsColl}, accountWithId);
     page('/');
   }
 </script>

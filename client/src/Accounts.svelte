@@ -3,13 +3,12 @@
   import fromPairs from 'ramda/es/fromPairs';
   import groupBy from 'ramda/es/groupBy';
   import uniq from 'ramda/es/uniq';
-  import { getContext, onMount } from 'svelte';
+  import { getContext } from 'svelte';
 
-  import Balance from './Balance.svelte';
   import { toDollars } from './lib/pennies';
   import { formatDate } from './lib/utils';
-  import { arrays as derivedStore } from './stores/main';
 
+  const accountsStore = getContext('accountsStore');
   const balancesStore = getContext('balancesStore');
 
   $: sortFns = {
@@ -25,10 +24,12 @@
   let showAccounts = false;
   let sortBy = 'name';
   $: sortFn = sortFns[sortBy];
-  let sortTag = null;
+  let sortTag = localStorage.getItem('selectedTag');
   $: localStorage.setItem('selectedTag', sortTag);
-  $: accounts = $derivedStore.accounts.slice().sort(sortFn);
-  $: envelopes = $derivedStore.envelopes.slice().sort(sortFn);
+
+  $: accounts = $accountsStore.filter(account => account.type === 'account').sort(sortFn);
+  $: envelopes = $accountsStore.filter(account => account.type === 'envelope').sort(sortFn);
+
   $: allTags = uniq(
     chain(envelope => Object.keys(envelope.tags), envelopes).sort()
   );
@@ -58,12 +59,6 @@
       ];
     })
   );
-
-  onMount(() => {
-    (async () => {
-      sortTag = await localStorage.getItem('selectedTag');
-    })();
-  });
 </script>
 
 <div class="m-3">

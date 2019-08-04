@@ -1,8 +1,12 @@
 <script>
+  import comparator from 'ramda/es/comparator';
   import Debug from 'debug';
+  import identity from 'ramda/es/identity';
   import immer from 'immer';
+  import Kinto from 'kinto';
   import page from 'page';
   import { setContext } from 'svelte';
+  import shortid from 'shortid';
 
   import { endpoint } from './lib/config';
   import EditAccount from './EditAccount.svelte';
@@ -11,24 +15,31 @@
   import FillEnvelopes from './FillEnvelopes.svelte';
   import Home from './Home.svelte';
   import Nav from './components/Nav.svelte';
-  import loadBalances from './lib/loadBalances';
   import * as mainStore from './stores/main';
-  import { store, balancesStore } from './stores/main';
-  import { arrays as derivedStore, pouchStore } from './stores/main';
+  import {
+    accountsStore,
+    arrays as derivedStore,
+    balancesStore,
+    pouchStore,
+    store,
+    transactionsStore,
+  } from './stores/main';
   import Login from './Login.svelte';
   import { mkClient as mkWSClient } from './lib/graphql';
   import initPouch from './lib/pouch';
   import { initRemote, logIn, sync } from './lib/pouch';
   import * as libPouch from './lib/pouch';
 
-  export let creds;
-
   const debug = Debug('Envelopes.Money:App.svelte');
 
   let route;
   let routeParams;
 
+
   setContext('endpoint', endpoint);
+  setContext('balancesStore', balancesStore);
+  setContext('accountsStore', accountsStore);
+  setContext('transactionsStore', transactionsStore);
 
   function setRoute(r) {
     return function({ params }) {
@@ -37,92 +48,68 @@
     };
   }
 
-  if (creds || window._env_.POUCH_ONLY) {
-    page('/', setRoute(Home));
-    page('/home', setRoute(Home));
-    page('/login', setRoute(Login));
-    page('/fill', setRoute(FillEnvelopes));
-    page('/editTags', setRoute(EditTags));
-    page('/editTxn', setRoute(EditTxn));
-    page('/editTxn/:txnId', setRoute(EditTxn));
-    page('/editAccount', setRoute(EditAccount));
-    page('/editAccount/:accountId', setRoute(EditAccount));
-    page({ hashbang: true });
+  let storeIsLoaded = false;
 
-    let wsclient;
-    if (!window._env_.POUCH_ONLY) {
-      wsclient = mkWSClient(window._env_.GRAPHQL_WSS_HOST, {
-        reconnect: true,
-        connectionParams: {
-          headers: {
-            Authorization: `Bearer ${creds.apikey}`,
-          },
-        },
-      });
-      wsclient.client.onConnecting(() =>
-        store.update($store => ({ ...$store, connecting: true }))
-      );
-      wsclient.client.onConnected(() =>
-        store.update($store => ({
-          ...$store,
-          connecting: false,
-          connected: true,
-        }))
-      );
-      wsclient.client.onReconnecting(() =>
-        store.update($store => ({ ...$store, connecting: true }))
-      );
-      wsclient.client.onReconnected(() =>
-        store.update($store => ({
-          ...$store,
-          connecting: false,
-          connected: true,
-        }))
-      );
-      wsclient.client.onDisconnected(() =>
-        store.update($store => ({ ...$store, connected: false }))
-      );
+  page('/', setRoute(Home));
+  page('/home', setRoute(Home));
+  page('/login', setRoute(Login));
+  page('/fill', setRoute(FillEnvelopes));
+  page('/editTags', setRoute(EditTags));
+  page('/editTxn', setRoute(EditTxn));
+  page('/editTxn/:txnId', setRoute(EditTxn));
+  page('/editAccount', setRoute(EditAccount));
+  page('/editAccount/:accountId', setRoute(EditAccount));
+  page({ hashbang: true });
+
+  const kinto = new Kinto();
+  const transactionsColl = kinto.collection('transactions', {
+    idSchema: {
+      generate(doc) {
+        return `transaction/${shortid.generate()}`;
+      },
+
+      validate(id) {
+        return id.match(/^transaction\/.*/);
+      },
     }
-
-    let chosenDB;
-    if (window._env_.USE_POUCH) {
-      const localDB = initPouch();
-      const pouchAccounts = new libPouch.PouchAccounts(localDB);
-      pouchAccounts.initializeSystemAccounts().then(async () => {
-        if (creds) {
-          localDB.remoteDB = libPouch.mkRemote(creds.email);
-          initRemote(creds, localDB, localDB.remoteDB, pouchStore);
+  });
+  const accountsColl = kinto.collection('accounts', {
+    idSchema: {
+      generate(doc) {
+        if (doc.type_ === 'envelope' || doc.type_ === 'category') {
+          return `envelope/${shortid.generate()}`;
         }
-        balancesStore.set(await loadBalances(localDB));
-      });
-      chosenDB = localDB;
-    }
-    const graphql = {
-      wsclient,
-      pouch: chosenDB,
-      localDB: chosenDB,
-      userId: window._env_.POUCH_ONLY ? null : creds.userId,
-      apikey: window._env_.POUCH_ONLY ? null : creds.apikey,
-    };
-    setContext('graphql', graphql);
-    setContext('creds', graphql);
-    setContext('balancesStore', balancesStore);
-    setContext('localDB', chosenDB);
-    if (window.Cypress) {
-      window.creds = creds;
-      window.graphql = graphql;
-      window.libPouch = libPouch;
-    }
-    window.localDB = chosenDB;
+        return `account/${shortid.generate()}`;
+      },
 
-    mainStore.subscribe(graphql);
-  } else {
-    page('/login', setRoute(Login));
-    page('*', setRoute(Login));
-    page({ hashbang: true });
+      validate(id) {
+        return id.match(/^(envelope|account|category)\/.*/);
+      },
+    },
+  });
 
-    debug('Paging to /login');
-    page('/login');
+  window.transactionsColl = transactionsColl;
+  window.accountsColl = accountsColl;
+
+  setContext('kinto', {accountsColl, transactionsColl});
+
+  async function loadStore() {
+    debug('Loading data from Kinto');
+    const [{data: accounts}, {data: transactions}] = await Promise.all([
+      accountsColl.list(),
+      transactionsColl.list()
+    ]);
+
+    accountsStore.set(immer(accounts, identity));
+    transactionsStore.set(immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity));
+    debug('Data loaded');
+    storeIsLoaded = true;
+  }
+
+  loadStore();
+
+  if (window.Cypress) {
+    window.graphql = graphql;
   }
 </script>
 
@@ -130,33 +117,10 @@
   <p>{JSON.stringify(window.Cypress.env())}</p>
 {/if}
 
-{#if window._env_.POUCH_ONLY || (creds && creds.email && creds.password)}
-  {#if $store.connecting}
-    <p>🏃 Connecting to the database...</p>
-  {:else if (window._env_.USE_POUCH || $store.connected) && $derivedStore.isLoading}
-    {#if window._env_.USE_POUCH}
-      <p>Loading data from local store...</p>
-    {:else}
-      <p>✔️ Connected</p>
-      <p>Loading data...</p>
-    {/if}
-    {#each Object.entries($derivedStore.loadedItems) as [itemName, isLoaded]}
-      <span>{isLoaded ? '✔️' : '🏃'} {itemName}</span>
-    {/each}
-  {:else if !$store.connected && !window._env_.USE_POUCH}
-    <p>We're not connected or even trying to connect! but why!</p>
-  {/if}
+<Nav />
 
-  <Nav />
-
-  <main>
-    {#if (window._env_.USE_POUCH || $store.connected) && !$derivedStore.isLoading}
-      <svelte:component this={route} bind:params={routeParams} />
-    {/if}
-  </main>
-{:else}
-  <p>Not logged in</p>
-  <main>
+<main>
+  {#if storeIsLoaded}
     <svelte:component this={route} bind:params={routeParams} />
-  </main>
-{/if}
+  {/if}
+</main>

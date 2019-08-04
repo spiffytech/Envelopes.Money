@@ -1,5 +1,4 @@
 <script>
-  import {pouchStore} from '../stores/main';
 </script>
 
 <div class="stripe bg-orange h-1" />
@@ -9,14 +8,12 @@
   <div class="flex">
     <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
 
-    {#if window._env_.POUCH_ONLY && !$pouchStore.loggedIn}
-      <a class="btn" href="#!/login">Log In</a>
-    {/if}
+    <a class="btn" href="#!/login">Log In</a>
 
     <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn">Say hello!</a>
 
-    {#if $pouchStore.state === 'active'}<p class="text-center">⌛</p>{/if}
-    {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail} on:click={() => alert($pouchStore.stateDetail)} class="text-center">❗</p>{/if}
+    <p class="text-center">⌛</p>
+    <p class="text-center">❗</p>
   </div>
   <div data-cy="nav-buttons">
     <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">

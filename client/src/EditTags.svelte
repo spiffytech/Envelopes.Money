@@ -1,58 +1,35 @@
 <script>
   import Debug from 'debug';
+  import flatten from 'ramda/es/flatten';
   import page from 'page';
   import fromPairs from 'ramda/es/fromPairs';
   import { getContext, onMount } from 'svelte';
-  import { arrays as derivedStore, store } from './stores/main';
 
+  import { arrays as derivedStore, store } from './stores/main';
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
-  import { PouchAccounts } from './lib/pouch';
+  import saveTags from './lib/accounts/saveTags';
 
   const debug = Debug('Envelopes.Money:EditTags.svelte');
 
-  const graphql = getContext('graphql');
-  let allTags = $derivedStore.tags;
-  let accounts = $derivedStore.envelopes;
+  const accountsStore = getContext('accountsStore');
+  const { accountsColl } = getContext('kinto');
+
+  let accounts = $accountsStore.filter(account => account.type === 'envelope');
+  let allTags = Array.from(
+    new Set(
+      flatten(accounts.map(({ tags }) => tags).map(tags => Object.keys(tags)))
+    )
+  );
   let selectedTag = null;
   let error = null;
   let dirty = {};
 
   async function handleSubmit() {
-    if (!window._env_.POUCH_ONLY) {
-      const accountsWithSelectedTag = fromPairs(
-        accounts
-          .filter(account => account.tags[selectedTag])
-          .map(account => [
-            account.id,
-            { [selectedTag]: account.tags[selectedTag] },
-          ])
-      );
-
-      const accountsWithoutSelectedTag = accounts
-        .filter(account => !account.tags[selectedTag])
-        .map(account => account.id);
-
-      try {
-        await Tags.updateAccountsTags(graphql, accountsWithSelectedTag);
-        await Tags.deleteTagFromAccounts(
-          graphql,
-          selectedTag,
-          accountsWithoutSelectedTag
-        );
-        error = null;
-        page('/home');
-      } catch (ex) {
-        error = ex.message;
-        throw ex;
-      }
-    }
-    if (window.env.USE_POUCH) {
-      const accountsThatChanged = accounts.filter(account => dirty[account.id]);
-      debug('These accounts changed: %o', accountsThatChanged);
-
-      const pouchAccounts = new PouchAccounts(graphql.localDB);
-    }
+    const accountsThatChanged = accounts.filter(account => dirty[account.id]);
+    debug('These accounts changed: %o', accountsThatChanged);
+    await saveTags({ accountsStore }, { accountsColl }, accountsThatChanged);
+    page('/home');
   }
 </script>
 

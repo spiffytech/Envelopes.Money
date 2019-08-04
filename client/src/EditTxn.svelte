@@ -9,12 +9,15 @@
 
   import { toDollars } from './lib/pennies';
   import * as Transactions from './lib/Transactions';
-  import { formatDate, guardCreds } from './lib/utils';
+  import { formatDate } from './lib/utils';
   import { arrays as derivedStore } from './stores/main';
-  import { PouchTransactions } from './lib/pouch';
+  import saveTransactions from './lib/transactions/saveTransactions';
+  import deleteTransactions from './lib/transactions/deleteTransactions';
 
+  const accountsStore = getContext('accountsStore');
+  const transactionsStore = getContext('transactionsStore');
+  const {transactionsColl} = getContext('kinto');
   const balancesStore = getContext('balancesStore');
-  const localDB = getContext('localDB');
 
   export let params;
   let txnId;
@@ -22,21 +25,14 @@
     ? decodeURIComponent(decodeURIComponent(params.txnId))
     : undefined;
 
-  const creds = guardCreds();
-
   // This takes care of while we're initializing
-  let txns = [Transactions.mkEmptyTransaction(creds.userId)];
+  let txns = [Transactions.mkEmptyTransaction()];
   let type = txns.map(txn => txn.type)[0] || 'banktxn';
 
   // This takes care of when our props change
   onMount(async () => {
     if (!txnId) return;
-    const { docs: txnsByGroupId } = await localDB.find({
-      selector: {
-        txn_id: txnId,
-      },
-      use_index: 'txns_txn_id_index',
-    });
+    const txnsByGroupId = $transactionsStore.filter(txn => txn.txn_id === txnId);
     if (txnsByGroupId.length === 0) return page('/404');
     txns = txnsByGroupId;
     type = txnsByGroupId[0].type;
@@ -66,11 +62,8 @@
     Searches our transactions database for all of the labels we've paid to, and
     groups them by what accounts they're most likely to go with
    */
-  async function setAllLabels() {
-    const { rows } = await localDB.query('transactions/labels', {
-      group: true,
-      reduce: true,
-    });
+  async function setAllLabels(transactions) {
+    const rows = Object.values(groupBy(arr => arr.join('-'), transactions.map(txn => [txn.label, txn.from_id, txn.to_id]))).map(rows => ({key: rows[0], value: rows.length}));
     const byLabel = groupBy(row => row.key[0], rows);
     Object.values(byLabel).forEach(rows =>
       rows.sort(comparator((a, b) => a.value > b.value))
@@ -81,7 +74,7 @@
       topByLabel
     );
   }
-  setAllLabels();
+  $: setAllLabels($transactionsStore);
 
   let suggestedLabels;
   $: suggestedLabels = fuzzySort
@@ -89,15 +82,7 @@
     .map(result => result.target)
     .slice(0, 5);
 
-  $: balances = [
-    ...Object.values($derivedStore.envelopes),
-    ...Object.values($derivedStore.accounts),
-  ].map(account => ({
-    ...account,
-    balance: $balancesStore[account.id],
-  }));
-  let accounts;
-  $: accounts = groupBy(b => b.type, balances);
+  $: accounts = groupBy(b => b.type, $accountsStore);
   let from;
   $: from =
     type === 'banktxn'
@@ -137,27 +122,16 @@
       return;
     }
     error = null; // Reset it if we got here
-    if (!window._env_.POUCH_ONLY) {
-      await Transactions.saveTransactions(creds, derivedTxns);
-    }
 
-    if (window._env_.USE_POUCH) {
-      const pouchTransactions = new PouchTransactions(creds.localDB);
-      pouchTransactions.saveAll(derivedTxns);
-    }
+    await saveTransactions({transactionsStore}, {transactionsColl}, derivedTxns);
     page('/home');
   }
 
   async function deleteTransaction() {
     if (!txnId) return;
     if (!confirm('Are you sure you want to delete this transaction?')) return;
-    if (!window._env_.POUCH_ONLY) {
-      await Transactions.deleteTransactions(creds, txnId);
-    }
-    if (window._env_.USE_POUCH) {
-      const pouchTransactions = new PouchTransactions(creds.localDB);
-      await pouchTransactions.delete(txnId);
-    }
+
+    deleteTransactions({transactionsStore}, {transactionsColl}, txnId);
     page('/home');
   }
 
@@ -255,7 +229,7 @@
             data-cy="transaction-source">
             <option value={null}>Select a source</option>
             {#each from as f}
-              <option value={f.id}>{f.name}: {toDollars(f.balance)}</option>
+              <option value={f.id}>{f.name}: {toDollars($balancesStore[f.id])}</option>
             {/each}
           </select>
         </label>
@@ -269,7 +243,7 @@
               <select bind:value={txn.to_id} class="input">
                 <option value={null}>Select a destination</option>
                 {#each to as t}
-                  <option value={t.id}>{t.name}: {toDollars(t.balance)}</option>
+                  <option value={t.id}>{t.name}: {toDollars($balancesStore[t.id])}</option>
                 {/each}
               </select>
 
@@ -290,7 +264,7 @@
           <button
             type="button"
             class="btn btn-secondary"
-            on:click|preventDefault={() => (txns = [...txns, Transactions.mkEmptyTransaction(creds.userId)])}>
+            on:click|preventDefault={() => (txns = [...txns, Transactions.mkEmptyTransaction()])}>
             New Split
           </button>
         </div>

@@ -276,7 +276,7 @@ export class PouchAccounts {
     if ((await this.findByName('[Unallocated]')).length === 0) {
       debug('Creating [Unallocated] account');
       await this.save({
-        id: shortid.generate(),
+        id: `envelope/${shortid.generate()}`,
         name: '[Unallocated]',
         type: 'envelope',
         extra: {},
@@ -286,7 +286,7 @@ export class PouchAccounts {
     if ((await this.findByName('[Equity]')).length === 0) {
       debug('Creating [Equity] account');
       await this.save({
-        id: shortid.generate(),
+        id: `account/${shortid.generate()}`,
         name: '[Equity]',
         type: 'account',
         extra: {},

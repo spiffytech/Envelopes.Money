@@ -3,8 +3,11 @@
   import Debug from 'debug';
   import { line } from 'd3-shape';
   import fromPairs from 'ramda/es/fromPairs';
+  import groupBy from 'ramda/es/groupBy';
   import head from 'ramda/es/head';
   import last from 'ramda/es/last';
+  import map from 'ramda/es/map';
+  import sum from 'ramda/es/sum';
   import { getContext, beforeUpdate } from 'svelte';
 
   import { toDollars } from './lib/pennies';
@@ -16,12 +19,12 @@
   export let defaultDaysToRender;
 
   const balancesStore = getContext('balancesStore');
-  const localDB = getContext('localDB');
+  const transactionsStore = getContext('transactionsStore');
 
   let datesToRender = [];
   let renderableDatapoints = [];
 
-  async function generateGraphData(account, balances) {
+  async function generateGraphData(account, balances, transactions) {
     const dates = new Array(defaultDaysToRender).fill(null).map((_, i) => {
       const date = new Date();
       date.setHours(0, 0, 0, 0);
@@ -34,19 +37,14 @@
       [account.id, formatDate(dates[dates.length - 1])],
       [account.id, formatDate(dates[0])]
     );
-    const { rows: balanceChanges } = await localDB.query(
-      'balances-by-date/balances',
-      {
-        group: true,
-        reduce: true,
-        startkey: [account.id, formatDate(dates[dates.length - 1])],
-        endkey: [account.id, formatDate(dates[0])],
-      }
-    );
-    debug('Loaded with %o, %o', balances, balanceChanges);
-    const balanceChangesByDate = fromPairs(
-      balanceChanges.map(change => [change.key[1], change.value])
-    );
+
+    const txnsForAccount = transactions.filter(txn => txn.from_id === account.id || txn.to_id === account.id);
+    const txnsByDate = groupBy(txn => txn.date, txnsForAccount);
+    const balanceChangesByDate = map(group => sum(group.map(txn => {
+      if (txn.from_id === account.id) return -txn.amount;
+      return txn.amount * (txn.type === 'banktxn' ? -1: 1);
+    })), txnsByDate);
+    debug('balanceChangesByDate: %o, %o', txnsByDate, balanceChangesByDate);
 
     const balanceByDate = dates.reduce((acc, date) => {
       // Calculate today's ending balance by undoing tomorrow's transactions
@@ -60,7 +58,7 @@
     renderableDatapoints = balanceByDate.map(balance => balance);
   }
 
-  $: generateGraphData(account, $balancesStore);
+  $: generateGraphData(account, $balancesStore, $transactionsStore);
 
   $: periodOverPeriod =
     (last(renderableDatapoints) || 0) - (head(renderableDatapoints) || 0);

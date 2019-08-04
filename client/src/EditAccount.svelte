@@ -1,27 +1,29 @@
 <script>
   import Debug from 'debug';
+  import groupBy from 'ramda/es/groupBy';
   import page from 'page';
   import * as shortid from 'shortid';
   import { getContext, onMount } from 'svelte';
 
   import Balance from './Balance.svelte';
-  import { PouchAccounts, PouchTransactions } from './lib/pouch';
   import Transaction from './components/Transaction.svelte';
   import * as accountsStore from './stores/accounts';
   import * as Accounts from './lib/Accounts';
+  import saveAccount from './lib/accounts/saveAccount';
   import * as Tags from './lib/Tags';
   import { formatDate } from './lib/utils';
-  import { arrays as derivedStore, store } from './stores/main';
+  import { arrays as derivedStore } from './stores/main';
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
-  const graphql = getContext('graphql');
-  const localdb = getContext('localDB');
+  const accountsStore_ = getContext('accountsStore');
+  const {accountsColl} = getContext('kinto');
+  const transactionsStore = getContext('transactionsStore');
 
   export let params;
 
   let accountId;
   $: accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
-  let account = Accounts.mkEmptyEnvelope(graphql.userId);
+  let account = Accounts.mkEmptyEnvelope();
   let canChangeType = true;
   let tags = $derivedStore.tags;
   let newTag = { key: '', value: '' };
@@ -32,7 +34,7 @@
 
   onMount(async () => {
     if (accountId) {
-      const account_ = $store.accounts[accountId];
+      const account_ = $accountsStore_.find((account) => account.id === accountId);
       debug('Loading page with account ID %s', accountId);
       debug('Found existing account? %s', !!account_);
       if (!account_) {
@@ -40,12 +42,25 @@
       } else {
         account = account_;
         canChangeType = false;
-        const pouchAccounts = new PouchAccounts(localDB);
-        const pouchTransactions = new PouchTransactions(localDB);
-        const foundTxns = await pouchAccounts.txnsForAccount(accountId);
+        const foundTxns = $transactionsStore.filter(txn => txn.from_id === accountId || txn.to_id == accountId);
         debug('Found the following transactions for this account: %o', foundTxns);
         if (account.type === 'account') {
-          txns = pouchTransactions.groupTxns(foundTxns);
+          const groups = groupBy(txn => txn.txn_id, foundTxns);
+          txns = Object.values(groups).map(txnGroup => ({
+            to_ids: txnGroup.map(txn => txn.to_id),
+            amount: txnGroup
+              .map(txn => -txn.amount)
+              .reduce((acc, item) => acc + item, 0),
+            txn_id: txnGroup[0].txn_id,
+            user_id: txnGroup[0].user_id,
+            label: txnGroup[0].label,
+            date: txnGroup[0].date,
+            memo: txnGroup[0].memo,
+            from_id: txnGroup[0].from_id,
+            type: txnGroup[0].type,
+            insertionOrder: txnGroup[0].insertion_order,
+            cleared: txnGroup[0].cleared,
+          }));
         } else {
           txns = foundTxns;
         }
@@ -58,13 +73,7 @@
     const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
     const accountWithId = { ...rest, id: newAccountId };
 
-    if (window._env_.USE_POUCH) {
-      const pouchAccounts = new PouchAccounts(graphql.localDB);
-      await pouchAccounts.save({ ...account, id: newAccountId });
-    }
-    if (!window._env_.POUCH_ONLY) {
-      await accountsStore.saveAccount(graphql, accountWithId);
-    }
+    await saveAccount({accountsStore: accountsStore_}, {accountsColl}, accountWithId);
     page('/');
   }
 </script>

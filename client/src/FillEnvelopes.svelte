@@ -9,9 +9,7 @@
   import { toDollars } from './lib/pennies';
   import { arrays as derivedStore } from './stores/main';
   import * as Transactions from './lib/Transactions';
-  import { formatDate, guardCreds } from './lib/utils';
-
-  const creds = guardCreds();
+  import { formatDate } from './lib/utils';
 
   const balancesStore = getContext('balancesStore');
 
@@ -41,7 +39,6 @@
       .map((fill, i) => {
         const txn = {
           id: `transaction/${shortid.generate()}`,
-          user_id: creds.userId,
           memo: '',
           date: new Date(),
           amount: fill.amount,
@@ -55,7 +52,7 @@
       })
       .filter(txn => txn.amount !== 0);
 
-    await Transactions.saveTransactions(creds, txns);
+      alert('Saving to Kinto is not implemented!');
     page('/home');
   }
 </script>

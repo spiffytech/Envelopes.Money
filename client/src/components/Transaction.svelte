@@ -1,24 +1,21 @@
 <script>
   import { getContext } from 'svelte';
 
-  import { toDollars } from "../lib/pennies";
+  import { toDollars } from '../lib/pennies';
 
   export let txn;
 
-  const localDB = getContext('localDB');
+  const accountsStore = getContext('accountsStore');
 
-  async function loadAccountNames(txn) {
-    const fromP = localDB.get(txn.from_id);
-    const toP = Array.isArray(txn.to_ids) ? Promise.all(txn.to_ids.map(toId => localDB.get(toId))) : Promise.all([localDB.get(txn.to_id)]);
-    const [from, to] = await Promise.all([fromP, toP]);
-
-    return {
-      fromName: from.name,
-      toNames: to.map(t => t.name)
-    };
-  }
-
-  $: accountNamesP = loadAccountNames(txn);
+  const fromName = $accountsStore.find(account => account.id === txn.from_id)
+    .name;
+  const toNames = $accountsStore
+    .filter(account =>
+      Array.isArray(txn.to_ids)
+        ? txn.to_ids.indexOf(account.id) !== -1
+        : account.id === txn.to_id
+    )
+    .map(t => t.name);
 </script>
 
 <a
@@ -42,17 +39,13 @@
       </div>
 
       <div class="flex flex-1 text-xs italic">
-        {#await accountNamesP}
-          <p>Loading...</p>
-        {:then accountNames}
-          <span class="whitespace-no-wrap">{accountNames.fromName}</span>
-          &nbsp;→&nbsp;
-          <span
-            style="text-overflow: ellipsis"
-            class="whitespace-no-wrap overflow-hidden">
-            {accountNames.toNames.join(', ')}
-          </span>
-        {/await}
+        <span class="whitespace-no-wrap">{fromName}</span>
+        &nbsp;→&nbsp;
+        <span
+          style="text-overflow: ellipsis"
+          class="whitespace-no-wrap overflow-hidden">
+          {toNames.join(', ')}
+        </span>
       </div>
     </div>
 

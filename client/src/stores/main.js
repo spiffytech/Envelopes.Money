@@ -28,6 +28,8 @@ export const balancesStore = derived(
   }
 );
 
+export const connectionStore = writable('disconnected');
+
 window.balancesStore = balancesStore;
 window.transactionsStore = transactionsStore;
 window.accountsStore = accountsStore;

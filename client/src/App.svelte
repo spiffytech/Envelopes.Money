@@ -8,6 +8,7 @@
   import { setContext } from 'svelte';
   import shortid from 'shortid';
 
+  import { mkClient as mkWSClient } from './lib/graphql';
   import EditAccount from './EditAccount.svelte';
   import EditTags from './EditTags.svelte';
   import EditTxn from './EditTxn.svelte';
@@ -19,6 +20,7 @@
     balancesStore,
     pouchStore,
     transactionsStore,
+    connectionStore
   } from './stores/main';
   import Login from './Login.svelte';
 
@@ -27,9 +29,34 @@
   let route;
   let routeParams;
 
+  const wsclient = mkWSClient(window._env_.GRAPHQL_WSS_HOST, {
+    reconnect: true,
+    connectionParams: {
+      headers: {
+        //Authorization: `Bearer ${creds.apikey}`,
+      },
+    },
+  });
+  wsclient.client.onConnecting(() =>
+      connectionStore.set('connecting')
+  );
+  wsclient.client.onConnected(() =>
+    connectionStore.set('connected')
+  );
+  wsclient.client.onReconnecting(() =>
+      connectionStore.set('connecting')
+  );
+  wsclient.client.onReconnected(() =>
+    connectionStore.set('connected')
+  );
+  wsclient.client.onDisconnected(() =>
+    connectionStore.set('disconnected')
+  );
+
   setContext('balancesStore', balancesStore);
   setContext('accountsStore', accountsStore);
   setContext('transactionsStore', transactionsStore);
+  setContext('wsclient', wsclient);
 
   function setRoute(r) {
     return function({ params }) {
@@ -107,6 +134,9 @@
   <p>{JSON.stringify(window.Cypress.env())}</p>
 {/if}
 
+{#if $connectionStore !== 'connected'}
+  <p>{$connectionStore}</p>
+{/if}
 <Nav />
 
 <main>

@@ -10,7 +10,7 @@ services:
   graphql-engine:
     image: hasura/graphql-engine:v1.0.0-beta.3
     ports:
-    - "8080:8080"
+    - "9090:8080"
     depends_on:
     - "postgres"
     restart: on-failure
@@ -19,8 +19,8 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
-      HASURA_GRAPHQL_AUTH_HOOK: http://hackerbudget:3000/hasura_auth
-  hackerbudget:
+      HASURA_GRAPHQL_AUTH_HOOK: http://envelopes-money:3000/hasura_auth
+  envelopes-money:
     image: spiffytech/envelopes.money:beta
     ports:
         - "8001:3000"
@@ -34,8 +34,6 @@ services:
       HASURA_ADMIN_KEY: myadminsecretkey
       COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple
-      USE_POUCH: "true"
-      COUCHDB: http://127.0.0.1:5984
       DEBUG: app
   couch:
     image: couchdb

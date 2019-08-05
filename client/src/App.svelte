@@ -13,8 +13,10 @@
   import getTransactions from './lib/transactions/getTransactions';
   import saveTransactionsRemote from './lib/transactions/saveTransactionsRemote';
   import deleteTransactionsRemote from './lib/transactions/deleteTransactionsRemote';
+  import subscribeTransactions from './lib/transactions/subscribe';
   import getAccounts from './lib/accounts/getAccountsRemote';
   import saveAccounts from './lib/accounts/saveAccountsRemote';
+  import subscribeAccounts from './lib/accounts/subscribe';
   import sync from './lib/sync';
 
   import EditAccount from './EditAccount.svelte';
@@ -62,14 +64,17 @@
     wsclient.client.onDisconnected(() => connectionStore.set('disconnected'));
 
     wsclientStore.set(wsclient);
+
+    subscribeTransactions(wsclient, creds.userId, ({data: {transactions}}) => syncTransactions(creds, wsclient, transactions));
+    subscribeAccounts(wsclient, creds.userId, ({data: {accounts}}) => syncAccounts(creds, wsclient, accounts));
   }
 
-  async function syncAll(creds, wsclient) {
+  async function syncTransactions(creds, wsclient, transactions=null) {
     debug('Syncing transactions');
     syncStore.set('syncing');
     await sync(
       {
-        get: () => getTransactions(wsclient, creds.userId),
+        get: () => transactions || getTransactions(wsclient, creds.userId),
         store: records => saveTransactionsRemote(wsclient, records),
         delete: ids => deleteTransactionsRemote(wsclient, ids),
       },
@@ -84,10 +89,16 @@
         delete: ids => dexie.transactionsStatus.bulkDelete(ids),
       }
     );
+    syncStore.set(null);
+    debug('Transactions sync complete');
+    if (true) loadStore();
+  }
+
+  async function syncAccounts(creds, wsclient, accounts) {
     debug('Syncing accounts');
     await sync(
       {
-        get: () => getAccounts(wsclient, creds.userId),
+        get: () => accounts || getAccounts(wsclient, creds.userId),
         store: records => saveAccounts(wsclient, records),
         delete: ids => {
           throw new Error(`We should never be deleting accounts. ${ids}`);
@@ -106,7 +117,7 @@
     );
 
     syncStore.set(null);
-    debug('Sync complete');
+    debug('Accounts sync complete');
 
     // TODO: if (dirty)
     if (true) loadStore();
@@ -145,8 +156,6 @@
     }
   }
 
-  window.syncAll = syncAll;
-
   let route;
   let routeParams;
   let storeIsLoaded = false;
@@ -169,9 +178,6 @@
   $: if ($credsStore === null) loadCreds();
   $: if ($credsStore !== null && $wsclientStore === null) {
     initWsclient($credsStore);
-  }
-  $: if ($wsclientStore !== null && $credsStore !== null) {
-    syncAll($credsStore, $wsclientStore);
   }
 
   setContext('endpoint', endpoint);

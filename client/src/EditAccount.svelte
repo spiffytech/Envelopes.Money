@@ -17,12 +17,13 @@
   const accountsStore = getContext('accountsStore');
   const dexie = getContext('dexie');
   const transactionsStore = getContext('transactionsStore');
+  const userId = getContext('userId');
 
   export let params;
 
   let accountId;
   $: accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
-  let account = Accounts.mkEmptyEnvelope();
+  let account = Accounts.mkEmptyEnvelope(userId);
   let canChangeType = true;
   let tags = Array.from(
     new Set(

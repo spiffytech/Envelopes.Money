@@ -64,7 +64,7 @@ export default async function sync(remote, local, status) {
     ),
   ];
   debug(
-    'Incoming/deleted from remote: %o, %o',
+    'Outgoing/deleted to remote: %o, %o',
     storeInRemote,
     deleteFromRemote
   );

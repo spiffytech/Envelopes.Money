@@ -2,8 +2,8 @@ import gql from "graphql-tag";
 
 import { fragments } from "../apollo";
 
-export default function saveTransactions(wsclient, txns) {
-  return wsclient.query({
+export default async function saveTransactions(wsclient, txns) {
+  wsclient.query({
     query: gql`
       ${fragments}
       mutation UpsertTransactions(
@@ -13,7 +13,7 @@ export default function saveTransactions(wsclient, txns) {
           objects: $txns
           on_conflict: {
             constraint: transactions_pkey
-            update_columns: [memo, date, amount, label, from_id, to_id, cleared, sha256]
+            update_columns: [memo, date, amount, label, from_id, to_id, cleared]
           }
         ) {
           returning {

@@ -87,9 +87,11 @@
 
   const dexie = new Dexie('Envelopes.Money');
   setContext('dexie', dexie);
+  const userId = 'tIyxnaJoe';
+  setContext('userId', userId);
 
   async function syncAll() {
-    debug('Syncing');
+    debug('Syncing transactions');
     await sync(
         {
           get: () => getTransactions(wsclient, 'tIyxnaJoe'),
@@ -107,9 +109,10 @@
           delete: ids => dexie.transactionsStatus.bulkDelete(ids)
         }
     );
+    debug('Syncing accounts');
     await sync(
         {
-          get: () => getAccounts(wsclient, 'tIyxnaJoe'),
+          get: () => getAccounts(wsclient, userId),
           store: records => saveAccounts(wsclient, records),
           delete: ids => {throw new Error(`We should never be deleting accounts. ${ids}`)}
         },

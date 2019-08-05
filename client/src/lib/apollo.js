@@ -8,7 +8,6 @@ if (!wssUri) throw new Error('Missing WSS GraphQL endpoint');
 export const fragments = gql`
       fragment transaction on transactions {
         id
-        user_id
         memo
         date
         amount
@@ -24,7 +23,6 @@ export const fragments = gql`
       
       fragment account on accounts {
         id
-        user_id
         name
         type
         extra

@@ -29,7 +29,7 @@ export default async function sync(remote, local, status) {
       new Set(remoteRecords.map(record => record.id))
     ),
   ];
-  debug('Incoming/deleted from local: %o, %o', storeInLocal, deleteFromLocal);
+  debug('Incoming/deleted to local: %o, %o', storeInLocal.map(id => remoteRecordsObj[id]), deleteFromLocal);
   if (storeInLocal.length > 0) {
     await local.store(storeInLocal.map(id => remoteRecordsObj[id]));
     await status.store(

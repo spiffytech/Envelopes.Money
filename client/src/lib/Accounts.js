@@ -82,12 +82,11 @@ export function mkEmptyEnvelope(userId) {
   };
 }
 
-export function mkEmptyAccount(userId) {
+export function mkEmptyAccount() {
   return {
     id: '',
     name: '',
     type: 'account',
     extra: {},
-    user_id: userId
   };
 }

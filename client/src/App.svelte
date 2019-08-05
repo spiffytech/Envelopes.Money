@@ -27,7 +27,6 @@
   import {
     accountsStore,
     balancesStore,
-    pouchStore,
     transactionsStore,
     connectionStore,
     credsStore,

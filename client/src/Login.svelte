@@ -4,9 +4,6 @@
   import { getContext } from 'svelte';
   import page from 'page';
 
-  import initPouch from './lib/pouch';
-  import * as libPouch from './lib/pouch';
-
   const debug = Debug('Envelopes.Money:Login.svelte');
 
   const endpoint = getContext('endpoint');

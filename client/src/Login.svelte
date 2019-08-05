@@ -2,6 +2,7 @@
   import axios from 'axios';
   import Debug from 'debug';
   import { getContext } from 'svelte';
+  import page from 'page';
 
   import initPouch from './lib/pouch';
   import * as libPouch from './lib/pouch';
@@ -9,6 +10,7 @@
   const debug = Debug('Envelopes.Money:Login.svelte');
 
   const endpoint = getContext('endpoint');
+  const credsStore = getContext('credsStore');
   let error = null;
   let email = '';
   let password = '';
@@ -16,30 +18,13 @@
   async function handleSubmit() {
     try {
       debug('Logging in with Hasura');
-      if (!window._env_.POUCH_ONLY) {
-        await axios.post(
-          `${endpoint}/login`,
-          { email, password },
-          { withCredentials: true }
-        );
-      }
-      if (window._env_.USE_POUCH) {
-        debug('Logging in with CouchDB');
-        const remoteDB = libPouch.mkRemote(email);
-        debug('Initialized main PouchDB');
-        debug('Login results: %o', await remoteDB.logIn(email, password));
-        const metaDB = libPouch.initMetaDB();
-        debug(
-          'Stored credentials: %O',
-          await metaDB.upsert('creds', doc => ({
-            email,
-            password,
-            _id: 'creds',
-            _rev: doc._rev,
-          }))
-        );
-      }
-      location.href = '/'; // Force the new context to get set
+      const {data: {apikey, userId}} = await axios.post(
+        `${endpoint}/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      );
+      credsStore.set({apikey, userId});
+      page('/');
     } catch (ex) {
       if (ex.response) {
         error = ex.response.data.error;

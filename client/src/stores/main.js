@@ -29,7 +29,10 @@ export const balancesStore = derived(
 );
 
 export const connectionStore = writable('disconnected');
+export const credsStore = writable(null);
+export const wsclientStore = writable(null);
 
 window.balancesStore = balancesStore;
 window.transactionsStore = transactionsStore;
 window.accountsStore = accountsStore;
+window.credsStore = credsStore;

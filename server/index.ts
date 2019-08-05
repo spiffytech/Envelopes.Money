@@ -35,7 +35,7 @@ app.use(
 );
 
 if (!process.env.POUCH_ONLY) {
-  app.use("/", unauth);
+  app.use("/auth", unauth);
 
   const authedRouter = express.Router();
   authedRouter.use(async (req, res, next) => {

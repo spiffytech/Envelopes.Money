@@ -18,7 +18,7 @@ services:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:@postgres:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
-      HASURA_GRAPHQL_AUTH_HOOK: http://envelopes-money:3000/hasura_auth
+      HASURA_GRAPHQL_AUTH_HOOK: http://envelopes-money:3000/auth/hasura_auth
   envelopes-money:
     image: spiffytech/envelopes.money:beta
     ports:

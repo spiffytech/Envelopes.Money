@@ -14,6 +14,10 @@ module.exports = {
     port: 8080,
     // So we can test on phones
     allowedHosts: ['.ngrok.io'],
+    proxy: {
+        context: ['/api', '/auth'],
+        target: `http://${process.env.HOST || 'localhost'}:8001`
+    }
   },
   entry: {
     bundle: ['./src/main.js'],

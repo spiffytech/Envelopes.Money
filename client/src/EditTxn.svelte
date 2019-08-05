@@ -17,7 +17,6 @@
   const transactionsStore = getContext('transactionsStore');
   const dexie = getContext('dexie');
   const balancesStore = getContext('balancesStore');
-  const userId = getContext('userId');
 
   export let params;
   let txnId;
@@ -26,7 +25,7 @@
     : undefined;
 
   // This takes care of while we're initializing
-  let txns = [Transactions.mkEmptyTransaction(userId)];
+  let txns = [Transactions.mkEmptyTransaction()];
   let type = txns.map(txn => txn.type)[0] || 'banktxn';
 
   // This takes care of when our props change
@@ -264,7 +263,7 @@
           <button
             type="button"
             class="btn btn-secondary"
-            on:click|preventDefault={() => (txns = [...txns, Transactions.mkEmptyTransaction(userId)])}>
+            on:click|preventDefault={() => (txns = [...txns, Transactions.mkEmptyTransaction()])}>
             New Split
           </button>
         </div>

@@ -118,18 +118,11 @@
 
   setContext('kinto', {accountsColl, transactionsColl});
 
+  const dexie = new Dexie('Envelopes.Money');
+  setContext('dexie', dexie);
+
   async function loadStore() {
-    debug('Loading data from Kinto');
-    const [{data: accounts}, {data: transactions}] = await Promise.all([
-      accountsColl.list(),
-      transactionsColl.list()
-    ]);
-
-    accountsStore.set(immer(accounts, identity));
-    transactionsStore.set(immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity));
-
     debug('Loading data from Dexie');
-    const dexie = new Dexie('Envelopes.Money');
     dexie.version(1).stores({
       accounts: '&id, name, type',
       transactions: '&id, date, amount, label, txn_id, from_id, to_id, memo, type, cleared',
@@ -141,6 +134,13 @@
     });
 
     window.dexie = dexie;
+
+    const [accounts, transactions] = await Promise.all([
+      dexie.accounts.toArray(),
+      dexie.transactions.toArray()
+    ]);
+    accountsStore.set(immer(accounts, identity));
+    transactionsStore.set(immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity));
 
     await sync(
         {

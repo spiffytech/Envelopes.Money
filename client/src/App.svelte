@@ -33,7 +33,7 @@
     connectionStore,
     credsStore,
     wsclientStore,
-    syncStore
+    syncStore,
   } from './stores/main';
   import { endpoint } from './lib/config';
 
@@ -65,11 +65,18 @@
 
     wsclientStore.set(wsclient);
 
-    subscribeTransactions(wsclient, creds.userId, ({data: {transactions}}) => syncTransactions(creds, wsclient, transactions));
-    subscribeAccounts(wsclient, creds.userId, ({data: {accounts}}) => syncAccounts(creds, wsclient, accounts));
+    subscribeTransactions(
+      wsclient,
+      creds.userId,
+      ({ data: { transactions } }) =>
+        syncTransactions(creds, wsclient, transactions)
+    );
+    subscribeAccounts(wsclient, creds.userId, ({ data: { accounts } }) =>
+      syncAccounts(creds, wsclient, accounts)
+    );
   }
 
-  async function syncTransactions(creds, wsclient, transactions=null) {
+  async function syncTransactions(creds, wsclient, transactions = null) {
     debug('Syncing transactions');
     syncStore.set('syncing');
     await sync(
@@ -170,16 +177,22 @@
     accountsStatus: '&id, sha256',
     transactionsStatus: '&id, sha256',
   });
-dexie.transactions.hook('creating', () => setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0));
-dexie.transactions.hook('updating', () => setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0));
-dexie.transactions.hook('deleting', () => setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0));
-
-dexie.accounts.hook('creating', () => setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0));
-dexie.accounts.hook('updating', () => setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0));
-dexie.accounts.hook('deleting', () => setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0));
+  ['creating', 'updating', 'deleting'].forEach(action => {
+    dexie.transactions.hook(action, () => {
+      if ($credsStore && $wsclientStore) {
+        setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0);
+      }
+    });
+  });
+  ['creating', 'updating', 'deleting'].forEach(action => {
+    dexie.accounts.hook(action, () => {
+      if ($credsStore && $wsclientStore) {
+        setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0);
+      }
+    });
+  });
 
   window.dexie = dexie;
-
 
   $: if (!storeIsLoaded) loadStore();
   $: if ($credsStore === null) loadCreds();

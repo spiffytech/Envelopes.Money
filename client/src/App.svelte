@@ -121,27 +121,8 @@
   const dexie = new Dexie('Envelopes.Money');
   setContext('dexie', dexie);
 
-  async function loadStore() {
-    debug('Loading data from Dexie');
-    dexie.version(1).stores({
-      accounts: '&id, name, type',
-      transactions: '&id, date, amount, label, txn_id, from_id, to_id, memo, type, cleared',
-      test: '&id, date, amount, label'
-    });
-    dexie.version(2).stores({
-      accountsStatus: '&id, sha256',
-      transactionsStatus: '&id, sha256',
-    });
-
-    window.dexie = dexie;
-
-    const [accounts, transactions] = await Promise.all([
-      dexie.accounts.toArray(),
-      dexie.transactions.toArray()
-    ]);
-    accountsStore.set(immer(accounts, identity));
-    transactionsStore.set(immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity));
-
+  async function syncAll() {
+    debug('Syncing');
     await sync(
         {
           get: () => getTransactions(wsclient, 'tIyxnaJoe'),
@@ -163,7 +144,7 @@
         {
           get: () => getAccounts(wsclient, 'tIyxnaJoe'),
           store: records => saveAccounts(wsclient, records),
-          delete: ids => {throw new Error('We should never be deleting accounts')}
+          delete: ids => {throw new Error(`We should never be deleting accounts. ${ids}`)}
         },
         {
           get: () => dexie.accounts.toArray(),
@@ -177,8 +158,35 @@
         }
     );
 
+    debug('Sync complete')
+  }
+  window.syncAll = syncAll;
+
+  async function loadStore() {
+    debug('Loading data from Dexie');
+    dexie.version(1).stores({
+      accounts: '&id, name, type',
+      transactions: '&id, date, amount, label, txn_id, from_id, to_id, memo, type, cleared',
+      test: '&id, date, amount, label'
+    });
+    dexie.version(2).stores({
+      accountsStatus: '&id, sha256',
+      transactionsStatus: '&id, sha256',
+    });
+
+    window.dexie = dexie;
+
+    const [accounts, transactions] = await Promise.all([
+      dexie.accounts.toArray(),
+      dexie.transactions.toArray()
+    ]);
+    accountsStore.set(immer(accounts, identity));
+    transactionsStore.set(immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity));
+
     storeIsLoaded = true;
     debug('Loaded data!');
+
+    syncAll();
   }
 
   $: if ($connectionStore === 'connected' && !storeIsLoaded) loadStore();

@@ -15,7 +15,7 @@
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
   const accountsStore = getContext('accountsStore');
-  const {accountsColl} = getContext('kinto');
+  const dexie = getContext('dexie');
   const transactionsStore = getContext('transactionsStore');
 
   export let params;
@@ -76,7 +76,7 @@
     const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
     const accountWithId = { ...rest, id: newAccountId };
 
-    await saveAccount({ accountsStore }, {accountsColl}, accountWithId);
+    await saveAccount({ accountsStore }, dexie, accountWithId);
     page('/');
   }
 </script>

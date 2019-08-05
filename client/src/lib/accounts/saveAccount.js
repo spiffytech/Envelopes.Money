@@ -6,10 +6,10 @@ import immer from 'immer';
  */
 export default async function saveTags(
   { accountsStore },
-  { accountsColl },
+  dexie,
   account
 ) {
-  await accountsColl.upsert(account);
+  await dexie.accounts.put(account);
   accountsStore.update($accounts => immer($accounts, draft => {
     const index = draft.findIndex(a => a.id === account.id);
     draft[index] = account;

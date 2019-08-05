@@ -10,20 +10,30 @@
 
   const accountsStore = getContext('accountsStore');
   const balancesStore = getContext('balancesStore');
+  const transactionsStore = getContext('transactionsStore');
+
+  // How often we use accounts
+      $: usageTo = groupBy(txn => txn.to_id, $transactionsStore.filter(txn => txn.type === "banktxn"));
+
+$: console.log(usageTo);
 
   $: sortFns = {
     name: (a, b) => (a.name < b.name ? -1 : 1),
     balance: (a, b) => {
       return $balancesStore[a.id] < $balancesStore[b.id] ? 1 : -1;
     },
+    'frequently-used': (a, b) => {
+      return (usageTo[a.id] || []).length > (usageTo[b.id] || []).length ? -1 : 1
+    }
   };
 
   // Default for if the user hasn't selected a fill interval yet.
   let interval = localStorage.getItem('fillInterval') || 'monthly';
 
   let showAccounts = false;
-  let sortBy = 'name';
+  let sortBy = 'frequently-used';
   $: sortFn = sortFns[sortBy];
+  $: console.log(sortFn);
   let sortTag = localStorage.getItem('selectedTag');
   $: localStorage.setItem('selectedTag', sortTag);
 
@@ -114,6 +124,7 @@
         Sort By:
         <select on:change={event => (sortBy = event.target.value)}>
           <option value="name">Name</option>
+          <option value="frequently-used">Frequently Used</option>
           <option value="balance">Balance</option>
         </select>
       </label>

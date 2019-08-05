@@ -14,6 +14,7 @@
   import deleteTransactions from './lib/transactions/deleteTransactions';
 
   const accountsStore = getContext('accountsStore');
+  const activityEmitter = getContext('activityEmitter');
   const transactionsStore = getContext('transactionsStore');
   const dexie = getContext('dexie');
   const balancesStore = getContext('balancesStore');
@@ -123,6 +124,7 @@
     error = null; // Reset it if we got here
 
     await saveTransactions({transactionsStore}, dexie, derivedTxns);
+    activityEmitter.emit('transactionsChanged');
     page('/home');
   }
 
@@ -131,6 +133,7 @@
     if (!confirm('Are you sure you want to delete this transaction?')) return;
 
     deleteTransactions({transactionsStore}, dexie, txnId);
+    activityEmitter.emit('transactionsChanged');
     page('/home');
   }
 

@@ -15,6 +15,7 @@
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
   const accountsStore = getContext('accountsStore');
+  const activityEmitter = getContext('activityEmitter');
   const dexie = getContext('dexie');
   const transactionsStore = getContext('transactionsStore');
 
@@ -77,6 +78,7 @@
     const accountWithId = { ...rest, id: newAccountId };
 
     await saveAccount({ accountsStore }, dexie, accountWithId);
+    activityEmitter.emit('accountsChanged');
     page('/');
   }
 </script>

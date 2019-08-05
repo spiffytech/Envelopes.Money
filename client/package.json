@@ -22,6 +22,7 @@
     "eslint-plugin-cypress": "^2.6.0",
     "eslint-plugin-import": "^2.17.3",
     "eslint-plugin-svelte3": "^1.2.3",
+    "eventemitter3": "^4.0.0",
     "faker": "^4.1.0",
     "fuzzysort": "^1.1.4",
     "graphql": "^14.2.1",

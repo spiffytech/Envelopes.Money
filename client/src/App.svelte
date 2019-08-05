@@ -3,6 +3,7 @@
   import comparator from 'ramda/es/comparator';
   import Debug from 'debug';
   import Dexie from 'dexie';
+  import EventEmitter from 'eventemitter3';
   import identity from 'ramda/es/identity';
   import immer from 'immer';
   import page from 'page';
@@ -168,6 +169,8 @@
   let route;
   let routeParams;
   let storeIsLoaded = false;
+  const activityEmitter = new EventEmitter();
+
   const dexie = new Dexie('Envelopes.Money');
   dexie.version(1).stores({
     accounts: '&id, name, type',
@@ -179,21 +182,6 @@
     accountsStatus: '&id, sha256',
     transactionsStatus: '&id, sha256',
   });
-  ['creating', 'updating', 'deleting'].forEach(action => {
-    dexie.transactions.hook(action, () => {
-      if ($credsStore && $wsclientStore) {
-        setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0);
-      }
-    });
-  });
-  ['creating', 'updating', 'deleting'].forEach(action => {
-    dexie.accounts.hook(action, () => {
-      if ($credsStore && $wsclientStore) {
-        setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0);
-      }
-    });
-  });
-
   window.dexie = dexie;
 
   $: if (!storeIsLoaded) loadStore();
@@ -201,6 +189,12 @@
   $: if ($credsStore !== null && $wsclientStore === null) {
     initWsclient($credsStore);
   }
+  activityEmitter.on('accountsChanged', () =>
+    syncAccounts($credsStore, $wsclientStore)
+  );
+  activityEmitter.on('transactionsChanged', () =>
+    syncTransactions($credsStore, $wsclientStore)
+  );
 
   setContext('endpoint', endpoint);
   setContext('balancesStore', balancesStore);
@@ -209,6 +203,7 @@
   setContext('credsStore', credsStore);
   setContext('dexie', dexie);
   setContext('syncStore', syncStore);
+  setContext('activityEmitter', activityEmitter);
 
   page('/', setRoute(Home));
   page('/home', setRoute(Home));

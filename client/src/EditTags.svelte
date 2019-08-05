@@ -12,6 +12,7 @@
   const debug = Debug('Envelopes.Money:EditTags.svelte');
 
   const accountsStore = getContext('accountsStore');
+  const activityEmitter = getContext('activityEmitter');
   const dexie = getContext('dexie');
 
   let accounts = $accountsStore.filter(account => account.type === 'envelope');
@@ -28,6 +29,7 @@
     const accountsThatChanged = accounts.filter(account => dirty[account.id]);
     debug('These accounts changed: %o', accountsThatChanged);
     await saveTags({ accountsStore }, dexie, accountsThatChanged);
+    activityEmitter.emit('accountsChanged');
     page('/home');
   }
 </script>

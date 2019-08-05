@@ -108,23 +108,13 @@
 
     syncStore.set(null);
     debug('Sync complete');
+
+    // TODO: if (dirty)
+    if (true) loadStore();
   }
 
   async function loadStore() {
     debug('Loading data from Dexie');
-    dexie.version(1).stores({
-      accounts: '&id, name, type',
-      transactions:
-        '&id, date, amount, label, txn_id, from_id, to_id, memo, type, cleared',
-      test: '&id, date, amount, label',
-    });
-    dexie.version(2).stores({
-      accountsStatus: '&id, sha256',
-      transactionsStatus: '&id, sha256',
-    });
-
-    window.dexie = dexie;
-
     const [accounts, transactions] = await Promise.all([
       dexie.accounts.toArray(),
       dexie.transactions.toArray(),
@@ -162,6 +152,19 @@
   let routeParams;
   let storeIsLoaded = false;
   const dexie = new Dexie('Envelopes.Money');
+  dexie.version(1).stores({
+    accounts: '&id, name, type',
+    transactions:
+      '&id, date, amount, label, txn_id, from_id, to_id, memo, type, cleared',
+    test: '&id, date, amount, label',
+  });
+  dexie.version(2).stores({
+    accountsStatus: '&id, sha256',
+    transactionsStatus: '&id, sha256',
+  });
+
+  window.dexie = dexie;
+
 
   $: if (!storeIsLoaded) loadStore();
   $: if ($credsStore === null) loadCreds();

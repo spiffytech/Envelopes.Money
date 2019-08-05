@@ -3,11 +3,11 @@ import {get as storeGet} from 'svelte/store';
 
 export default async function saveTransactions(
   { transactionsStore },
-  { transactionsColl },
+  dexie,
   txnGroupId
 ) {
   const toDelete = storeGet(transactionsStore).filter(txn => txn.txn_id === txnGroupId);
-  await Promise.all(toDelete.map(txn => transactionsColl.delete(txn.id)));
+  await Promise.all(toDelete.map(txn => dexie.transactions.delete(txn.id)));
 
   transactionsStore.update($transactions =>
     immer(

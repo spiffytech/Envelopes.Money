@@ -15,7 +15,7 @@
 
   const accountsStore = getContext('accountsStore');
   const transactionsStore = getContext('transactionsStore');
-  const {transactionsColl} = getContext('kinto');
+  const dexie = getContext('dexie');
   const balancesStore = getContext('balancesStore');
 
   export let params;
@@ -122,7 +122,7 @@
     }
     error = null; // Reset it if we got here
 
-    await saveTransactions({transactionsStore}, {transactionsColl}, derivedTxns);
+    await saveTransactions({transactionsStore}, dexie, derivedTxns);
     page('/home');
   }
 
@@ -130,7 +130,7 @@
     if (!txnId) return;
     if (!confirm('Are you sure you want to delete this transaction?')) return;
 
-    deleteTransactions({transactionsStore}, {transactionsColl}, txnId);
+    deleteTransactions({transactionsStore}, dexie, txnId);
     page('/home');
   }
 

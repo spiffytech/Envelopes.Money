@@ -4,7 +4,6 @@
   import Dexie from 'dexie';
   import identity from 'ramda/es/identity';
   import immer from 'immer';
-  import Kinto from 'kinto';
   import page from 'page';
   import { setContext } from 'svelte';
   import shortid from 'shortid';
@@ -85,38 +84,6 @@
   page('/editAccount', setRoute(EditAccount));
   page('/editAccount/:accountId', setRoute(EditAccount));
   page({ hashbang: true });
-
-  const kinto = new Kinto();
-  const transactionsColl = kinto.collection('transactions', {
-    idSchema: {
-      generate(doc) {
-        return `transaction/${shortid.generate()}`;
-      },
-
-      validate(id) {
-        return id.match(/^transaction\/.*/);
-      },
-    }
-  });
-  const accountsColl = kinto.collection('accounts', {
-    idSchema: {
-      generate(doc) {
-        if (doc.type_ === 'envelope' || doc.type_ === 'category') {
-          return `envelope/${shortid.generate()}`;
-        }
-        return `account/${shortid.generate()}`;
-      },
-
-      validate(id) {
-        return id.match(/^(envelope|account|category)\/.*/);
-      },
-    },
-  });
-
-  window.transactionsColl = transactionsColl;
-  window.accountsColl = accountsColl;
-
-  setContext('kinto', {accountsColl, transactionsColl});
 
   const dexie = new Dexie('Envelopes.Money');
   setContext('dexie', dexie);

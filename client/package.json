@@ -30,7 +30,6 @@
     "graphql": "^14.2.1",
     "graphql-tag": "^2.10.1",
     "js-base64": "^2.5.1",
-    "kinto": "^12.6.0",
     "mini-css-extract-plugin": "^0.6.0",
     "page": "^1.11.4",
     "prettier": "^1.18.2",

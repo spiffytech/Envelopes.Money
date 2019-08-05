@@ -10,7 +10,7 @@
   class="bg-white border border-grey-light rounded flex justify-between
   flex-wrap nav mb-2">
   <div class="flex">
-    <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
+    <a class="btn font-bold" href="/home" data-cy='home-button' role="heading" aria-level="1">Envelopes.Money</a>
 
     {#if $credsStore === null}
       <a class="btn" href="/login">Log In</a>
@@ -18,7 +18,7 @@
       <p>{$credsStore.email}</p>
     {/if}
 
-    <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn">Say hello!</a>
+    <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn" role="button">Say hello!</a>
 
     {#if $syncStore === 'syncing'}<p>⌛</p>{/if}
     <!--<p>❗</p>-->

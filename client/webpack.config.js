@@ -13,7 +13,7 @@ module.exports = {
   devServer: {
     port: 8080,
     // So we can test on phones
-    allowedHosts: ['.ngrok.io'],
+    allowedHosts: ['.ngrok.io', '.localhost.run'],
     proxy: {
         context: ['/api', '/auth'],
         target: `http://${process.env.HOST || 'localhost'}:8001`

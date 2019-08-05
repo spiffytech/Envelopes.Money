@@ -125,9 +125,9 @@
           {tagValue === 'undefined' ? 'No Value' : tagValue}
         </span>
       </header>
-      <div data-cy="total-balance">
+      <output data-cy="total-balance">
         Total balance: {toDollars(totalBalancesByTag[tagValue])}
-      </div>
+      </output>
       <table class="border-collapse">
         <tbody>
           {#each envelopesByTag[tagValue] as envelope}
@@ -140,7 +140,7 @@
               <tr class="border-b border-black border-dashed">
                 <td class="w-full">{envelope.name}</td>
                 <td class="text-right">
-                  {toDollars($balancesStore[envelope.id])}
+                  <output>{toDollars($balancesStore[envelope.id])}</output>
                 </td>
               </tr>
             </a>

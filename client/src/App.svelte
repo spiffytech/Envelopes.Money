@@ -226,7 +226,7 @@
 {/if}
 <Nav />
 
-<main>
+<main aria-label="Page Content">
   {#if storeIsLoaded}
     <svelte:component this={route} bind:params={routeParams} />
   {:else}Loading data...{/if}

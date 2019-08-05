@@ -62,7 +62,7 @@
  */
 
 .btn {
-  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-orange-darkest text-sm border-2 border-white bg-white text-orange-darkest cursor-pointer text-center
+  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-orange-darkest text-sm border-2 border-white bg-white cursor-pointer text-center
 }
 @screen md {
     .btn {

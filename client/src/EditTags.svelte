@@ -12,7 +12,7 @@
   const debug = Debug('Envelopes.Money:EditTags.svelte');
 
   const accountsStore = getContext('accountsStore');
-  const { accountsColl } = getContext('kinto');
+  const dexie = getContext('dexie');
 
   let accounts = $accountsStore.filter(account => account.type === 'envelope');
   let allTags = Array.from(
@@ -27,7 +27,7 @@
   async function handleSubmit() {
     const accountsThatChanged = accounts.filter(account => dirty[account.id]);
     debug('These accounts changed: %o', accountsThatChanged);
-    await saveTags({ accountsStore }, { accountsColl }, accountsThatChanged);
+    await saveTags({ accountsStore }, dexie, accountsThatChanged);
     page('/home');
   }
 </script>

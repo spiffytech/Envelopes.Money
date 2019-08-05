@@ -6,11 +6,11 @@ import immer from 'immer';
  */
 export default async function saveTags(
   { accountsStore },
-  { accountsColl },
+  dexie,
   accountsThatChanged
 ) {
   await Promise.all(
-    accountsThatChanged.map(account => accountsColl.upsert(account))
+    accountsThatChanged.map(account => dexie.accounts.put(account))
   );
   accountsStore.update(accounts =>
     immer(accounts, draft =>

@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
   graphql-engine:
-    image: hasura/graphql-engine:v1.0.0-beta.3
+    image: hasura/graphql-engine:v1.0.0-beta.4
     ports:
     - "9090:8080"
     depends_on:
@@ -28,7 +28,7 @@ services:
     restart: on-failure
     environment:
       GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1alpha1/graphql
-      GRAPHQL_WSS_HOST: ws://em-hasura.localhost.run/v1/graphql
+      GRAPHQL_WSS_HOST: ws://localhost:9090/v1/graphql
       HASURA_ADMIN_KEY: myadminsecretkey
       COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple

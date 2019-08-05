@@ -47,6 +47,7 @@
   }
 
   function initWsclient(creds) {
+    debug('Creating the wsclient');
     const wssUri = window._env_.GRAPHQL_WSS_HOST;
     if (!wssUri) throw new Error('Missing WSS GraphQL endpoint');
     const wsclient = mkWSClient(wssUri, {
@@ -65,6 +66,7 @@
 
     wsclientStore.set(wsclient);
 
+    debug('Subscribing to transactions and accounts');
     subscribeTransactions(
       wsclient,
       creds.userId,

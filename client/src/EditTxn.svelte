@@ -47,6 +47,7 @@
       date: txns[0].date,
       memo: txns[0].memo,
       from_id: txns[0].from_id,
+      cleared: txns[0].cleared,
       type,
       txn_id: finalTxnId,
     }))

@@ -87,12 +87,12 @@
 }
 @screen md {
   .label {
-    @apply flex-row mb-0
+    @apply mb-0
   }
 }
 
 .input {
-  @apply w-64 overflow-hidden border
+  @apply overflow-hidden border
 }
 @screen md {
   @apply ml-12

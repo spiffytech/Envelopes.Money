@@ -1,6 +1,5 @@
 <script>
   import comparator from 'ramda/es/comparator';
-  import fuzzySort from 'fuzzysort';
   import map from 'ramda/es/map';
   import page from 'page';
   import groupBy from 'ramda/es/groupBy';
@@ -77,12 +76,6 @@
   }
   $: setAllLabels($transactionsStore);
 
-  let suggestedLabels;
-  $: suggestedLabels = fuzzySort
-    .go(txns[0].label || '', Object.keys(allLabels))
-    .map(result => result.target)
-    .slice(0, 5);
-
   $: accounts = groupBy(b => b.type, $accountsStore);
   let from;
   $: from =
@@ -100,6 +93,7 @@
       : accounts['envelope'];
 
   function setSuggestion(suggestion) {
+    if (!allLabels[suggestion]) return;
     txns = txns.map(txn => ({ ...txn, label: suggestion }));
     txns[0].to_id = allLabels[suggestion].to_id;
     txns[0].from_id = allLabels[suggestion].from_id;
@@ -170,27 +164,14 @@
       <div>
         <label class="label">
           Who did you pay?
-          <input bind:value={txns[0].label} class="input" data-cy="label" />
-        </label>
-      </div>
-
-      <div>
-        <label class="label">
-          {#if suggestedLabels.length > 0 && (suggestedLabels.length > 1 || suggestedLabels[0] !== txns[0].label)}
-            Suggested Payees:
-            <div>
-              {#each suggestedLabels as suggestion}
-                <div data-cy="suggested-payee">
-                  <button
-                    type="button"
-                    class={`input btn btn-tertiary`}
-                    on:click|preventDefault={() => setSuggestion(suggestion)}>
-                    {suggestion}
-                  </button>
-                </div>
-              {/each}
-            </div>
-          {/if}
+          <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input" data-cy="label" list="suggested-payees" />
+          <datalist id="suggested-payees">
+            {#each Object.keys(allLabels) as suggestion}
+              <option data-cy="suggested-payee" value={suggestion}>
+                {suggestion}
+              </option>
+            {/each}
+          </datalist>
         </label>
       </div>
 

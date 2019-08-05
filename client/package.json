@@ -24,7 +24,6 @@
     "eslint-plugin-svelte3": "^1.2.3",
     "eventemitter3": "^4.0.0",
     "faker": "^4.1.0",
-    "fuzzysort": "^1.1.4",
     "graphql": "^14.2.1",
     "graphql-tag": "^2.10.1",
     "js-base64": "^2.5.1",

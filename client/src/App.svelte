@@ -170,6 +170,13 @@
     accountsStatus: '&id, sha256',
     transactionsStatus: '&id, sha256',
   });
+dexie.transactions.hook('creating', () => setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0));
+dexie.transactions.hook('updating', () => setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0));
+dexie.transactions.hook('deleting', () => setTimeout(() => syncTransactions($credsStore, $wsclientStore), 0));
+
+dexie.accounts.hook('creating', () => setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0));
+dexie.accounts.hook('updating', () => setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0));
+dexie.accounts.hook('deleting', () => setTimeout(() => syncAccounts($credsStore, $wsclientStore), 0));
 
   window.dexie = dexie;
 

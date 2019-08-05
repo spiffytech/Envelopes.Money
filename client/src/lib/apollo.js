@@ -1,10 +1,5 @@
 import gql from 'graphql-tag';
 
-const httpUri = window._env_.GRAPHQL_HTTP_HOST;
-const wssUri = window._env_.GRAPHQL_WSS_HOST;
-if (!httpUri) throw new Error('Missing HTTP GraphQL endpoint');
-if (!wssUri) throw new Error('Missing WSS GraphQL endpoint');
-
 export const fragments = gql`
       fragment transaction on transactions {
         id

@@ -46,7 +46,9 @@
   }
 
   function initWsclient(creds) {
-    const wsclient = mkWSClient(window._env_.GRAPHQL_WSS_HOST, {
+    const wssUri = window._env_.GRAPHQL_WSS_HOST;
+    if (!wssUri) throw new Error('Missing WSS GraphQL endpoint');
+    const wsclient = mkWSClient(wssUri, {
       reconnect: true,
       connectionParams: {
         headers: {

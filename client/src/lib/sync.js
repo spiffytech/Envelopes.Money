@@ -1,45 +1,35 @@
+import Debug from 'debug';
 import fromPairs from 'ramda/es/fromPairs';
 import shajs from 'sha.js';
 
+const debug = Debug('Envelopes.Money:sync');
+
 // http://blog.ezyang.com/2012/08/how-offlineimap-works/
-function setDiff(src, status) {
-  const toStore = Object.keys(src).filter(key => !status.has(key));
-  const toDelete = Array.from(status.values()).filter(
-    key => src[key] === undefined
-  );
-  return { toStore, toDelete };
+function setDiff(a, b) {
+  return Array.from(a.values()).filter(key => !b.has(key));
 }
 
 export default async function sync(remote, local, status) {
   const remoteRecords = await remote.get();
   const remoteRecordsObj = fromPairs(
-    remoteRecords.map(({ sha256: _bogus, ...record }) => {
+    remoteRecords.map(({ sha256: ignored, ...record }) => {
       const sha256 = shajs('sha256')
         .update(JSON.stringify(record))
         .digest('hex');
       return [`${record.id}|${sha256}`, record];
     })
   );
-
-  const localRecords = await local.get();
-  const localRecordsObj = fromPairs(
-    localRecords.map(({ sha256: _bogus, ...record }) => {
-      const sha256 = shajs('sha256')
-        .update(JSON.stringify(record))
-        .digest('hex');
-      return [`${record.id}|${sha256}`, record];
-    })
-  );
-
-  const recordStatus = await status.get();
-  const recordStatusSet = new Set(
-    recordStatus.map(({ id, sha256 }) => `${id}|${sha256}`)
-  );
-
-  const { toStore: storeInLocal, toDelete: deleteFromLocal } = setDiff(
-    remoteRecordsObj,
-    recordStatusSet
-  );
+  const [storeInLocal, deleteFromLocal] = [
+    setDiff(
+      new Set(Object.keys(remoteRecordsObj)),
+      new Set((await status.get()).map(({ id, sha256 }) => `${id}|${sha256}`))
+    ),
+    setDiff(
+      new Set((await status.get()).map(({ id }) => id)),
+      new Set(remoteRecords.map(record => record.id))
+    ),
+  ];
+  debug('Incoming/deleted from local: %o, %o', storeInLocal, deleteFromLocal);
   if (storeInLocal.length > 0) {
     await local.store(storeInLocal.map(id => remoteRecordsObj[id]));
     await status.store(
@@ -54,9 +44,29 @@ export default async function sync(remote, local, status) {
     await status.delete(deleteFromLocal.map(id => id.split('|')[0]));
   }
 
-  const { toStore: storeInRemote, toDelete: deleteFromRemote } = setDiff(
-    localRecordsObj,
-    recordStatusSet
+  const localRecords = await local.get();
+  const localRecordsObj = fromPairs(
+    localRecords.map(({ sha256: ignored, ...record }) => {
+      const sha256 = shajs('sha256')
+        .update(JSON.stringify(record))
+        .digest('hex');
+      return [`${record.id}|${sha256}`, record];
+    })
+  );
+  const [storeInRemote, deleteFromRemote] = [
+    setDiff(
+      new Set(Object.keys(localRecordsObj)),
+      new Set((await status.get()).map(({ id, sha256 }) => `${id}|${sha256}`))
+    ),
+    setDiff(
+      new Set((await status.get()).map(({ id }) => id)),
+      new Set(localRecords.map(record => record.id))
+    ),
+  ];
+  debug(
+    'Incoming/deleted from remote: %o, %o',
+    storeInRemote,
+    deleteFromRemote
   );
   if (storeInRemote.length > 0) {
     await remote.store(storeInRemote.map(id => localRecordsObj[id]));

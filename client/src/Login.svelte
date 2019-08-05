@@ -16,6 +16,16 @@
   let password = '';
 
   async function handleSubmit() {
+    if (!email) {
+      error = 'Must enter your email';
+      return;
+    }
+    if (!password) {
+      error = 'Must enter your password';
+      return;
+    }
+    error = null;
+
     try {
       debug('Logging in with Hasura');
       const {data: {apikey, userId}} = await axios.post(
@@ -23,7 +33,7 @@
         { email, password },
         { withCredentials: true }
       );
-      credsStore.set({apikey, userId});
+      credsStore.set({email, apikey, userId});
       page('/');
     } catch (ex) {
       if (ex.response) {
@@ -45,7 +55,7 @@
   {/if}
 
   <label>
-    Username:
+    Email:
     <input
       type="email"
       placeholder="username"

@@ -9,7 +9,7 @@ import mkApollo from '../lib/apollo';
 import * as crypto from '../lib/crypto';
 import * as sessions from '../lib/sessions';
 
-const debug = Debug('authentication');
+const debug = Debug('Envelopes.Money:authentication');
 
 function setSession(req: express.Request, apikey: string, userId: string) {
   req.session!.credentials = {

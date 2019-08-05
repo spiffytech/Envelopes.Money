@@ -6,7 +6,7 @@ import mkApollo from '../lib/apollo';
 
 if (!process.env.HASURA_ADMIN_KEY) throw new Error('Must supply HASURA_ADMIN_KEY');
 
-const debug = Debug('sessions');
+const debug = Debug('Envelopes.Money:sessions');
 
 export function apikeyFromRequest(req: express.Request) {
   debug('Session is new? %s', req.session!.isNew)

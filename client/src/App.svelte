@@ -161,7 +161,7 @@
   let storeIsLoaded = false;
   const dexie = new Dexie('Envelopes.Money');
 
-  $: if ($connectionStore === 'connected' && !storeIsLoaded) loadStore();
+  $: if (!storeIsLoaded) loadStore();
   $: if ($credsStore === null) loadCreds();
   $: if ($credsStore !== null && $wsclientStore === null) {
     initWsclient($credsStore);

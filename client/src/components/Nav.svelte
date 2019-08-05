@@ -13,13 +13,15 @@
     <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
 
     {#if $credsStore === null}
-      <a class="btn" href="#!/login">Log In</a>
+      <a class="btn" href="/login">Log In</a>
+    {:else}
+      <p>{$credsStore.email}</p>
     {/if}
 
     <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn">Say hello!</a>
 
-    {#if $syncStore === 'syncing'}<p class="text-center">⌛</p>{/if}
-    <!--<p class="text-center">❗</p>-->
+    {#if $syncStore === 'syncing'}<p>⌛</p>{/if}
+    <!--<p>❗</p>-->
   </div>
   <div data-cy="nav-buttons">
     <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">

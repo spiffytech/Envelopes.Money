@@ -14,7 +14,6 @@ const debug = Debug('authentication');
 function setSession(req: express.Request, apikey: string, userId: string) {
   req.session!.credentials = {
     email: req.body!.email,
-    password: req.body!.password,
     apikey,
     userId,
   };
@@ -87,7 +86,7 @@ export async function signUp(req: express.Request, res: express.Response) {
     });
     debug(`Signed up ${req.body.email}`);
     setSession(req, apikey, userId);
-    res.send({success: true, userId, apikey});
+    res.send({success: true, email: req.body.email, userId, apikey});
   } catch(ex) {
     console.error(ex);
   }
@@ -116,7 +115,7 @@ export async function logIn(req: express.Request, res: express.Response) {
 
     setSession(req, user.apikey, user.id);
     debug('credentials: %s', JSON.stringify(req.session!.credentials));
-    res.send({success: true, userId: user.id, apikey: user.apikey});
+    res.send({success: true, email: req.body.email, userId: user.id, apikey: user.apikey});
   } catch(ex) {
     console.error(ex);
     res.statusCode = 500;

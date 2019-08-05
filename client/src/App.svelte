@@ -32,6 +32,7 @@
     connectionStore,
     credsStore,
     wsclientStore,
+    syncStore
   } from './stores/main';
   import { endpoint } from './lib/config';
 
@@ -64,6 +65,7 @@
 
   async function syncAll(creds, wsclient) {
     debug('Syncing transactions');
+    syncStore.set('syncing');
     await sync(
       {
         get: () => getTransactions(wsclient, creds.userId),
@@ -102,6 +104,7 @@
       }
     );
 
+    syncStore.set(null);
     debug('Sync complete');
   }
 
@@ -173,6 +176,7 @@
   setContext('transactionsStore', transactionsStore);
   setContext('credsStore', credsStore);
   setContext('dexie', dexie);
+  setContext('syncStore', syncStore);
 
   page('/', setRoute(Home));
   page('/home', setRoute(Home));

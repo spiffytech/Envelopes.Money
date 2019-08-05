@@ -37,7 +37,6 @@
     "ramda": "^0.26.1",
     "regenerator-runtime": "^0.13.3",
     "serve": "^11.0.0",
-    "sha.js": "^2.4.11",
     "shortid": "^2.2.14",
     "style-loader": "^0.23.1",
     "subscriptions-transport-ws": "^0.9.16",

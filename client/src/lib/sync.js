@@ -1,6 +1,5 @@
 import Debug from 'debug';
 import fromPairs from 'ramda/es/fromPairs';
-import shajs from 'sha.js';
 
 const debug = Debug('Envelopes.Money:sync');
 
@@ -13,10 +12,8 @@ export default async function sync(remote, local, status) {
   const remoteRecords = await remote.get();
   const remoteRecordsObj = fromPairs(
     remoteRecords.map(({ sha256: ignored, ...record }) => {
-      const sha256 = shajs('sha256')
-        .update(JSON.stringify(record))
-        .digest('hex');
-      return [`${record.id}|${sha256}`, record];
+      const string = btoa(JSON.stringify(record))
+      return [`${record.id}|${string}`, record];
     })
   );
   const [storeInLocal, deleteFromLocal] = [
@@ -47,10 +44,8 @@ export default async function sync(remote, local, status) {
   const localRecords = await local.get();
   const localRecordsObj = fromPairs(
     localRecords.map(({ sha256: ignored, ...record }) => {
-      const sha256 = shajs('sha256')
-        .update(JSON.stringify(record))
-        .digest('hex');
-      return [`${record.id}|${sha256}`, record];
+      const string = btoa(JSON.stringify(record))
+      return [`${record.id}|${string}`, record];
     })
   );
   const [storeInRemote, deleteFromRemote] = [

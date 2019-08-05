@@ -18,58 +18,58 @@
   const dexie = getContext('dexie');
   const transactionsStore = getContext('transactionsStore');
 
+  function findTxnsForAccount(transactions, account) {
+    const foundTxns = transactions.filter(
+      txn => txn.from_id === accountId || txn.to_id == accountId
+    );
+    debug(
+      `Found the following transactions for this ${account.type}: %o`,
+      foundTxns
+    );
+    if (account.type === 'envelope') return foundTxns;
+    const groups = groupBy(txn => txn.txn_id, foundTxns);
+    return Object.values(groups).map(txnGroup => ({
+      to_ids: txnGroup.map(txn => txn.to_id),
+      amount: txnGroup
+        .map(txn => -txn.amount)
+        .reduce((acc, item) => acc + item, 0),
+      txn_id: txnGroup[0].txn_id,
+      user_id: txnGroup[0].user_id,
+      label: txnGroup[0].label,
+      date: txnGroup[0].date,
+      memo: txnGroup[0].memo,
+      from_id: txnGroup[0].from_id,
+      type: txnGroup[0].type,
+      insertionOrder: txnGroup[0].insertion_order,
+      cleared: txnGroup[0].cleared,
+    }));
+  }
+
   export let params;
 
   let accountId;
   $: accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
-  let account = Accounts.mkEmptyEnvelope();
-  let canChangeType = true;
+  $: canChangeType = !Boolean(
+    $accountsStore.find(account => account.id === accountId)
+  );
+  $: account =
+    $accountsStore.find(account => account.id === accountId) ||
+    Accounts.mkEmptyEnvelope();
   let tags = Array.from(
     new Set(
-      flatten($accountsStore.filter(account => account.type === 'envelope').map(({ tags }) => tags).map(tags => Object.keys(tags)))
+      flatten(
+        $accountsStore
+          .filter(account => account.type === 'envelope')
+          .map(({ tags }) => tags)
+          .map(tags => Object.keys(tags))
+      )
     )
   );
   let newTag = { key: '', value: '' };
 
-  let txns = [];
+  $: txns = findTxnsForAccount($transactionsStore, account);
   const numItemsPerPage = 100;
   let pageNum = 0;
-
-  onMount(async () => {
-    if (accountId) {
-      const account_ = $accountsStore.find((account) => account.id === accountId);
-      debug('Loading page with account ID %s', accountId);
-      debug('Found existing account? %s', !!account_);
-      if (!account_) {
-        page('/404');
-      } else {
-        account = account_;
-        canChangeType = false;
-        const foundTxns = $transactionsStore.filter(txn => txn.from_id === accountId || txn.to_id == accountId);
-        debug('Found the following transactions for this account: %o', foundTxns);
-        if (account.type === 'account') {
-          const groups = groupBy(txn => txn.txn_id, foundTxns);
-          txns = Object.values(groups).map(txnGroup => ({
-            to_ids: txnGroup.map(txn => txn.to_id),
-            amount: txnGroup
-              .map(txn => -txn.amount)
-              .reduce((acc, item) => acc + item, 0),
-            txn_id: txnGroup[0].txn_id,
-            user_id: txnGroup[0].user_id,
-            label: txnGroup[0].label,
-            date: txnGroup[0].date,
-            memo: txnGroup[0].memo,
-            from_id: txnGroup[0].from_id,
-            type: txnGroup[0].type,
-            insertionOrder: txnGroup[0].insertion_order,
-            cleared: txnGroup[0].cleared,
-          }));
-        } else {
-          txns = foundTxns;
-        }
-      }
-    }
-  });
 
   async function handleSubmit() {
     const { __typename, type_, _id, _rev, ...rest } = account;

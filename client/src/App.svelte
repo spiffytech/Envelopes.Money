@@ -1,6 +1,7 @@
 <script>
   import comparator from 'ramda/es/comparator';
   import Debug from 'debug';
+  import Dexie from 'dexie';
   import identity from 'ramda/es/identity';
   import immer from 'immer';
   import Kinto from 'kinto';
@@ -9,6 +10,13 @@
   import shortid from 'shortid';
 
   import { mkClient as mkWSClient } from './lib/graphql';
+  import getTransactions from './lib/transactions/getTransactions';
+  import saveTransactionsRemote from './lib/transactions/saveTransactionsRemote';
+  import deleteTransactionsRemote from './lib/transactions/deleteTransactionsRemote';
+  import getAccounts from './lib/accounts/getAccountsRemote';
+  import saveAccounts from './lib/accounts/saveAccountsRemote';
+  import sync from './lib/sync';
+
   import EditAccount from './EditAccount.svelte';
   import EditTags from './EditTags.svelte';
   import EditTxn from './EditTxn.svelte';
@@ -33,7 +41,7 @@
     reconnect: true,
     connectionParams: {
       headers: {
-        //Authorization: `Bearer ${creds.apikey}`,
+        Authorization: `Bearer ${window._env_.apikey}`,
       },
     },
   });
@@ -119,11 +127,61 @@
 
     accountsStore.set(immer(accounts, identity));
     transactionsStore.set(immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity));
-    debug('Data loaded');
+
+    debug('Loading data from Dexie');
+    const dexie = new Dexie('Envelopes.Money');
+    dexie.version(1).stores({
+      accounts: '&id, name, type',
+      transactions: '&id, date, amount, label, txn_id, from_id, to_id, memo, type, cleared',
+      test: '&id, date, amount, label'
+    });
+    dexie.version(2).stores({
+      accountsStatus: '&id, sha256',
+      transactionsStatus: '&id, sha256',
+    });
+
+    window.dexie = dexie;
+
+    await sync(
+        {
+          get: () => getTransactions(wsclient, 'tIyxnaJoe'),
+          store: records => saveTransactionsRemote(wsclient, records),
+          delete: ids => deleteTransactionsRemote(wsclient, ids)
+        },
+        {
+          get: () => dexie.transactions.toArray(),
+          store: records => dexie.transactions.bulkPut(records),
+          delete: ids => dexie.transactions.bulkDelete(ids)
+        },
+        {
+          get: () => dexie.transactionsStatus.toArray(),
+          store: records => dexie.transactionsStatus.bulkPut(records),
+          delete: ids => dexie.transactionsStatus.bulkDelete(ids)
+        }
+    );
+    await sync(
+        {
+          get: () => getAccounts(wsclient, 'tIyxnaJoe'),
+          store: records => saveAccounts(wsclient, records),
+          delete: ids => {throw new Error('We should never be deleting accounts')}
+        },
+        {
+          get: () => dexie.accounts.toArray(),
+          store: records => dexie.accounts.bulkPut(records),
+          delete: ids => dexie.accounts.bulkDelete(ids)
+        },
+        {
+          get: () => dexie.accountsStatus.toArray(),
+          store: records => dexie.accountsStatus.bulkPut(records),
+          delete: ids => dexie.accountsStatus.bulkDelete(ids)
+        }
+    );
+
     storeIsLoaded = true;
+    debug('Loaded data!');
   }
 
-  loadStore();
+  $: if ($connectionStore === 'connected' && !storeIsLoaded) loadStore();
 
   if (window.Cypress) {
     window.graphql = graphql;

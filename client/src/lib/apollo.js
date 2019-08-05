@@ -19,6 +19,7 @@ export const fragments = gql`
         type
         insertion_order
         cleared
+        sha256
       }
       
       fragment account on accounts {
@@ -28,6 +29,7 @@ export const fragments = gql`
         type
         extra
         tags
+        sha256
       }
 
       fragment balance on balances {

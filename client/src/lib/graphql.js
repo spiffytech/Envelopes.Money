@@ -6,7 +6,13 @@ function subscribe(client, query, onData, onError=console.error) {
 
 function query(client, query) {
     return new Promise((resolve, reject) => {
-        client.request(query).subscribe({next: resolve, error: reject});
+      client.request(query).subscribe({
+        next: (result) => {
+          if (result.errors) return reject(result.errors);
+          resolve(result);
+        },
+        error: reject
+      });
     })
 }
 

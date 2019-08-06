@@ -21,7 +21,7 @@
   }
 
   nav li:hover,
-  nav li:focus-within{
+  nav li:focus {
     cursor: pointer;
   }
 
@@ -35,9 +35,10 @@
     display: none;
   }
 
-  nav ul li:hover > ul,
-  nav ul li:focus-within > ul,
-  nav ul li ul:hover {
+  nav:hover ul li > ul,
+  nav:focus ul li > ul,
+  nav:active ul li > ul
+  {
     visibility: visible;
     opacity: 1;
     display: block;
@@ -76,14 +77,6 @@
         </a>
       </li>
 
-      <li class="bg-orange">
-        {#if $credsStore === null}
-          <a class="text-orange-darkest" href="/login">Log In</a>
-        {:else}
-          <a class="text-orange-darkest" href="/logout">{$credsStore.email}</a>
-        {/if}
-      </li>
-
       <li aria-haspopup="true" class="bg-orange">
         More
         <ul aria-label="submenu">
@@ -104,6 +97,13 @@
             <a class="text-orange-darkest" href="/editTags" data-cy="edit-tags">
               Edit Tags
             </a>
+          </li>
+          <li class="bg-orange">
+            {#if $credsStore === null}
+              <a class="text-orange-darkest" href="/login">Log In</a>
+            {:else}
+              <a class="text-orange-darkest" href="/logout">{$credsStore.email}</a>
+            {/if}
           </li>
         </ul>
       </li>

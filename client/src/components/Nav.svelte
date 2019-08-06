@@ -76,6 +76,14 @@
         </a>
       </li>
 
+      <li class="bg-orange">
+        {#if $credsStore === null}
+          <a class="text-orange-darkest" href="/login">Log In</a>
+        {:else}
+          <a class="text-orange-darkest" href="/logout">{$credsStore.email}</a>
+        {/if}
+      </li>
+
       <li aria-haspopup="true" class="bg-orange">
         More
         <ul aria-label="submenu">
@@ -96,13 +104,6 @@
             <a class="text-orange-darkest" href="/editTags" data-cy="edit-tags">
               Edit Tags
             </a>
-          </li>
-          <li class="bg-orange">
-            {#if $credsStore === null}
-              <a class="text-orange-darkest" href="/login">Log In</a>
-            {:else}
-              <a class="text-orange-darkest" href="/logout">{$credsStore.email}</a>
-            {/if}
           </li>
         </ul>
       </li>

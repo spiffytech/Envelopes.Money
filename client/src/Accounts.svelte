@@ -122,7 +122,7 @@ $: console.log(usageTo);
 
       <label>
         Sort By:
-        <select on:change={event => (sortBy = event.target.value)}>
+        <select value={sortBy} on:change={event => (sortBy = event.target.value)}>
           <option value="name">Name</option>
           <option value="frequently-used">Frequently Used</option>
           <option value="balance">Balance</option>

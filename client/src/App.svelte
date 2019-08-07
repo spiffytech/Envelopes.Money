@@ -139,7 +139,7 @@
       dexie.accounts.toArray(),
       dexie.transactions.toArray(),
     ]);
-    accountsStore.set(immer(accounts, identity));
+    accountsStore.set(immer(accounts.sort(comparator((a, b) => a.name < b.name)), identity));
     transactionsStore.set(
       immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity)
     );

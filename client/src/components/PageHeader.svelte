@@ -36,6 +36,6 @@
   </a>
 
   {#if $syncStore === 'syncing'}
-    <p>⌛</p>
+    <p>&rightleftarrows;</p>
   {/if}
 </div>

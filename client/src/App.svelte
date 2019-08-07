@@ -25,6 +25,7 @@
   import EditTxn from './EditTxn.svelte';
   import FillEnvelopes from './FillEnvelopes.svelte';
   import Home from './Home.svelte';
+  import PageHeader from './components/PageHeader.svelte';
   import Nav from './components/Nav.svelte';
   import Login from './Login.svelte';
   import {
@@ -35,6 +36,7 @@
     credsStore,
     wsclientStore,
     syncStore,
+    navStore
   } from './stores/main';
   import { endpoint } from './lib/config';
 
@@ -203,6 +205,7 @@
   setContext('credsStore', credsStore);
   setContext('dexie', dexie);
   setContext('syncStore', syncStore);
+  setContext('navStore', navStore);
   setContext('activityEmitter', activityEmitter);
 
   page('/', setRoute(Home));
@@ -224,10 +227,14 @@
 {#if $connectionStore !== 'connected'}
   <p>{$connectionStore}</p>
 {/if}
-<Nav />
 
-<main aria-label="Page Content">
-  {#if storeIsLoaded}
-    <svelte:component this={route} bind:params={routeParams} />
-  {:else}Loading data...{/if}
-</main>
+<PageHeader />
+
+{#if $navStore}
+  <Nav />
+{/if}
+  <main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
+    {#if storeIsLoaded}
+      <svelte:component this={route} bind:params={routeParams} />
+    {:else}Loading data...{/if}
+  </main>

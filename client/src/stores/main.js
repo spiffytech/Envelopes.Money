@@ -32,6 +32,7 @@ export const connectionStore = writable('disconnected');
 export const credsStore = writable(null);
 export const wsclientStore = writable(null);
 export const syncStore = writable(null);
+export const navStore = writable(false);
 
 window.balancesStore = balancesStore;
 window.transactionsStore = transactionsStore;

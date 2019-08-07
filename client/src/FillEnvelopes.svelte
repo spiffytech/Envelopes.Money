@@ -60,7 +60,7 @@
 <div class="flex justify-around content">
   <form
     on:submit|preventDefault={handleSubmit}
-    class="bg-white p-4 rounded border border-2 border-grey-light m-4">
+    class="bg-white p-4 rounded border border-2 border-gray-400 m-4">
     <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills)}</p>
 
     <select bind:value={interval} on:change={persistInterval} class="border">

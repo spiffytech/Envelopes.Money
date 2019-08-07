@@ -33,8 +33,8 @@
 
   <select
     bind:value={type}
-    class={`inline-block border ${type === 'debit' ? 'bg-red-lightest' : 'bg-green-lightest'}`}>
-    <option value="debit" class="bg-red-lightest">Debit</option>
-    <option value="credit" class="bg-green-lightest">Credit</option>
+    class={`inline-block border ${type === 'debit' ? 'bg-red-100' : 'bg-green-100'}`}>
+    <option value="debit" class="bg-red-100">Debit</option>
+    <option value="credit" class="bg-green-100">Credit</option>
   </select>
 </div>

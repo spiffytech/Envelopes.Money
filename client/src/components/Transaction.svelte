@@ -20,10 +20,9 @@
 
 <a
   style="display: contents"
-  href={`/editTxn/${encodeURIComponent(encodeURIComponent(txn.txn_id))}`}
-  class="no-underline text-black">
+  href={`/editTxn/${encodeURIComponent(encodeURIComponent(txn.txn_id))}`}>
   <div
-    class="flex justify-between p-3 border border-grey-light rounded mb-1"
+    class="flex justify-between p-3 border border-gray-400 rounded mb-1"
     data-cy="transaction">
     <div class="mr-2">{txn.date}</div>
     <div class="text-left flex-1 min-w-0 mr-2">
@@ -53,8 +52,8 @@
 
     <div
       class="ml-2 border-2 rounded text-xl flex item-center justify-between p-1"
-      class:bg-green-lightest={txn.cleared}
-      class:border-green-dark={txn.cleared}
+      class:bg-green-100={txn.cleared}
+      class:border-green-600={txn.cleared}
       title={'Cleared? ' + txn.cleared}>
       <div>C</div>
     </div>

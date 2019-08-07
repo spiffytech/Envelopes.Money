@@ -84,7 +84,7 @@
 </script>
 
 <form
-  class="area content bg-white p-2 rounded border border-2 border-grey-light m-4"
+  class="area content bg-white p-2 rounded border border-2 border-gray-400 m-4"
   on:submit|preventDefault={handleSubmit}>
   <header class="font-bold">{account.name}</header>
 

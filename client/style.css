@@ -9,7 +9,7 @@
  *
  * @import "tailwindcss/preflight";
  */
-@tailwind preflight;
+@tailwind base;
 
 /**
  * This injects any component classes registered by plugins.
@@ -62,7 +62,7 @@
  */
 
 .btn {
-  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-orange-darkest text-sm border-2 border-white bg-white cursor-pointer text-center
+  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-sm border-2 border-white bg-white cursor-pointer text-center
 }
 @screen md {
     .btn {
@@ -71,24 +71,22 @@
 }
 
 .btn-primary {
-    @apply border bg-orange border-orange;
+    @apply border bg-orange-500 border-orange-500;
 }
 
 .btn-secondary {
-    @apply bg-orange-lighter border border-orange-lighter;
+    @apply bg-orange-200 border border-orange-200;
 }
 
 .btn-tertiary {
-    @apply border-grey;
+    @apply border-gray-500;
 }
 
 .label {
-  @apply flex flex-col justify-between mb-4
+  @apply absolute top-0 invisible opacity-0 text-xs
 }
-@screen md {
-  .label {
-    @apply mb-0
-  }
+.label {
+    transition: all 200ms;
 }
 
 .input {
@@ -99,5 +97,5 @@
 }
 
 .content {
-  @apply bg-white p-2 rounded border border-2 border-grey-light m-4
+  @apply bg-white p-2 rounded border border-2 border-gray-400 m-4
 }

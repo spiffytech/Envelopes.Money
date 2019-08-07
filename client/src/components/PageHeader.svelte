@@ -5,16 +5,16 @@
   const navStore = getContext('navStore');
 </script>
 
-<div class="stripe bg-orange h-1" />
+<div class="stripe bg-orange-500 h-1" />
 
 <div
-  class="bg-white border border-t-0 border-grey-light rounded flex mb-2
+  class="bg-white border border-t-0 border-gray-400 rounded flex mb-2
   items-center"
   role="banner">
   <button
     id="hamburger"
     on:click|preventDefault={() => navStore.set(!$navStore)}
-    class="text-5xl md:hidden"
+    class="text-5xl sm:hidden"
     class:open={$navStore}>
     &equiv;
   </button>

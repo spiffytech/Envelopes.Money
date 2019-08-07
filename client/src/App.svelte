@@ -230,11 +230,10 @@
 
 <PageHeader />
 
-{#if $navStore}
-  <Nav />
-{/if}
-  <main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
-    {#if storeIsLoaded}
-      <svelte:component this={route} bind:params={routeParams} />
-    {:else}Loading data...{/if}
-  </main>
+<Nav />
+
+<main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
+  {#if storeIsLoaded}
+    <svelte:component this={route} bind:params={routeParams} />
+  {:else}Loading data...{/if}
+</main>

@@ -14,10 +14,11 @@
   <button
     id="hamburger"
     on:click|preventDefault={() => navStore.set(!$navStore)}
-    class="text-5xl"
+    class="text-5xl md:hidden"
     class:open={$navStore}>
     &equiv;
   </button>
+
   <a
     class="btn font-bold"
     href="/home"

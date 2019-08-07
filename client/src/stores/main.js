@@ -33,6 +33,9 @@ export const credsStore = writable(null);
 export const wsclientStore = writable(null);
 export const syncStore = writable(null);
 export const navStore = writable(false);
+export const intervalStore = writable(localStorage.getItem('fillInterval') || 'monthly');
+
+intervalStore.subscribe(value => localStorage.setItem('fillInterval', value));
 
 window.balancesStore = balancesStore;
 window.transactionsStore = transactionsStore;

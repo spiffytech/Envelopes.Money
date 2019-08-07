@@ -36,7 +36,8 @@
     credsStore,
     wsclientStore,
     syncStore,
-    navStore
+    navStore,
+    intervalStore
   } from './stores/main';
   import { endpoint } from './lib/config';
 
@@ -206,6 +207,7 @@
   setContext('dexie', dexie);
   setContext('syncStore', syncStore);
   setContext('navStore', navStore);
+  setContext('intervalStore', intervalStore);
   setContext('activityEmitter', activityEmitter);
 
   page('/', setRoute(Home));

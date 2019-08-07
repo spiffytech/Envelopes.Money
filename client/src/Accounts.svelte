@@ -11,6 +11,7 @@
   const accountsStore = getContext('accountsStore');
   const balancesStore = getContext('balancesStore');
   const transactionsStore = getContext('transactionsStore');
+  const intervalStore = getContext('intervalStore');
 
   // How often we use accounts
       $: usageTo = groupBy(txn => txn.to_id, $transactionsStore.filter(txn => txn.type === "banktxn"));
@@ -26,9 +27,6 @@ $: console.log(usageTo);
       return (usageTo[a.id] || []).length > (usageTo[b.id] || []).length ? -1 : 1
     }
   };
-
-  // Default for if the user hasn't selected a fill interval yet.
-  let interval = localStorage.getItem('fillInterval') || 'monthly';
 
   let showAccounts = false;
   let sortBy = 'frequently-used';

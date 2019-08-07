@@ -12,6 +12,7 @@
 
   const accountsStore = getContext('accountsStore');
   const balancesStore = getContext('balancesStore');
+  const intervalStore = getContext('intervalStore');
 
   let fills = $accountsStore.filter(account => account.type === 'envelope').map(envelope => ({
     amount: 0,
@@ -25,13 +26,8 @@
     fill => fill.envelope.name !== '[Unallocated]'
   );
 
-  let interval = localStorage.getItem('fillInterval') || 'monthly';
   $: c = fill =>
-    Math.round(Balances.calcAmountForPeriod(fill.envelope)[interval]);
-
-  function persistInterval() {
-    localStorage.setItem('fillInterval', interval);
-  }
+    Math.round(Balances.calcAmountForPeriod(fill.envelope)[$intervalStore]);
 
   async function handleSubmit() {
     const txnId = shortid.generate();
@@ -63,7 +59,7 @@
     class="bg-white p-4 rounded border border-2 border-gray-400 m-4">
     <p>Unallocated: {toDollars(unallocated.envelope.balance - sumOfFills)}</p>
 
-    <select bind:value={interval} on:change={persistInterval} class="border">
+    <select bind:value={$intervalStore} on:change={(event) => intervalStore.set(event.target.value)} class="border">
       <option value="weekly">Weekly</option>
       <option value="biweekly">Biweekly</option>
       <option value="bimonthly">Bimonthly</option>

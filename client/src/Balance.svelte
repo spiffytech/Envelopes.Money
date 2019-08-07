@@ -90,7 +90,7 @@
 </script>
 
 <div
-  class="item flex-grow p-3 border border-gray-100 shadow-md rounded-lg m-3
+  class="item flex-grow p-1 sm:p-3 border border-gray-100 shadow-md rounded-lg m-1 sm:m-3
   bg-white"
   style="min-width: 0"
   data-cy="balance">
@@ -104,7 +104,7 @@
       </div>
     </div>
     <div>
-      <span class="p-2 border border-black rounded-lg">
+      <span class="p-1 sm:p-2 sm:border border-black rounded-lg">
         {periodOverPeriod >= 0 ? '⬆️' : '⬇️'} {toDollars(periodOverPeriod)}
       </span>
     </div>

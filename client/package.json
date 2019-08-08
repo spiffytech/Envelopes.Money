@@ -37,7 +37,7 @@
     "shortid": "^2.2.14",
     "style-loader": "^0.23.1",
     "subscriptions-transport-ws": "^0.9.16",
-    "svelte": "^3.6.7",
+    "svelte": "^3.7.1",
     "svelte-loader": "2.13.3",
     "tailwindcss": "^1.1.0",
     "webpack": "^4.30.0",

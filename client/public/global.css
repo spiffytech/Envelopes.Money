@@ -634,6 +634,76 @@ video {
   }
 }
 
+.btn {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  min-width: 0;
+  text-decoration: none;
+  margin: 0.25rem;
+  display: inline-block;
+  font-size: 0.875rem;
+  border-width: 2px;
+  border-color: #fff;
+  background-color: #fff;
+  cursor: pointer;
+  text-align: center
+}
+
+@media (min-width: 768px) {
+  .btn {
+    padding: 0.5rem;
+    margin: 0.5rem;
+    font-size: 1rem;
+  }
+}
+
+.btn-primary {
+  border-width: 1px;
+  background-color: #ed8936;
+  border-color: #ed8936;
+}
+
+.btn-secondary {
+  background-color: #feebc8;
+  border-width: 1px;
+  border-color: #feebc8;
+}
+
+.btn-tertiary {
+  border-color: #a0aec0;
+}
+
+.form-input {
+  position: relative;
+}
+
+.label-inline {
+  background-color: #fff;
+  align-self: flex-start;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  transform: translate3d(0.5rem, 50%, 0);
+}
+
+.input-inline {
+  padding-top: 0.75rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border-width: 1px;
+  background-color: #fff;
+}
+
+.content {
+  background-color: #fff;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border-width: 1px;
+  border-width: 2px;
+  border-color: #cbd5e0;
+  margin: 1rem
+}
+
 /**
  * Here you would add any of your custom component classes; stuff that you'd
  * want loaded *before* the utilities so that the utilities could still
@@ -9151,77 +9221,6 @@ video {
  * @import "utilities/background-patterns";
  * @import "utilities/skew-transforms";
  */
-
-.btn {
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  min-width: 0;
-  text-decoration: none;
-  margin: 0.25rem;
-  display: inline-block;
-  font-size: 0.875rem;
-  border-width: 2px;
-  border-color: #fff;
-  background-color: #fff;
-  cursor: pointer;
-  text-align: center
-}
-
-@media (min-width: 768px) {
-  .btn {
-    padding: 0.5rem;
-    margin: 0.5rem;
-    font-size: 1rem;
-  }
-}
-
-.btn-primary {
-  border-width: 1px;
-  background-color: #ed8936;
-  border-color: #ed8936;
-}
-
-.btn-secondary {
-  background-color: #feebc8;
-  border-width: 1px;
-  border-color: #feebc8;
-}
-
-.btn-tertiary {
-  border-color: #a0aec0;
-}
-
-.label {
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-  opacity: 0;
-  font-size: 0.75rem
-}
-
-.label {
-  transition: all 200ms;
-}
-
-.input {
-  overflow: hidden;
-  border-width: 1px
-}
-
-@media (min-width: 768px) {
-  @apply ml-12
-
-}
-
-.content {
-  background-color: #fff;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  border-width: 1px;
-  border-width: 2px;
-  border-color: #cbd5e0;
-  margin: 1rem
-}
 
 @media (min-width: 640px) {
   .sm\:sr-only {

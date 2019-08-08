@@ -20,6 +20,46 @@
  */
 @tailwind components;
 
+
+.btn {
+  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-sm border-2 border-white bg-white cursor-pointer text-center
+}
+@screen md {
+    .btn {
+        @apply p-2 m-2 text-base;
+    }
+}
+
+.btn-primary {
+    @apply border bg-orange-500 border-orange-500;
+}
+
+.btn-secondary {
+    @apply bg-orange-200 border border-orange-200;
+}
+
+.btn-tertiary {
+    @apply border-gray-500;
+}
+
+.form-input {
+    position: relative;
+}
+
+.label-inline {
+    /* self-start fixes the label's width once we put it into a flex-col div */
+    @apply bg-white self-start px-2;
+    transform: translate3d(0.5rem, 50%, 0);
+}
+
+.input-inline {
+    @apply pt-3 pb-2 px-3 border bg-white;
+}
+
+.content {
+  @apply bg-white p-2 rounded border border-2 border-gray-400 m-4
+}
+
 /**
  * Here you would add any of your custom component classes; stuff that you'd
  * want loaded *before* the utilities so that the utilities could still
@@ -60,42 +100,3 @@
  * @import "utilities/background-patterns";
  * @import "utilities/skew-transforms";
  */
-
-.btn {
-  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-sm border-2 border-white bg-white cursor-pointer text-center
-}
-@screen md {
-    .btn {
-        @apply p-2 m-2 text-base;
-    }
-}
-
-.btn-primary {
-    @apply border bg-orange-500 border-orange-500;
-}
-
-.btn-secondary {
-    @apply bg-orange-200 border border-orange-200;
-}
-
-.btn-tertiary {
-    @apply border-gray-500;
-}
-
-.label {
-  @apply absolute top-0 invisible opacity-0 text-xs
-}
-.label {
-    transition: all 200ms;
-}
-
-.input {
-  @apply overflow-hidden border
-}
-@screen md {
-  @apply ml-12
-}
-
-.content {
-  @apply bg-white p-2 rounded border border-2 border-gray-400 m-4
-}

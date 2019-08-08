@@ -149,47 +149,48 @@
     on:submit|preventDefault={handleSubmit}
     class="max-w-sm m-auto"
     data-cy="edittxn-form">
-    <div>
-      <label class="label">
+    <div class="flex flex-col">
+      <label class="label-inline" for="txntype">
         Transaction Type
-        <select bind:value={type} class="input">
-          <option value="banktxn">Bank Transaction</option>
-          <option value="envelopeTransfer">Envelope Transfer</option>
-          <option value="accountTransfer">Account Transfer</option>
-        </select>
       </label>
+      <select bind:value={type} class="input-inline" id="txntype">
+        <option value="banktxn">Bank Transaction</option>
+        <option value="envelopeTransfer">Envelope Transfer</option>
+        <option value="accountTransfer">Account Transfer</option>
+      </select>
     </div>
 
-    <div>
-      <label class="label">
+    <div class="flex flex-col">
+      <label class="label-inline" for="from">
         Who did you pay?
-        <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input" data-cy="label" list="suggested-payees" />
-        <datalist id="suggested-payees">
-          {#each Object.keys(allLabels) as suggestion}
-            <option data-cy="suggested-payee" value={suggestion}>
-              {suggestion}
-            </option>
-          {/each}
-        </datalist>
       </label>
+      <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input-inline" data-cy="label" list="suggested-payees" id="from" />
+      <datalist id="suggested-payees">
+        {#each Object.keys(allLabels) as suggestion}
+          <option data-cy="suggested-payee" value={suggestion}>
+            {suggestion}
+          </option>
+        {/each}
+      </datalist>
     </div>
 
-    <div>
-      <label class="label">
+    <div class="flex flex-col">
+      <label class="label-inline" for="date">
         Date
-        <input
-          type="date"
-          value={formatDate(txns[0].date)}
-          class="input"
-          on:input={event => (txns[0].date = formatDate(new Date(event.target.value + 'T00:00')))} />
       </label>
+      <input
+        id="date"
+        type="date"
+        value={formatDate(txns[0].date)}
+        class="input-inline"
+        on:input={event => (txns[0].date = formatDate(new Date(event.target.value + 'T00:00')))} />
     </div>
 
-    <div>
-      <label class="label">
+    <div class="flex flex-col">
+      <label class="label-inline" for="memo">
         Memo
-        <input bind:value={txns[0].memo} class="input" />
       </label>
+      <input bind:value={txns[0].memo} class="input-inline" id="memo" />
     </div>
 
     <div>
@@ -203,45 +204,52 @@
       Sum of splits: {toDollars(txns.map(txn => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
     </p>
 
-    <div>
-      <label class="label">
-        {type === 'banktxn' ? 'Account:' : 'Transfer From:'}
-        <select
-          bind:value={txns[0].from_id}
-          class="input"
-          data-cy="transaction-source">
-          <option value={null}>Select a source</option>
-          {#each from as f}
-            <option value={f.id}>{f.name}: {toDollars($balancesStore[f.id])}</option>
-          {/each}
-        </select>
+    <div class="flex flex-col">
+      <label class="label-inline" for="account">
+        {type === 'banktxn' ? 'Account' : 'Transfer From'}
       </label>
+      <select
+        id="account"
+        bind:value={txns[0].from_id}
+        class="input-inline"
+        data-cy="transaction-source">
+        <option value={null}>Select a source</option>
+        {#each from as f}
+          <option value={f.id}>{f.name}: {toDollars($balancesStore[f.id])}</option>
+        {/each}
+      </select>
     </div>
 
-    <div>
-      <label>
-        {type === 'banktxn' ? 'Envelopes:' : 'Transfer Into:'}
-        {#each txns as txn, i}
-          <div data-cy="split-data-entry">
-            <select bind:value={txn.to_id} class="input">
-              <option value={null}>Select a destination</option>
-              {#each to as t}
-                <option value={t.id}>{t.name}: {toDollars($balancesStore[t.id])}</option>
-              {/each}
-            </select>
+    <fieldset>
+      <legend>
+        {type === 'banktxn' ? 'Envelopes' : 'Transfer Into'}
+      </legend>
 
-            <input
-              type="number"
-              class="border"
-              value={txn.amount ? txn.amount / 100 : ''}
-              placeholder="Dollar amount for this split"
-              step="0.01"
-              on:input={event => {
-                if (event.target.value) txns[i].amount = Math.round(parseFloat(event.target.value) * 100);
-              }} />
+      {#each txns as txn, i}
+        <div class="flex flex-col" data-cy="split-data-entry">
+          <label class="label-inline" for={`destination-${i}`}>Destination</label>
+          <select bind:value={txn.to_id} class="input-inline" id={`destination-${i}`}>
+            <option value={null}>Select a destination</option>
+            {#each to as t}
+              <option value={t.id}>{t.name}: {toDollars($balancesStore[t.id])}</option>
+            {/each}
+          </select>
+
+          <label class="label-inline" for={`amount-${i}`}>Amount</label>
+          <input
+            id={`amount-${i}`}
+            type="number"
+            class="input-inline"
+            value={txn.amount ? txn.amount / 100 : ''}
+            step="0.01"
+            on:input={event => {
+              if (event.target.value) txns[i].amount = Math.round(parseFloat(event.target.value) * 100);
+            }} />
           </div>
+
+          <hr />
         {/each}
-      </label>
+      </fieldset>
 
       <div class="mb-3 mt-3">
         <button
@@ -251,7 +259,6 @@
           New Split
         </button>
       </div>
-    </div>
 
     <div class="flex justify-between">
       <button type="submit" class="btn btn-primary">Save Transaction</button>

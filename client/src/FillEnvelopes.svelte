@@ -120,7 +120,7 @@
   <button class="btn btn-primary" on:click|preventDefault={() => magicFill($balancesStore)}>Magic Fill</button>
   <p class="italic text-xs">Fills all envelopes. If an envelope is below zero, raises it to the fill amount.</p>
 
-  <p>[Unallocated]: {toDollars($balancesStore[unallocated.id] - sumOfFills)}</p>
+  <p class="sticky top-0 bg-white shadow-md p-3 mb-3">New [Unallocated] balance: {toDollars($balancesStore[unallocated.id] - sumOfFills)}</p>
 
   <select
     bind:value={$intervalStore}

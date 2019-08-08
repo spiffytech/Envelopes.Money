@@ -51,6 +51,9 @@
   }
 
   $: fills = Object.entries(fillsObj).map(([envelopeId, fillType]) => {
+    // If the user is filling an "other" amount
+    if (typeof fillType === 'number') return [envelopeId, fillType * 100];
+
     const envelope = envelopesMap.get(envelopeId);
     switch (fillType) {
       case null:
@@ -96,7 +99,7 @@
         const txn = {
           id: `transaction/${shortid.generate()}`,
           memo: '',
-          date: new Date(),
+          date: formatDate(new Date()),
           amount: fillAmount,
           label: null,
           type: 'envelopeTransfer',
@@ -159,6 +162,13 @@
             bind:group={fillsObj[envelope.id]}
             value="set-to-zero" />
           Set to 0.00
+        </label>
+
+        <br />
+
+        <label>
+          Other amount
+          <input class="border" type="number" step="0.01" on:input={event => event.target.value ? fillsObj[envelope.id] = parseFloat(event.target.value) : fillsObj[envelope.id] = null} />
         </label>
       </div>
     </div>

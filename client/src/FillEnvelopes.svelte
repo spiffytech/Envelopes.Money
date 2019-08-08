@@ -74,6 +74,8 @@
     }
   });
 
+  $: fillsByAccount = new Map(fills);
+
   $: sumOfFills = fills
     .map(([ignored, fillAmount]) => fillAmount)
     .reduce((acc, item) => acc + item, 0);
@@ -137,8 +139,10 @@
     <div class="flex flex-wrap">
       <div style="flex-basis: 450px;">
         <Balance account={envelopesMap.get(envelope.id)} defaultDaysToRender={15} />
+        <p class="text-xs p-3">{toDollars($balancesStore[envelope.id])} + {toDollars(fillsByAccount.get(envelope.id))} = {toDollars($balancesStore[envelope.id] + fillsByAccount.get(envelope.id))}</p>
       </div>
       <div>
+
         <label>
           <input
             type="radio"

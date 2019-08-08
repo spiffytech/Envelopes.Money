@@ -119,8 +119,14 @@
 </script>
 
 <form class="content" on:submit|preventDefault={handleSubmit}>
-  <button class="btn btn-primary" on:click|preventDefault={() => magicFill($balancesStore)}>Magic Fill</button>
-  <p class="italic text-xs">Fills all envelopes. If an envelope is below zero, raises it to the fill amount.</p>
+  <div class="flex flex-wrap">
+    <div>
+      <button class="btn btn-primary" on:click|preventDefault={() => magicFill($balancesStore)}>Magic Fill</button>
+      <p class="italic text-xs">Fills all envelopes. If an envelope is below zero, raises it to the fill amount.</p>
+    </div>
+
+    <input type="submit" value="Save Fills" class="btn btn-primary" />
+  </div>
 
   <p class="sticky top-0 bg-white shadow-md p-3 mb-3">New [Unallocated] balance: {toDollars($balancesStore[unallocated.id] - sumOfFills)}</p>
 
@@ -180,5 +186,5 @@
     <hr />
   {/each}
 
-  <input type="submit" value="Fill!" class="btn btn-primary" />
+  <input type="submit" value="Save Fills" class="btn btn-primary" />
 </form>

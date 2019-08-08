@@ -678,6 +678,7 @@ video {
 }
 
 .label-inline {
+  /* self-start fixes the label's width once we put it into a flex-col div */
   background-color: #fff;
   align-self: flex-start;
   padding-left: 0.5rem;
@@ -692,6 +693,7 @@ video {
   padding-right: 0.75rem;
   border-width: 1px;
   background-color: #fff;
+  width: 100%;
 }
 
 .content {

@@ -54,6 +54,7 @@
 
 .input-inline {
     @apply pt-3 pb-2 px-3 border bg-white;
+    width: 100%;
 }
 
 .content {

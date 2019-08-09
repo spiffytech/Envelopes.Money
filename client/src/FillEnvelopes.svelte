@@ -1,5 +1,6 @@
 <script>
   import always from 'ramda/es/always';
+  import Debug from 'debug';
   import fromPairs from 'ramda/es/fromPairs';
   import page from 'page';
   import * as shortid from 'shortid';
@@ -7,11 +8,11 @@
 
   import Balance from './Balance.svelte';
   import * as Balances from './lib/Balances';
-  import MoneyInput from './MoneyInput.svelte';
   import { toDollars } from './lib/pennies';
-  import * as Transactions from './lib/Transactions';
   import { formatDate } from './lib/utils';
   import saveTransactions from './lib/transactions/saveTransactions';
+
+  const debug = Debug('Envelopes.Money:FillEnvelopes.svelte');
 
   const accountsStore = getContext('accountsStore');
   const transactionsStore = getContext('transactionsStore');

@@ -182,9 +182,15 @@
         <input
           id="date"
           type="date"
+          list="dates-list"
           value={formatDate(txns[0].date)}
           class="input-inline"
           on:input={event => (txns[0].date = formatDate(new Date(event.target.value + 'T00:00')))} />
+
+        <datalist id="dates-list">
+          <option label="Today">{formatDate(new Date())}</option>
+          <option label="Yesterday">{formatDate(new Date(new Date().setDate(new Date().getDate()-1)))}</option>
+        </datalist>
       </div>
 
       <div class="flex flex-col">

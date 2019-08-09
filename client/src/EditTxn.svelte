@@ -43,6 +43,7 @@
   $: derivedTxns = txns
     .map(txn => ({
       ...txn,
+      label: txns[0].label,
       date: txns[0].date,
       memo: txns[0].memo,
       from_id: txns[0].from_id,

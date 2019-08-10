@@ -72,22 +72,33 @@
 
   let searchTerm = '';
   // Must be reactive in case our accountId URL param changes
-  $: accountsMap = new Map($accountsStore.map(account => [account.id, account]));
+  $: accountsMap = new Map(
+    $accountsStore.map(account => [account.id, account])
+  );
   // Calculate this as a separate step from the searchTerm filtering so we
   // don't recalculate this every time the search term changes
   $: txnsForAccount = findTxnsForAccount($transactionsStore, account);
-  $: txns =
-    txnsForAccount.
-    filter(txn =>
-        (txn.label || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (txn.memo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        toDollars(txn.amount).includes(searchTerm) ||
-        txn.date.includes(searchTerm) ||
-        accountsMap.get(txn.from_id).name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        // We have to treat this as an array because we have to_ids field when
-        // viewing a bank account
-        (txn.to_ids ? txn.to_ids : [txn.to_id]).map(accountId => accountsMap.get(accountId).name.toLowerCase().includes(searchTerm.toLowerCase())).filter(identity).length > 0
-    );
+  $: txns = txnsForAccount.filter(
+    txn =>
+      (txn.label || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (txn.memo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      toDollars(txn.amount).includes(searchTerm) ||
+      txn.date.includes(searchTerm) ||
+      accountsMap
+        .get(txn.from_id)
+        .name.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      // We have to treat this as an array because we have to_ids field when
+      // viewing a bank account
+      (txn.to_ids ? txn.to_ids : [txn.to_id])
+        .map(accountId =>
+          accountsMap
+            .get(accountId)
+            .name.toLowerCase()
+            .includes(searchTerm.toLowerCase())
+        )
+        .filter(identity).length > 0
+  );
 
   const numItemsPerPage = 100;
   let pageNum = 0;

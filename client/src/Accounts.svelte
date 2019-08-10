@@ -139,6 +139,10 @@
   </section>
 
   <section role="main" aria-label="Envelope balances">
+    <output>
+      <span><span><label for="income">Income</label> (<input id="income" type="number" step="0.01" bind:value={estIncome} class="border w-16" />)</span> - Budget ({toDollars(totalBudget)})</span> = <span>{toDollars((estIncome * 100) - totalBudget)} / {$intervalStore}</span>
+    </output>
+
     {#each envelopeTagValues as tagValue}
       <div data-cy={`envelope-group-${tagValue || 'null'}`}>
         <header class="small-caps">
@@ -148,14 +152,9 @@
           </span>
         </header>
         <output data-cy="total-balance">
-          Total balance: {toDollars(totalBalancesByTag[tagValue])}
+          Total balance for {sortTag}={tagValue}: {toDollars(totalBalancesByTag[tagValue])}
         </output>
 
-        <br />
-
-        <output>
-          <span><span><label for="income">Income</label> (<input id="income" type="number" step="0.01" bind:value={estIncome} class="border w-16" />)</span> - Budget ({toDollars(totalBudget)})</span> = <span>{toDollars((estIncome * 100) - totalBudget)} / {$intervalStore}</span>
-        </output>
         <table class="border-collapse">
           <tbody>
             {#each envelopesByTag[tagValue] as envelope}

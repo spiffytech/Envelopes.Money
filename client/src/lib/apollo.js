@@ -14,6 +14,7 @@ export const fragments = gql`
         insertion_order
         cleared
         sha256
+        coordinates
       }
       
       fragment account on accounts {

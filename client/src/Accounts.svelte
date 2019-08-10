@@ -16,6 +16,11 @@
 
   $: budgetPerEnvelope = new Map($accountsStore.filter(account => account.type === 'envelope').map(envelope => ({...envelope, balance: $balancesStore[envelope.id]})).map(envelope => [envelope.id, Balances.calcAmountForPeriod(envelope)[$intervalStore]]))
 
+  $: totalBudget = Array.from(budgetPerEnvelope.values()).reduce((acc, item) => acc + item, 0);
+
+  let estIncome = parseFloat(localStorage.getItem('estIncome') || 0);
+  $: localStorage.setItem('estIncome', estIncome);
+
   // How often we use accounts
   $: usageTo = groupBy(txn => txn.to_id, $transactionsStore.filter(txn => txn.type === "banktxn"));
 
@@ -144,6 +149,12 @@
         </header>
         <output data-cy="total-balance">
           Total balance: {toDollars(totalBalancesByTag[tagValue])}
+        </output>
+
+        <br />
+
+        <output>
+          <span><span><label for="income">Income</label> (<input id="income" type="number" step="0.01" bind:value={estIncome} class="border w-16" />)</span> - Budget ({toDollars(totalBudget)})</span> = <span>{toDollars((estIncome * 100) - totalBudget)} / {$intervalStore}</span>
         </output>
         <table class="border-collapse">
           <tbody>

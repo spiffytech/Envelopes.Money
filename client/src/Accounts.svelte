@@ -151,11 +151,15 @@
             {tagValue === 'undefined' ? 'No Value' : tagValue}
           </span>
         </header>
-        <output data-cy="total-balance">
-          Total balance for {sortTag}={tagValue}: {toDollars(totalBalancesByTag[tagValue])}
-        </output>
 
         <table class="border-collapse">
+          <thead>
+            <tr>
+              <td>Envelope</td>
+              <td>Budgeted: <output>{toDollars(envelopesByTag[tagValue].map(envelope => budgetPerEnvelope.get(envelope.id)).reduce((acc, item) => acc + item, 0))}</output></td>
+              <td>Balance: <output data-cy="total-balance">{toDollars(totalBalancesByTag[tagValue])}</output></td>
+            </tr>
+          </thead>
           <tbody>
             {#each envelopesByTag[tagValue] as envelope}
               <a

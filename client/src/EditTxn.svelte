@@ -24,17 +24,42 @@
     ? decodeURIComponent(decodeURIComponent(params.txnId))
     : undefined;
 
+  let coordinates = null;
+
   // This takes care of while we're initializing
   let txns = [Transactions.mkEmptyTransaction()];
   let type = txns.map(txn => txn.type)[0] || 'banktxn';
 
+  function getCoordinates() {
+    return Promise.race([
+      new Promise((resolve, reject) => setTimeout(() => resolve(null), 10000)),
+      new Promise((resolve, reject) => {
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({latitude: pos.coords.latitude, longitude: pos.coords.longitude}),
+            () => resolve(null)
+          );
+        } else {
+          debug('No support for geolocation in this browser');
+          return null;
+        }
+      })
+    ]);
+  }
+
   // This takes care of when our props change
   onMount(async () => {
-    if (!txnId) return;
-    const txnsByGroupId = $transactionsStore.filter(txn => txn.txn_id === txnId);
-    if (txnsByGroupId.length === 0) return page('/404');
-    txns = txnsByGroupId;
-    type = txnsByGroupId[0].type;
+    if (txnId) {
+      const txnsByGroupId = $transactionsStore.filter(txn => txn.txn_id === txnId);
+      if (txnsByGroupId.length === 0) {
+        return page('/404');
+      }
+      txns = txnsByGroupId;
+      type = txnsByGroupId[0].type;
+      coordinates = txnsByGroupId[0].coordinates;
+    } else {
+      coordinates = await getCoordinates();
+    }
   });
 
   let finalTxnId;
@@ -48,6 +73,7 @@
       memo: txns[0].memo,
       from_id: txns[0].from_id,
       cleared: txns[0].cleared,
+      ...(type === 'banktxn' ? {coordinates} : {}),
       type,
       txn_id: finalTxnId,
     }))
@@ -207,7 +233,10 @@
           Cleared
         </label>
       </div>
+
+      <div>Location: {@html coordinates ? '&#10003;' : '&#10007;'}</div>
     </div>
+
 
     <div class="flex-auto max-w-sm px-0 sm:px-3">
       <p class="font-bold" data-cy="sum-of-splits">

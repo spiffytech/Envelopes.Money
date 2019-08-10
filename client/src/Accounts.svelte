@@ -14,9 +14,7 @@
   const intervalStore = getContext('intervalStore');
 
   // How often we use accounts
-      $: usageTo = groupBy(txn => txn.to_id, $transactionsStore.filter(txn => txn.type === "banktxn"));
-
-$: console.log(usageTo);
+  $: usageTo = groupBy(txn => txn.to_id, $transactionsStore.filter(txn => txn.type === "banktxn"));
 
   $: sortFns = {
     name: (a, b) => (a.name < b.name ? -1 : 1),
@@ -31,7 +29,6 @@ $: console.log(usageTo);
   let showAccounts = false;
   let sortBy = 'frequently-used';
   $: sortFn = sortFns[sortBy];
-  $: console.log(sortFn);
   let sortTag = localStorage.getItem('selectedTag');
   $: localStorage.setItem('selectedTag', sortTag);
 

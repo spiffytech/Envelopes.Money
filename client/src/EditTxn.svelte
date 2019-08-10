@@ -251,7 +251,9 @@
         </label>
       </div>
 
-      <div>Location: {@html coordinates ? '&#10003;' : '&#10007;'}</div>
+      {#if type === 'banktxn' && !txnId}
+        <div>Location: {@html coordinates ? '&#10003;' : '&#10007;'}</div>
+      {/if}
     </div>
 
 

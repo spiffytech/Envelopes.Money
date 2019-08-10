@@ -216,6 +216,12 @@
 
 {#each txns.slice(pageNum * numItemsPerPage, (pageNum + 1) * numItemsPerPage) as txn (txn.txn_id)}
   <Transaction {txn} />
+{:else}
+  {#if searchTerm !== ''}
+    <p>Nothing matched that search</p>
+  {:else}
+    <p>Nothing to show here</p>
+  {/if}
 {/each}
 
 {#each new Array(Math.ceil(txns.length / numItemsPerPage))

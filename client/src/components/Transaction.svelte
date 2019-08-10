@@ -10,9 +10,9 @@
   const accountsMap = new Map(
     $accountsStore.map(account => [account.id, account])
   );
-  const fromName = accountsMap.get(txn.from_id).name;
-  const toIds = txn.to_ids ? txn.to_ids : [txn.to_id];
-  const toNames = toIds.map(to_id => accountsMap.get(to_id).name);
+  $: fromName = accountsMap.get(txn.from_id).name;
+  $: toIds = txn.to_ids ? txn.to_ids : [txn.to_id];
+  $: toNames = toIds.map(to_id => accountsMap.get(to_id).name);
 </script>
 
 <a

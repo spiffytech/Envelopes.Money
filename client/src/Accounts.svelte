@@ -5,6 +5,7 @@
   import uniq from 'ramda/es/uniq';
   import { getContext } from 'svelte';
 
+  import * as Balances from './lib/Balances';
   import { toDollars } from './lib/pennies';
   import { formatDate } from './lib/utils';
 
@@ -12,6 +13,8 @@
   const balancesStore = getContext('balancesStore');
   const transactionsStore = getContext('transactionsStore');
   const intervalStore = getContext('intervalStore');
+
+  $: budgetPerEnvelope = new Map($accountsStore.filter(account => account.type === 'envelope').map(envelope => ({...envelope, balance: $balancesStore[envelope.id]})).map(envelope => [envelope.id, Balances.calcAmountForPeriod(envelope)[$intervalStore]]))
 
   // How often we use accounts
   $: usageTo = groupBy(txn => txn.to_id, $transactionsStore.filter(txn => txn.type === "banktxn"));
@@ -23,6 +26,9 @@
     },
     'frequently-used': (a, b) => {
       return (usageTo[a.id] || []).length > (usageTo[b.id] || []).length ? -1 : 1
+    },
+    budgeted: (a, b) => {
+      return budgetPerEnvelope.get(a.id) < budgetPerEnvelope.get(b.id) ? 1 : -1;
     }
   };
 
@@ -121,6 +127,7 @@
           <option value="name">Name</option>
           <option value="frequently-used">Frequently Used</option>
           <option value="balance">Balance</option>
+          <option value="budgeted">Budgeted</option>
         </select>
       </label>
     </div>
@@ -149,6 +156,7 @@
                 data-account-name={envelope.name}>
                 <tr class="border-b border-black border-dashed">
                   <td class="w-full">{envelope.name}</td>
+                  <td class="text-right"><output>{toDollars(budgetPerEnvelope.get(envelope.id))} / {$intervalStore}</output></td>
                   <td class="text-right">
                     <output>{toDollars($balancesStore[envelope.id])}</output>
                   </td>

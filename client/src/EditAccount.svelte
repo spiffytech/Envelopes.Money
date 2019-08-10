@@ -214,7 +214,7 @@
   <input id="search" class="input-inline" bind:value={searchTerm} />
 </div>
 
-{#each txns.slice(pageNum * numItemsPerPage, (pageNum + 1) * numItemsPerPage) as txn}
+{#each txns.slice(pageNum * numItemsPerPage, (pageNum + 1) * numItemsPerPage) as txn (txn.txn_id)}
   <Transaction {txn} />
 {/each}
 

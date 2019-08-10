@@ -26,6 +26,7 @@
     "faker": "^4.1.0",
     "graphql": "^14.2.1",
     "graphql-tag": "^2.10.1",
+    "haversine": "^1.1.1",
     "js-base64": "^2.5.1",
     "mini-css-extract-plugin": "^0.6.0",
     "page": "^1.11.4",

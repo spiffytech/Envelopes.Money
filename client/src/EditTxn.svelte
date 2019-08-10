@@ -1,5 +1,6 @@
 <script>
   import comparator from 'ramda/es/comparator';
+  import haversine from 'haversine';
   import map from 'ramda/es/map';
   import page from 'page';
   import groupBy from 'ramda/es/groupBy';
@@ -59,6 +60,22 @@
       coordinates = txnsByGroupId[0].coordinates;
     } else {
       coordinates = await getCoordinates();
+
+      // Try guessing the user's payee if they haven't started filling things
+      // in yet
+      if (!txns[0].label) {
+        const txnsWithCoordinates = $transactionsStore.filter(txn => txn.type === 'banktxn' && txn.label && txn.coordinates !== null);
+        const nearbyTxns = txnsWithCoordinates.map(txn => {
+          console.log(coordinates, txn);
+          const distance = haversine(coordinates, txn.coordinates, {unit: 'mile'});
+          return {...txn, distance};
+        });
+        const txnsByDistance = nearbyTxns.sort(comparator((a, b) => a.distance < b.distance));
+        // Only try this if we actually have txns, and if they're actually close by
+        if (txnsByDistance.length > 0 && txnsByDistance[0].distance < 0.5) {
+          setSuggestion(txnsByDistance[0].label);
+        }
+      }
     }
   });
 

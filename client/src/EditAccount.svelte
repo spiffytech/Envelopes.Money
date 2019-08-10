@@ -2,6 +2,7 @@
   import Debug from 'debug';
   import flatten from 'ramda/es/flatten';
   import groupBy from 'ramda/es/groupBy';
+  import identity from 'ramda/es/identity';
   import page from 'page';
   import * as shortid from 'shortid';
   import { getContext, onMount } from 'svelte';
@@ -12,6 +13,7 @@
   import saveAccount from './lib/accounts/saveAccount';
   import * as Tags from './lib/Tags';
   import { formatDate } from './lib/utils';
+  import { toDollars } from './lib/pennies';
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
   const accountsStore = getContext('accountsStore');
@@ -68,7 +70,25 @@
   );
   let newTag = { key: '', value: '' };
 
-  $: txns = findTxnsForAccount($transactionsStore, account);
+  let searchTerm = '';
+  // Must be reactive in case our accountId URL param changes
+  $: accountsMap = new Map($accountsStore.map(account => [account.id, account]));
+  // Calculate this as a separate step from the searchTerm filtering so we
+  // don't recalculate this every time the search term changes
+  $: txnsForAccount = findTxnsForAccount($transactionsStore, account);
+  $: txns =
+    txnsForAccount.
+    filter(txn =>
+        (txn.label || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (txn.memo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        toDollars(txn.amount).includes(searchTerm) ||
+        txn.date.includes(searchTerm) ||
+        accountsMap.get(txn.from_id).name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // We have to treat this as an array because we have to_ids field when
+        // viewing a bank account
+        (txn.to_ids ? txn.to_ids : [txn.to_id]).map(accountId => accountsMap.get(accountId).name.toLowerCase().includes(searchTerm.toLowerCase())).filter(identity).length > 0
+    );
+
   const numItemsPerPage = 100;
   let pageNum = 0;
 
@@ -177,6 +197,11 @@
 </form>
 
 <Balance {account} defaultDaysToRender={15} />
+
+<div class="flex flex-col mb-5">
+  <label for="search" class="label-inline">Search Transactions</label>
+  <input id="search" class="input-inline" bind:value={searchTerm} />
+</div>
 
 {#each txns.slice(pageNum * numItemsPerPage, (pageNum + 1) * numItemsPerPage) as txn}
   <Transaction {txn} />

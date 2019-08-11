@@ -8,6 +8,7 @@
   import immer from 'immer';
   import page from 'page';
   import { setContext } from 'svelte';
+  import { get as storeGet } from 'svelte/store';
   import shortid from 'shortid';
 
   import { mkClient as mkWSClient } from './lib/graphql';
@@ -192,12 +193,16 @@
   $: if ($credsStore !== null && $wsclientStore === null) {
     initWsclient($credsStore);
   }
-  activityEmitter.on('accountsChanged', () =>
-    syncAccounts($credsStore, $wsclientStore)
-  );
-  activityEmitter.on('transactionsChanged', () =>
-    syncTransactions($credsStore, $wsclientStore)
-  );
+  activityEmitter.on('accountsChanged', () => {
+    if (storeGet(syncStore)) {
+      syncAccounts($credsStore, $wsclientStore);
+    }
+  });
+  activityEmitter.on('transactionsChanged', () => {
+    if (storeGet(syncStore)) {
+      syncTransactions($credsStore, $wsclientStore);
+    }
+  });
 
   setContext('endpoint', endpoint);
   setContext('balancesStore', balancesStore);

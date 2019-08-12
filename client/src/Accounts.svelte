@@ -128,7 +128,7 @@
 
       <label>
         Sort By:
-        <select value={sortBy} on:change={event => (sortBy = event.target.value)}>
+        <select bind:value={sortBy}>
           <option value="name">Name</option>
           <option value="frequently-used">Frequently Used</option>
           <option value="balance">Balance</option>

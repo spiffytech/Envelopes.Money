@@ -196,12 +196,12 @@
     initWsclient($credsStore);
   }
   activityEmitter.on('accountsChanged', () => {
-    if (storeGet(syncStore)) {
+    if (storeGet(connectionStore) === 'connected') {
       syncAccounts($credsStore, $wsclientStore);
     }
   });
   activityEmitter.on('transactionsChanged', () => {
-    if (storeGet(syncStore)) {
+    if (storeGet(connectionStore) === 'connected') {
       syncTransactions($credsStore, $wsclientStore);
     }
   });

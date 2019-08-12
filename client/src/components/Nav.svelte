@@ -4,7 +4,7 @@
   const credsStore = getContext('credsStore');
   const navStore = getContext('navStore');
 
-  let navLinks = [
+  $: navLinks = [
     { text: 'New Transaction', link: '/editTxn' },
     { text: 'Fill Envelopes', link: '/fill' },
     { text: 'New Account', link: '/editAccount' },

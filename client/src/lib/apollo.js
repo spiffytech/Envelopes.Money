@@ -13,7 +13,7 @@ export const fragments = gql`
         type
         insertion_order
         cleared
-        sha256
+        _fingerprint
         coordinates
       }
       
@@ -23,7 +23,7 @@ export const fragments = gql`
         type
         extra
         tags
-        sha256
+        _fingerprint
       }
 
       fragment balance on balances {

@@ -25,9 +25,8 @@ export default async function sync(remote, local, status) {
   // Turn this asynchronous so we don't block the event loop when we load the page
   const remoteRecordsObj = await turnAsync(() =>
     fromPairs(
-      remoteRecords.map(({ sha256: ignored, ...record }) => {
-        const string = btoa(JSON.stringify(record));
-        return [`${record.id}|${string}`, record];
+      remoteRecords.map((record) => {
+        return [`${record.id}|${record._fingerprint}`, record];
       })
     )
   );
@@ -65,9 +64,8 @@ export default async function sync(remote, local, status) {
   // Turn this asynchronous so we don't block the event loop when we load the page
   const localRecordsObj = await turnAsync(() =>
     fromPairs(
-      localRecords.map(({ sha256: ignored, ...record }) => {
-        const string = btoa(JSON.stringify(record));
-        return [`${record.id}|${string}`, record];
+      localRecords.map((record) => {
+        return [`${record.id}|${record._fingerprint}`, record];
       })
     )
   );

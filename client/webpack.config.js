@@ -89,7 +89,7 @@ module.exports = {
           urlPattern: /(.*env\.js|global.css|bundle.css|index.html)/,
           handler: 'NetworkFirst',
           options: {
-            networkTimeoutSeconds: 5,
+            networkTimeoutSeconds: 2,
             backgroundSync: {
               name: 'env-js-queue',
             },

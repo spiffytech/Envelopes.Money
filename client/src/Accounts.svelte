@@ -116,7 +116,7 @@
       </header>
       <label>
         Group by:
-        <select on:change={event => (sortTag = event.target.value)}>
+        <select bind:value={sortTag}>
           <option value={'null'}>No Tag</option>
           {#each allTags as tag}
             <option value={tag}>{tag}</option>

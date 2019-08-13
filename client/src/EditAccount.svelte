@@ -55,9 +55,10 @@
   $: canChangeType = !Boolean(
     $accountsStore.find(account => account.id === accountId)
   );
+  let account = Accounts.mkEmptyEnvelope();
   $: account =
     $accountsStore.find(account => account.id === accountId) ||
-    Accounts.mkEmptyEnvelope();
+    account;
   let tags = Array.from(
     new Set(
       flatten(

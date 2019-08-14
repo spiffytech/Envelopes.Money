@@ -72,7 +72,7 @@
         });
         const txnsByDistance = nearbyTxns.sort(comparator((a, b) => a.distance < b.distance));
         // Only try this if we actually have txns, and if they're actually close by
-        if (txnsByDistance.length > 0 && txnsByDistance[0].distance < 0.5) {
+        if (txnsByDistance.length > 0 && txnsByDistance[0].distance < 0.25) {
           setSuggestion(txnsByDistance[0].label);
         }
       }

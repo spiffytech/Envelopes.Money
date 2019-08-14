@@ -6,7 +6,7 @@ import shajs from 'sha.js';
  * Given some accounts that changed, save them to the DB and update the acconut
  * store
  */
-export default async function saveTags({ accountsStore }, dexie, account) {
+export default async function saveAccount({ accountsStore }, dexie, account) {
   const accountWithFingerprint = {
     ...account,
     _fingerprint: shajs('sha256')

@@ -14,8 +14,8 @@ export const transactionsStore = writable(immer([], identity));
 export const accountsStore = writable(immer([], identity));
 
 export const balancesStore = derived(
-  transactionsStore,
-  $transactions => {
+  [transactionsStore, accountsStore],
+  ([$transactions, $accounts]) => {
     debug('Calculating balances');
     const activity = flatten($transactions.map(transaction => [
       {account: transaction.from_id, amount: -transaction.amount},
@@ -23,6 +23,11 @@ export const balancesStore = derived(
     ]));
     const activityByAccount = groupBy(({account}) => account, activity);
     const ret = map(rows => sum(rows.map(({amount}) => amount)), activityByAccount)
+    // If we have an empty account it won't show up in our transactions list.
+    // Detect such cases and set the balance to zero.
+    $accounts.forEach(account => {
+      if (!ret[account.id]) ret[account.id] = 0;
+    });
     debug('Done calculating balances');
     return ret;
   }

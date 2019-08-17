@@ -53,7 +53,7 @@
       date: txns[0].date,
       memo: txns[0].memo,
       from: txns[0].from,
-      to_ids: txns.map(txn => txn.to).join(', '),
+      to: txns.map(txn => txn.to).join(', '),
       cleared: txns[0].cleared,
       ...(txns[0].type === 'banktxn'
         ? { coordinates: txns[0].coordinates }

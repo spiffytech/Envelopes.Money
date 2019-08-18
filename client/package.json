@@ -34,6 +34,7 @@
     "jest-transform-svelte": "^2.0.2",
     "js-base64": "^2.5.1",
     "mini-css-extract-plugin": "^0.6.0",
+    "netlify-lambda": "^1.6.2",
     "page": "^1.11.4",
     "prettier": "^1.18.2",
     "prettier-plugin-svelte": "^0.7.0",
@@ -54,7 +55,7 @@
     "workbox-webpack-plugin": "^4.3.1"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack",
+    "build": "cross-env NODE_ENV=production webpack && npm run tailwind && netlify-lambda build lambda",
     "dev": "webpack-dev-server --content-base public",
     "tailwind": "npx tailwind build style.css -o public/global.css",
     "generate_test_credentials": "node scripts/generate_test_credentials.js"

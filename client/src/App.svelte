@@ -226,7 +226,7 @@
   page('/editTxn/:txnId', setRoute(EditTxn));
   page('/editAccount', setRoute(EditAccount));
   page('/editAccount/:accountId', setRoute(EditAccount));
-  page({ hashbang: true });
+  page();
 </script>
 
 {#if window.Cypress}

@@ -17,7 +17,9 @@ module.exports = {
     proxy: {
         context: ['/api', '/auth'],
         target: `http://${process.env.HOST || 'localhost'}:8001`
-    }
+    },
+    // Allow us to use HTML5 history push routing
+    historyApiFallback: true
   },
   entry: {
     bundle: ['./src/main.js'],
@@ -29,6 +31,8 @@ module.exports = {
     path: __dirname + '/public',
     filename: '[name].[contenthash].js',
     chunkFilename: '[name].[id].js',
+    // Necessary to make historyApiFallback work with page reloads
+    publicPath: '/'
   },
   module: {
     rules: [

@@ -6,6 +6,7 @@
   import EventEmitter from 'eventemitter3';
   import identity from 'ramda/es/identity';
   import immer from 'immer';
+  import netlifyIdentity from 'netlify-identity-widget';
   import page from 'page';
   import { setContext } from 'svelte';
   import { get as storeGet } from 'svelte/store';
@@ -41,6 +42,9 @@
     intervalStore,
   } from './stores/main';
   import { endpoint } from './lib/config';
+
+  window.netlifyIdentity = netlifyIdentity;
+  netlifyIdentity.init();
 
   const debug = Debug('Envelopes.Money:App.svelte');
 

@@ -4,6 +4,8 @@
 	<meta charset='utf8'>
 	<meta name='viewport' content='width=device-width'>
     <meta name="theme-color" content="#f6993f" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 
 	<title>Envelopes.Money</title>
 
@@ -14,8 +16,8 @@
     <noscript>
         Envelopes.Money is a browser app. We do that so we can provide you with an offline experience. That means you'll need to enable JavaScript to run the app.
     </noscript>
-	<script src="env.js"></script>
-	<link rel="preload" as="style" href='global.css' onload="this.rel='stylesheet'">
-	<link rel="preload" as="style" href='bundle.css' onload="this.rel='stylesheet'">
+    <script src="/env.js?cachebust=<%= Math.random() * 10000 %>"></script>
+    <link rel="stylesheet" href='/global.css?cachebust=<%= Math.random() * 10000 %>'>
+    <link rel="stylesheet" href='/bundle.css?cachebust=<%= Math.random() * 10000 %>'>
 </body>
 </html>

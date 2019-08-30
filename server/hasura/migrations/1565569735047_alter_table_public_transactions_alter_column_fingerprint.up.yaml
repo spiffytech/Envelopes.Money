@@ -1,0 +1,6 @@
+- args:
+    sql: COMMENT ON COLUMN "public"."transactions"."fingerprint" IS E''
+  type: run_sql
+- args:
+    sql: alter table "public"."transactions" rename column "fingerprint" to "_fingerprint";
+  type: run_sql

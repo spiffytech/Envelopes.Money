@@ -1,0 +1,6 @@
+- args:
+    sql: COMMENT ON COLUMN "public"."transactions"."sha256" IS E''
+  type: run_sql
+- args:
+    sql: alter table "public"."transactions" rename column "sha256" to "fingerprint";
+  type: run_sql

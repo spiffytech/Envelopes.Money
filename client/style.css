@@ -9,7 +9,7 @@
  *
  * @import "tailwindcss/preflight";
  */
-@tailwind preflight;
+@tailwind base;
 
 /**
  * This injects any component classes registered by plugins.
@@ -19,6 +19,47 @@
  * @import "tailwindcss/components";
  */
 @tailwind components;
+
+
+.btn {
+  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-sm border-2 border-white bg-white cursor-pointer text-center
+}
+@screen md {
+    .btn {
+        @apply p-2 m-2 text-base;
+    }
+}
+
+.btn-primary {
+    @apply border bg-orange-500 border-orange-500;
+}
+
+.btn-secondary {
+    @apply bg-orange-200 border border-orange-200;
+}
+
+.btn-tertiary {
+    @apply border-gray-500;
+}
+
+.form-input {
+    position: relative;
+}
+
+.label-inline {
+    /* self-start fixes the label's width once we put it into a flex-col div */
+    @apply bg-white self-start px-2;
+    transform: translate3d(0.5rem, 50%, 0);
+}
+
+.input-inline {
+    @apply pt-3 pb-2 px-3 border bg-white;
+    width: 100%;
+}
+
+.content {
+  @apply bg-white p-2 rounded border border-2 border-gray-400 m-4
+}
 
 /**
  * Here you would add any of your custom component classes; stuff that you'd
@@ -60,44 +101,3 @@
  * @import "utilities/background-patterns";
  * @import "utilities/skew-transforms";
  */
-
-.btn {
-  @apply p-1 rounded min-w-0 no-underline m-1 inline-block text-orange-darkest text-sm border-2 border-white bg-white text-orange-darkest cursor-pointer text-center
-}
-@screen md {
-    .btn {
-        @apply p-2 m-2 text-base;
-    }
-}
-
-.btn-primary {
-    @apply border bg-orange border-orange;
-}
-
-.btn-secondary {
-    @apply bg-orange-lighter border border-orange-lighter;
-}
-
-.btn-tertiary {
-    @apply border-grey;
-}
-
-.label {
-  @apply flex flex-col justify-between mb-4
-}
-@screen md {
-  .label {
-    @apply flex-row mb-0
-  }
-}
-
-.input {
-  @apply w-64 overflow-hidden border
-}
-@screen md {
-  @apply ml-12
-}
-
-.content {
-  @apply bg-white p-2 rounded border border-2 border-grey-light m-4
-}

@@ -28,5 +28,6 @@ cypress.env.json
 
 client/public/bundle*js*
 client/public/env.js
+client/public/index.html
 
 couchdb.ini

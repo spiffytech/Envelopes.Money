@@ -1,0 +1,25 @@
+- args:
+    role: user
+    table:
+      name: accounts
+      schema: public
+  type: drop_select_permission
+- args:
+    permission:
+      allow_aggregations: false
+      columns:
+      - extra
+      - id
+      - name
+      - sha256
+      - tags
+      - type
+      - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+    role: user
+    table:
+      name: accounts
+      schema: public
+  type: create_select_permission

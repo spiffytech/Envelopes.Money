@@ -1,47 +1,59 @@
 <script>
-  import {pouchStore} from '../stores/main';
-  import Login from "../Login.svelte";
+  import { getContext } from 'svelte';
 
-  let showLogIn = false;
+  const credsStore = getContext('credsStore');
+  const navStore = getContext('navStore');
+
+  $: navLinks = [
+    { text: 'New Transaction', link: '/editTxn' },
+    { text: 'Fill Envelopes', link: '/fill' },
+    { text: 'New Account', link: '/editAccount' },
+    { text: 'Edit Tags', link: '/editTags' },
+    $credsStore === null
+      ? { text: 'Log In', link: '/login' }
+      : { text: $credsStore.email, link: '/logout' },
+  ];
 </script>
 
-<div class="stripe bg-orange h-1" />
-<div
-  class="bg-white border border-grey-light rounded flex justify-between
-  flex-wrap nav mb-2">
-  <div class="flex">
-    <a class="btn font-bold" href="/home" data-cy='home-button'>Envelopes.Money</a>
+<style>
+  nav ul {
+    list-style-type: none;
+  }
 
-    {#if window._env_.POUCH_ONLY && !$pouchStore.loggedIn}
-      <button class="btn" on:click|preventDefault={() => showLogIn = true}>Log In</button>
-    {/if}
+  nav ul li a {
+    text-decoration: none;
+  }
+</style>
 
-    <a href="mailto:hello@envelopes.money?subject=Re%3A%20Feedback&body=" class="btn">Say hello!</a>
+{#if $navStore}
+  <nav class="bg-orange-500 block sm:hidden" data-cy="nav-buttons" aria-label="menu">
+    <ul class="p-0">
+      {#each navLinks as link}
+        <li class="bg-orange-500 pl-2 pb-2 pt-2 border-b-2 border-gray-900">
+          <a
+            class="text-gray-900"
+            href={link.link}
+            data-cy="fill-envelopes"
+            on:click={() => navStore.set(false)}>
+            {link.text}
+          </a>
+        </li>
+      {/each}
+    </ul>
+  </nav>
+{/if}
 
-    {#if $pouchStore.state === 'active'}<p>⌛</p>{/if}
-    {#if $pouchStore.state === 'error' || $pouchStore.state === 'complete'}<p title={$pouchStore.stateDetail} on:click={() => alert($pouchStore.stateDetail)}>❗</p>{/if}
-  </div>
-  <div data-cy="nav-buttons">
-    <a class="btn btn-primary" href="/editTxn" data-cy="new-transaction">
-      New Transaction
-    </a>
-    <a
-      class="btn btn-secondary"
-      href="/editAccount"
-      data-cy="new-account">
-      New Account
-    </a>
-    <a class="btn btn-secondary" href="/fill" data-cy="fill-envelopes">
-      Fill Envelopes
-    </a>
-    <a class="btn btn-secondary" href="/editTags" data-cy="edit-tags">
-      Edit Tags
-    </a>
-  </div>
-</div>
-
-<dialog open={showLogIn} class="shadow-md rounded-lg">
-  <button on:click|preventDefault={() => showLogIn = false} class="float-right">Close</button>
-  <Login />
-
-</dialog>
+<nav class="bg-orange-500 hidden sm:block" data-cy="nav-buttons" aria-label="menu">
+  <ul class="flex p-0">
+    {#each navLinks as link}
+      <li class="p-2 border-2 border-gray-900">
+        <a
+          class="text-gray-900"
+          href={link.link}
+          data-cy="fill-envelopes">
+          {link.text}
+        </a>
+      </li>
+    {/each}
+  </ul>
+</nav>

@@ -1,60 +1,46 @@
 <script>
   import Debug from 'debug';
+  import flatten from 'ramda/es/flatten';
   import page from 'page';
   import fromPairs from 'ramda/es/fromPairs';
-  import {getContext, onMount} from 'svelte';
-  import {arrays as derivedStore, store} from './stores/main';
-  
+  import { getContext, onMount } from 'svelte';
+
   import * as Accounts from './lib/Accounts';
   import * as Tags from './lib/Tags';
-  import {PouchAccounts} from './lib/pouch';
+  import saveTags from './lib/accounts/saveTags';
 
   const debug = Debug('Envelopes.Money:EditTags.svelte');
 
-  const graphql = getContext('graphql');
-  let allTags = $derivedStore.tags;
-  let accounts = $derivedStore.envelopes;
+  const accountsStore = getContext('accountsStore');
+  const activityEmitter = getContext('activityEmitter');
+  const dexie = getContext('dexie');
+
+  let accounts = $accountsStore.filter(account => account.type === 'envelope');
+  let allTags = Array.from(
+    new Set(
+      flatten(accounts.map(({ tags }) => tags).map(tags => Object.keys(tags)))
+    )
+  );
   let selectedTag = null;
   let error = null;
   let dirty = {};
 
   async function handleSubmit() {
-    if (!window._env_.POUCH_ONLY) {
-      const accountsWithSelectedTag = fromPairs(
-        accounts.
-        filter((account) => account.tags[selectedTag]).
-        map((account) => [account.id, {[selectedTag]: account.tags[selectedTag]}])
-      );
-
-      const accountsWithoutSelectedTag =
-        accounts.
-        filter((account) => !account.tags[selectedTag]).
-        map((account) => account.id);
-    
-      try {
-        await Tags.updateAccountsTags(graphql, accountsWithSelectedTag)
-        await Tags.deleteTagFromAccounts(graphql, selectedTag, accountsWithoutSelectedTag);
-        error = null;
-        page('/home');
-      } catch (ex) {
-        error = ex.message;
-        throw ex;
-      }
-    } 
-    if (window.env.USE_POUCH) {
-      const accountsThatChanged = accounts.filter((account) => dirty[account.id]);
-      debug('These accounts changed: %o', accountsThatChanged);
-
-      const pouchAccounts = new PouchAccounts(graphql.localDB);
-    }
+    const accountsThatChanged = accounts.filter(account => dirty[account.id]);
+    debug('These accounts changed: %o', accountsThatChanged);
+    await saveTags({ accountsStore }, dexie, accountsThatChanged);
+    activityEmitter.emit('accountsChanged');
+    page('/home');
   }
 </script>
 
-<div class='flex justify-around'>
-  {#if error}<p>{error}</p>{/if}
+<div class="flex justify-around">
+  {#if error}
+    <p>{error}</p>
+  {/if}
 
-  <form on:submit|preventDefault={handleSubmit} class='content'>
-    <select bind:value={selectedTag} class='border'>
+  <form on:submit|preventDefault={handleSubmit} class="content">
+    <select bind:value={selectedTag} class="border">
       <option value={null}>Select a tag</option>
       {#each allTags as tag}
         <option value={tag}>{tag}</option>
@@ -64,22 +50,21 @@
     {#if selectedTag}
       {#each accounts as account}
         <div>
-          <label class='label'>
+          <label class="label">
             {account.name}
             <input
-              class='input'
+              class="input"
               value={account.tags[selectedTag] || ''}
-              on:input={(event) => {
-                account.tags[selectedTag] = event.target.value
+              on:input={event => {
+                account.tags[selectedTag] = event.target.value;
                 dirty[account.id] = true;
-              }}
-            />
+              }} />
           </label>
         </div>
       {/each}
 
       <div>
-        <button type="submit" class='btn btn-primary'>Save Tags</button>
+        <button type="submit" class="btn btn-primary">Save Tags</button>
       </div>
     {/if}
   </form>

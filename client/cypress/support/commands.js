@@ -24,8 +24,6 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
-import PouchDB from 'pouchdb';
-
 Cypress.Commands.add('register', () => {
     cy.exec('npm run --silent generate_test_credentials').then((result) => {
         const [email, password] = result.stdout.trim().split(',');
@@ -76,9 +74,6 @@ Cypress.Commands.add('loadAccounts', (suffix) => {
 
 Cypress.Commands.add('clearData', () => {
   cy.window().then(() =>
-    Promise.all([
-      new PouchDB("meta").destroy(),
-      new PouchDB("envelopes.money").destroy()
-    ])
+    window.indexedDB.deleteDatabase('KintoDB')
   );
 });

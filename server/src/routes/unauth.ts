@@ -2,7 +2,6 @@ import express from 'express';
 import * as auth from '../controllers/auth';
 import * as hasura from '../controllers/hasura';
 
-
 const router = express.Router();
 export default router;
 

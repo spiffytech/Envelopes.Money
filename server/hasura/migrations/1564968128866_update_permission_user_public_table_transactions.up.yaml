@@ -1,0 +1,36 @@
+- args:
+    role: user
+    table:
+      name: transactions
+      schema: public
+  type: drop_insert_permission
+- args:
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+      - amount
+      - cleared
+      - date
+      - from_id
+      - id
+      - label
+      - memo
+      - sha256
+      - to_id
+      - txn_id
+      - type
+      - user_id
+      localPresets:
+      - key: user_id
+        value: x-hasura-User-Id
+      - key: ""
+        value: ""
+      set:
+        user_id: x-hasura-User-Id
+    role: user
+    table:
+      name: transactions
+      schema: public
+  type: create_insert_permission

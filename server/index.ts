@@ -15,7 +15,7 @@ if (!process.env.GRAPHQL_ENDPOINT) throw new Error("Missing GRAPHQL_ENDPOINT");
 if (!process.env.COOKIE_SECRET) throw new Error("Missing COOKIE_SECRET");
 if (!process.env.SCRYPT_SALT) throw new Error("Missing SCRYPT_SALT");
 
-const debug = Debug('app');
+const debug = Debug('Envelopes.Money:app');
 
 const app = express();
 app.use(morgan("combined"));
@@ -27,7 +27,7 @@ app.use(
 );
 app.use(
   cookieSession({
-    name: "session",
+    name: "Envelopes.Money",
     secret: process.env.COOKIE_SECRET,
     maxAge: 1000 * 86400 * 14,
     signed: false
@@ -35,7 +35,7 @@ app.use(
 );
 
 if (!process.env.POUCH_ONLY) {
-  app.use("/", unauth);
+  app.use("/auth", unauth);
 
   const authedRouter = express.Router();
   authedRouter.use(async (req, res, next) => {

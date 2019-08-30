@@ -8,19 +8,18 @@ services:
     ports:
       - "5432:5432"
   graphql-engine:
-    image: hasura/graphql-engine:v1.0.0-beta.3
+    image: hasura/graphql-engine:v1.0.0-beta.4
     ports:
-    - "8080:8080"
+    - "9090:8080"
     depends_on:
     - "postgres"
     restart: on-failure
     environment:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:@postgres:5432/postgres
-      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
-      ## uncomment next line to set an admin secret
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
-      HASURA_GRAPHQL_AUTH_HOOK: http://hackerbudget:3000/hasura_auth
-  hackerbudget:
+      HASURA_GRAPHQL_AUTH_HOOK: http://envelopes-money:3000/auth/hasura_auth
+  envelopes-money:
     image: spiffytech/envelopes.money:beta
     ports:
         - "8001:3000"
@@ -29,14 +28,11 @@ services:
     restart: on-failure
     environment:
       GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1alpha1/graphql
-      GRAPHQL_HTTP_HOST: http://localhost:8080/v1/graphql
-      GRAPHQL_WSS_HOST: ws://localhost:8080/v1/graphql
+      GRAPHQL_WSS_HOST: ws://localhost:9090/v1/graphql
       HASURA_ADMIN_KEY: myadminsecretkey
       COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple
-      USE_POUCH: "true"
-      COUCHDB: http://127.0.0.1:5984
-      DEBUG: app
+      DEBUG: Envelopes.Money:*
   couch:
     image: couchdb
     restart: on-failure
@@ -45,6 +41,21 @@ services:
       - couchdb_data:/opt/couchdb/data
     ports:
       - 5984:5984
+
+  kinto:
+    image: kinto/kinto-server
+    links:
+     - postgres
+    ports:
+     - "8890:8888"
+    environment:
+      #KINTO_CACHE_BACKEND: kinto.core.cache.memcached
+      #KINTO_CACHE_HOSTS: cache:11211 cache:11212
+      KINTO_STORAGE_BACKEND: kinto.core.storage.postgresql
+      KINTO_STORAGE_URL: postgresql://postgres:postgres@postgres/postgres
+      KINTO_PERMISSION_BACKEND: kinto.core.permission.postgresql
+      KINTO_PERMISSION_URL: postgresql://postgres:postgres@postgres/postgres
+      KINTO_CORS_ORIGINS: http://localhost:8080 http://penguin.linux.test:8889
 volumes:
   db_data:
   couchdb_data:

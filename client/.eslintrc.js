@@ -15,5 +15,8 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module',
   },
-  rules: {'no-console': ["error", { allow: ["warn", "error"] }]},
+  rules: {
+    'no-console': ["error", { allow: ["warn", "error"] }],
+    'no-unused-vars': ["error", {varsIgnorePattern: "[iI]gnored"}]
+  },
 };

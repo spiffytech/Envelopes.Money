@@ -1,15 +1,25 @@
 <script>
-  import { toDollars } from "../lib/pennies";
+  import { getContext } from 'svelte';
+
+  import { toDollars } from '../lib/pennies';
 
   export let txn;
+
+  const accountsStore = getContext('accountsStore');
+
+  const accountsMap = new Map(
+    $accountsStore.map(account => [account.id, account])
+  );
+  $: fromName = accountsMap.get(txn.from_id).name;
+  $: toIds = txn.to_ids ? txn.to_ids : [txn.to_id];
+  $: toNames = toIds.map(to_id => accountsMap.get(to_id).name);
 </script>
 
 <a
   style="display: contents"
-  href={`/editTxn/${encodeURIComponent(encodeURIComponent(txn.txn_id))}`}
-  class="no-underline text-black">
+  href={`/editTxn/${encodeURIComponent(encodeURIComponent(txn.txn_id))}`}>
   <div
-    class="flex justify-between p-3 border border-grey-light rounded mb-1"
+    class="flex justify-between p-3 border border-gray-400 rounded mb-1"
     data-cy="transaction">
     <div class="mr-2">{txn.date}</div>
     <div class="text-left flex-1 min-w-0 mr-2">
@@ -25,12 +35,12 @@
       </div>
 
       <div class="flex flex-1 text-xs italic">
-        <span class="whitespace-no-wrap">{txn.from_name}</span>
+        <span class="whitespace-no-wrap">{fromName}</span>
         &nbsp;→&nbsp;
         <span
           style="text-overflow: ellipsis"
           class="whitespace-no-wrap overflow-hidden">
-          {txn.to_names}
+          {toNames.join(', ')}
         </span>
       </div>
     </div>
@@ -39,8 +49,8 @@
 
     <div
       class="ml-2 border-2 rounded text-xl flex item-center justify-between p-1"
-      class:bg-green-lightest={txn.cleared}
-      class:border-green-dark={txn.cleared}
+      class:bg-green-100={txn.cleared}
+      class:border-green-600={txn.cleared}
       title={'Cleared? ' + txn.cleared}>
       <div>C</div>
     </div>

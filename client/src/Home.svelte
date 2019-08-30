@@ -1,82 +1,81 @@
 <script>
   import debounce from 'lodash/debounce';
+  import Debug from 'debug';
+  import groupBy from 'ramda/es/groupBy';
   import page from 'page';
+  import { getContext } from 'svelte';
 
   import Accounts from './Accounts.svelte';
   import Transaction from './components/Transaction.svelte';
-  import {toDollars} from './lib/pennies';
-  import {arrays as derivedStore, store} from './stores/main';
+  import { toDollars } from './lib/pennies';
 
-  let txnsGrouped;
-  $: txnsGrouped = $derivedStore.txnsGrouped;
-  const numItemsPerPage = 100;
-  let pageNum = 0;
+  const debug = Debug('Envelopes.Money:Home.svelte');
 
-  let activeTab = 'accounts';
+  const accountsStore = getContext('accountsStore');
+  const transactionsStore = getContext('transactionsStore');
 
   function triggerDownload(data) {
-    var a = document.createElement("a");
+    var a = document.createElement('a');
     document.body.appendChild(a);
-    a.style = "display: none";
-    const blob = new Blob([data], { type: "octet/stream" });
+    a.style = 'display: none';
+    const blob = new Blob([data], { type: 'octet/stream' });
     const url = window.URL.createObjectURL(blob);
     a.href = url;
-    a.download = 'export.csv';
+    a.download = 'export.json';
     a.click();
     window.URL.revokeObjectURL(url);
   }
 
-  async function exportTxns() {
-    const dataStr =
-      JSON.stringify(txnsGrouped.map((t) => ({
-        date: t.date,
-        amount: toDollars(t.amount),
-        from: t.from_name,
-        to: t.to_names,
-        memo: t.memo,
-        type: t.type,
-        label: t.label
-      })));
+  async function exportTxns(transactions) {
+    const dataStr = JSON.stringify(Object.values(transactions), null, 4);
+    triggerDownload(dataStr);
+  }
 
+  async function exportBankActivity(transactions, accounts) {
+    const accountsMap = new Map(
+      accounts.map(account => [account.id, account.name])
+    );
+
+    const txnsWithAccountNames = transactions
+      .filter(txn => txn.type !== 'envelopeTransfer')
+      .map(txn => ({
+        ...txn,
+        from: accountsMap.get(txn.from_id),
+        to: accountsMap.get(txn.to_id),
+      }));
+    const groups = groupBy(txn => txn.txn_id, txnsWithAccountNames);
+    debug('Exporting groups: %o', groups);
+    const groupTxns = Object.values(groups).map(txns => ({
+      amount: toDollars(
+        txns.map(txn => -txn.amount).reduce((acc, item) => acc + item, 0)
+      ),
+      label: txns[0].label,
+      date: txns[0].date,
+      memo: txns[0].memo,
+      from: txns[0].from,
+      to: txns.map(txn => txn.to).join(', '),
+      cleared: txns[0].cleared,
+      ...(txns[0].type === 'banktxn'
+        ? { coordinates: txns[0].coordinates }
+        : {}),
+      type: txns[0].type,
+      txn_id: txns[0].txn_id,
+    }));
+    debug('Exporting grouped transactions: %o', groupTxns);
+
+    const dataStr = JSON.stringify(groupTxns, null, 4);
     triggerDownload(dataStr);
   }
 </script>
 
-<button class="btn btn-tertiary" on:click={() => activeTab = 'transactions'} data-cy='transactions'>
-  Transactions
+<button
+  class="btn btn-tertiary"
+  on:click|preventDefault={() => exportTxns($transactionsStore)}>
+  Export Transactions Raw
 </button>
-<button class="btn btn-tertiary" on:click={() => activeTab = 'accounts'} data-cy='accounts'>
-  Accounts
+<button
+  class="btn btn-tertiary"
+  on:click|preventDefault={() => exportBankActivity($transactionsStore, $accountsStore)}>
+  Export Bank Activity
 </button>
-{#if activeTab === 'transactions'}
-  <input
-    class='border w-full'
-    value={$store.searchTerm}
-    on:input={debounce((event) => store.update(($s) => ({...$s, searchTerm: event.target.value})), 250, {trailing: true})}
-    placeholder='Search for transactions'
-    data-cy='transactions-search'
-  />
-
-  <button class='btn btn-tertiary' on:click={exportTxns} type='button' data-cy='export-transactions'>
-    Export Transactions
-  </button>
-
-  {#if txnsGrouped.length === 0}
-    <p data-cy='no-transactions'>You don't have any transactions yet! Go create some by clicking the button in the top-right.</p>
-  {/if}
-
-  {#each txnsGrouped.slice(pageNum * numItemsPerPage, (pageNum+1) * numItemsPerPage) as txn}
-    <Transaction {txn} />
-  {/each}
-
-  {#each new Array(Math.ceil(txnsGrouped.length / numItemsPerPage)).fill(null).map((_, i) => i) as btn_number}
-      <button
-          on:click|preventDefault={() => pageNum=btn_number}
-          class="btn btn-secondary"
-      >
-          Page {btn_number + 1}
-      </button>
-  {/each}
-{:else}
-  <Accounts />
-{/if}
+<Accounts />

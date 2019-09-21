@@ -15,6 +15,12 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module',
   },
+  overrides: [
+    {
+      files: ['**/*.svelte'],
+      processor: 'svelte3/svelte3'
+    }
+  ],
   rules: {
     'no-console': ["error", { allow: ["warn", "error"] }],
     'no-unused-vars': ["error", {varsIgnorePattern: "[iI]gnored"}]

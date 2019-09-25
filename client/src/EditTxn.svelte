@@ -219,13 +219,13 @@
         </datalist>
       </div>
 
-<!--
       {#each geoPayees as geoPayee}
-        <button on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
-          {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
-        </button>
+        <div>
+          <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
+            {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
+          </button>
+        </div>
       {/each}
-      -->
 
       <div class="flex flex-col">
         <label class="label-inline" for="date">

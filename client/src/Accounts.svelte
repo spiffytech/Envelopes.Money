@@ -156,7 +156,7 @@
           <thead>
             <tr>
               <td>Envelope</td>
-              <td>Budgeted: <output>{toDollars(envelopesByTag[tagValue].map(envelope => budgetPerEnvelope.get(envelope.id)).reduce((acc, item) => acc + item, 0))}</output></td>
+              <td>Budgeted: <output>{toDollars(envelopesByTag[tagValue].map(envelope => budgetPerEnvelope.get(envelope.id)).reduce((acc, item) => acc + item, 0))} / {$intervalStore}</output></td>
               <td>Balance: <output data-cy="total-balance">{toDollars(totalBalancesByTag[tagValue])}</output></td>
             </tr>
           </thead>
@@ -170,7 +170,7 @@
                 data-account-name={envelope.name}>
                 <tr class="border-b border-black border-dashed">
                   <td class="w-full">{envelope.name}</td>
-                  <td class="text-right"><output>{toDollars(budgetPerEnvelope.get(envelope.id))} / {$intervalStore}</output></td>
+                  <td class="text-right"><output>{toDollars(budgetPerEnvelope.get(envelope.id))}</output></td>
                   <td class="text-right">
                     <output>{toDollars($balancesStore[envelope.id])}</output>
                   </td>

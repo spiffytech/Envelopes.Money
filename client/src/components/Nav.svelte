@@ -9,6 +9,7 @@
     { text: 'Fill Envelopes', link: '/fill' },
     { text: 'New Account', link: '/editAccount' },
     { text: 'Edit Tags', link: '/editTags' },
+    { text: 'Reports', link: '/reports' },
     $credsStore === null
       ? { text: 'Log In', link: '/login' }
       : { text: 'Log Out', link: '/logout' },

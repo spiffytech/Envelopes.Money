@@ -29,6 +29,7 @@
   import PageHeader from './components/PageHeader.svelte';
   import Nav from './components/Nav.svelte';
   import Login from './Login.svelte';
+  import Reports from './Reports.svelte';
   import {
     accountsStore,
     balancesStore,
@@ -226,6 +227,8 @@
   page('/editTxn/:txnId', setRoute(EditTxn));
   page('/editAccount', setRoute(EditAccount));
   page('/editAccount/:accountId', setRoute(EditAccount));
+  page('/reports', setRoute(Reports));
+  page('/reports/:reportId', setRoute(Reports));
   page();
 </script>
 

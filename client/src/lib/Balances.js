@@ -14,7 +14,7 @@ const durations = {
 }
 
 export function daysUntilDue(due) {
-  return Math.round(new Date(due).getTime() - new Date().getTime()) / 86400000;
+  return Math.max(0, Math.round(new Date(due).getTime() - new Date().getTime()) / 86400000);
 }
 
 /**

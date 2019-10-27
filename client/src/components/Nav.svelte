@@ -11,7 +11,7 @@
     { text: 'Edit Tags', link: '/editTags' },
     $credsStore === null
       ? { text: 'Log In', link: '/login' }
-      : { text: $credsStore.email, link: '/logout' },
+      : { text: 'Log Out', link: '/logout' },
   ];
 </script>
 

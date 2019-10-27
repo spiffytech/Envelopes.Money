@@ -13,7 +13,7 @@ export default async function saveTransactions(wsclient, txns) {
           objects: $txns
           on_conflict: {
             constraint: transactions_pkey
-            update_columns: [memo, date, amount, label, from_id, to_id, cleared]
+            update_columns: [memo, date, amount, label, from_id, to_id, cleared, _fingerprint]
           }
         ) {
           returning {

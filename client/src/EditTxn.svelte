@@ -4,6 +4,7 @@
   import map from 'ramda/es/map';
   import page from 'page';
   import groupBy from 'ramda/es/groupBy';
+  import uniqBy from 'ramda/es/uniqBy';
   import * as shortid from 'shortid';
   import { getContext, onMount } from 'svelte';
 
@@ -26,6 +27,7 @@
     : undefined;
 
   let coordinates = null;
+  let geoPayees = [];
 
   // This takes care of while we're initializing
   let txns = [Transactions.mkEmptyTransaction()];
@@ -38,7 +40,7 @@
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
             (pos) => resolve({latitude: pos.coords.latitude, longitude: pos.coords.longitude}),
-            () => resolve(null)
+            (err) => reject(err)
           );
         } else {
           debug('No support for geolocation in this browser');
@@ -64,17 +66,15 @@
       // Try guessing the user's payee if they haven't started filling things
       // in yet
       if (!txns[0].label) {
-        const txnsWithCoordinates = $transactionsStore.filter(txn => txn.type === 'banktxn' && txn.label && txn.coordinates !== null);
+        const txnsWithCoordinates = $transactionsStore.filter(txn => txn.type === 'banktxn' && txn.label && txn.coordinates);
         const nearbyTxns = txnsWithCoordinates.map(txn => {
           console.log(coordinates, txn);
           const distance = haversine(coordinates, txn.coordinates, {unit: 'mile'});
           return {...txn, distance};
         });
         const txnsByDistance = nearbyTxns.sort(comparator((a, b) => a.distance < b.distance));
-        // Only try this if we actually have txns, and if they're actually close by
-        if (txnsByDistance.length > 0 && txnsByDistance[0].distance < 0.25) {
-          setSuggestion(txnsByDistance[0].label);
-        }
+        const uniqPayees = uniqBy(txn => txn.label, txnsByDistance.filter(({distance}) => distance < 0.25));
+        geoPayees = uniqPayees
       }
     }
   });
@@ -218,6 +218,14 @@
           {/each}
         </datalist>
       </div>
+
+      {#each geoPayees as geoPayee}
+        <div>
+          <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
+            {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
+          </button>
+        </div>
+      {/each}
 
       <div class="flex flex-col">
         <label class="label-inline" for="date">

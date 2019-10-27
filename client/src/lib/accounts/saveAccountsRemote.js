@@ -11,7 +11,7 @@ export default function saveAccounts(wsclient, accounts) {
           objects: $accounts,
           on_conflict: {
             constraint: accounts_pkey, 
-            update_columns: [name, type, extra, tags]
+            update_columns: [name, type, extra, tags, _fingerprint]
           }) {
           returning {id}
         }

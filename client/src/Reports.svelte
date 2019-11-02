@@ -1,6 +1,4 @@
 <script>
-  import { interpret, Machine } from 'xstate';
-
   import Report from './Report.svelte';
 
   export let params;
@@ -21,63 +19,6 @@
     ]
   }
 
-  const reportsMachine = Machine(
-    {
-      id: 'reports',
-      strict: true,
-      initial: 'loading',
-      context: {
-        report: null,
-      },
-
-      states: {
-        loading: {
-          invoke: {
-            id: 'loadReports',
-            src: (...args) => Promise.resolve(loadReports()),
-            onDone: [
-              {
-                target: 'reportSelected',
-                cond: 'hasSelection'
-              },
-              {
-                target: 'noReport',
-              },
-            ],
-            onError: {
-              target: 'error'
-            }
-          },
-        },
-        noReport: {
-          on: {
-            REPORT_SELECTED: 'reportSelected'
-          }
-        },
-        reportSelected: {
-          on: {
-            RUN: 'runningReport',
-            REPORT_SELECTED: 'reportSelected'
-          }
-        },
-        runningReport: {
-          on: {
-            FINISHED: 'reportSelected'
-          }
-        },
-        error: {}
-      },
-
-      guards: {
-        hasSelection(context, event) {
-          return selectedReport !== null
-        }
-      }
-    }
-  );
-
-  const service = interpret(reportsMachine);
-  service.start();
 </script>
 
 <p>Reports</p>

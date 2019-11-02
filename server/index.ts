@@ -21,7 +21,7 @@ const app = express();
 app.use(morgan("combined"));
 app.use(
   cors({
-    origin: [/https?:\/\/localhost:.*/, /https?:\/\/penguin.linux.test:.*/],
+    origin: [/https?:\/\/localhost:\d*/, /https?:\/\/penguin.linux.test:.*/],
     credentials: true
   })
 );
@@ -66,6 +66,11 @@ if (!process.env.POUCH_ONLY) {
       userId: req.session!.credentials.userId
     });
   });
+
+  authedRouter.post('/getAccessToken', express.json(), async (req, res) => {
+    console.log(req.body);
+    res.json({});
+  })
 
   app.use("/api", authedRouter);
 } else {

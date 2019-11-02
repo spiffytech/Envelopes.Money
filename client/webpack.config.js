@@ -16,7 +16,7 @@ module.exports = {
     allowedHosts: ['.ngrok.io', '.localhost.run'],
     proxy: {
         context: ['/api', '/auth'],
-        target: `http://${process.env.HOST || 'localhost'}:8001`
+        target: `http://${process.env.HOST || 'localhost'}:8000`
     },
     // Allow us to use HTML5 history push routing
     historyApiFallback: true

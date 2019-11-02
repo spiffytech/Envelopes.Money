@@ -8,6 +8,7 @@
   import { getContext, onMount } from 'svelte';
 
   import Balance from './Balance.svelte';
+  import PlaidLink from './components/PlaidLink.svelte';
   import Transaction from './components/Transaction.svelte';
   import * as Accounts from './lib/Accounts';
   import saveAccount from './lib/accounts/saveAccount';
@@ -203,6 +204,10 @@
         Add Tag
       </button>
     </div>
+  {/if}
+
+  {#if account.type === 'account'}
+    <PlaidLink />
   {/if}
 
   <button type="submit" class="btn btn-primary">Save {account.type}</button>

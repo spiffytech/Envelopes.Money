@@ -207,7 +207,7 @@
   {/if}
 
   {#if account.type === 'account'}
-    <PlaidLink />
+    <PlaidLink {accountId} />
   {/if}
 
   <button type="submit" class="btn btn-primary">Save {account.type}</button>

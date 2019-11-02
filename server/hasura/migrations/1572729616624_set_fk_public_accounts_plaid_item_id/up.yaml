@@ -1,0 +1,6 @@
+- args:
+    sql: "\n           alter table \"public\".\"accounts\"\n           add constraint
+      \"accounts_plaid_item_id_fkey\" \n           foreign key (\"plaid_item_id\")
+      \n           references \"public\".\"plaid_links\"\n           (\"item_id\")
+      on update cascade on delete cascade;\n      "
+  type: run_sql

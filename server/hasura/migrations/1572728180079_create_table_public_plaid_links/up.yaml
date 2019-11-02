@@ -1,0 +1,10 @@
+- args:
+    sql: CREATE TABLE "public"."plaid_links"("item_id" text NOT NULL, "access_token"
+      text NOT NULL, "user_id" text NOT NULL, PRIMARY KEY ("item_id") , FOREIGN KEY
+      ("user_id") REFERENCES "public"."users"("id") ON UPDATE cascade ON DELETE cascade,
+      UNIQUE ("item_id"));
+  type: run_sql
+- args:
+    name: plaid_links
+    schema: public
+  type: add_existing_table_or_view

@@ -30,6 +30,7 @@
     "morgan": "^1.9.1",
     "mz": "^2.7.0",
     "nconf": "^0.10.0",
+    "plaid": "^4.3.0",
     "shortid": "^2.2.14"
   },
   "devDependencies": {

@@ -3,6 +3,8 @@
 
   import { endpoint } from '../lib/config';
 
+  export let accountId;
+
   let publicToken = null;
 
   function openPlaid(e) {
@@ -14,7 +16,7 @@
       key: window._env_.PLAID_PUBLIC_KEY,
       product: ['transactions'],
       // Optional – use webhooks to get transaction and error updates
-      webhook: 'http://requestbin.net/r/yti6bfyt',
+      webhook: 'https://em-server-hnjh.localhost.run',
       onLoad: function() {
         // Optional, called when Link loads
       },
@@ -25,7 +27,11 @@
         // Select Account view is enabled.
         console.log(public_token);
         publicToken = public_token;
-        await axios.post(`${endpoint}/api/getAccessToken`, {public_token}, {withCredentials: true});
+        await axios.post(
+          `${endpoint}/api/plaid/getAccessToken`,
+          {publicToken, accountId},
+          {withCredentials: true}
+        );
       },
       onExit: function(err, metadata) {
         // The user exited the Link flow.
@@ -57,4 +63,4 @@
 <p>Hello, plaid</p>
 
 <button on:click={openPlaid} class="btn btn-secondary">Link bank account</button>
-<button on:click={(e) => {e.preventDefault(); axios.post(`${endpoint}/api/getAccessToken`, {publicToken}, {withCredentials: true})}} class="btn btn-secondary">Resend thingy</button>
+<button on:click={(e) => {e.preventDefault(); axios.post(`${endpoint}/api/plaid/getAccessToken`, {publicToken, accountId}, {withCredentials: true})}} class="btn btn-secondary">Resend thingy</button>

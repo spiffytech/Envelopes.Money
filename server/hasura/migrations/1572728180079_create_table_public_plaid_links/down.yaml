@@ -1,0 +1,3 @@
+- args:
+    sql: DROP TABLE "public"."plaid_links"
+  type: run_sql

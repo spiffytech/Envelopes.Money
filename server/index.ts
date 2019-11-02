@@ -5,15 +5,27 @@ import cookieSession from "cookie-session";
 import cors from "cors";
 import Debug from 'debug';
 import express from "express";
+import gql from 'graphql-tag';
 import morgan from "morgan";
 import * as path from "path";
+import plaid from 'plaid';
 
+import mkApollo from './src/lib/apollo';
 import unauth from "./src/routes/unauth";
 import * as sessions from "./src/lib/sessions";
 
 if (!process.env.GRAPHQL_ENDPOINT) throw new Error("Missing GRAPHQL_ENDPOINT");
 if (!process.env.COOKIE_SECRET) throw new Error("Missing COOKIE_SECRET");
 if (!process.env.SCRYPT_SALT) throw new Error("Missing SCRYPT_SALT");
+
+const plaidClientId = process.env.PLAID_CLIENT_ID;
+if (!plaidClientId) throw new Error('Missing PLAID_CLIENT_ID');
+const plaidSecret = process.env.PLAID_SECRET;
+if (!plaidSecret) throw new Error('Missing PLAID_SECRET');
+const plaidPublicKey = process.env.PLAID_PUBLIC_KEY;
+if (!plaidPublicKey) throw new Error('Missing PLAID_PUBLIC_KEY');
+const plaidEnvironment = process.env.PLAID_ENV;
+if (!plaidEnvironment) throw new Error('Missing PLAID_ENV');
 
 const debug = Debug('Envelopes.Money:app');
 
@@ -67,9 +79,72 @@ if (!process.env.POUCH_ONLY) {
     });
   });
 
-  authedRouter.post('/getAccessToken', express.json(), async (req, res) => {
-    console.log(req.body);
-    res.json({});
+  authedRouter.post('/plaid/getAccessToken', express.json(), async (req, res) => {
+    if (!plaidClientId || !plaidSecret || !plaidPublicKey || !plaidEnvironment) {
+      console.error('Missing Plaid configuration');
+      res.status(500);
+      return res.json({error: 'Invalid Plaid configuration'});
+    }
+    const plaidClient = new plaid.Client(
+      plaidClientId,
+      plaidSecret,
+      plaidPublicKey,
+      plaid.environments[plaidEnvironment],
+      {version: '2019-05-29'},
+
+    );
+
+    const publicToken = req.body.publicToken;
+    if (!publicToken) {
+      res.status(400);
+      return res.json({error: 'Missing publicToken'});
+    }
+    const accountId = req.body.accountId;
+    if (!accountId) {
+      res.status(400);
+      return res.json({error: 'Missing accountId'});
+    }
+    
+    plaidClient.exchangePublicToken(publicToken, async (error, tokenResponse) => {
+      if (error !== null) {
+        console.error(error);
+        res.status(500);
+        return res.json({error: 'Trouble linking the account with Plaid'});
+      }
+
+      const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
+      try {
+        await apollo.mutate({
+          mutation: gql`
+            mutation StorePlaidLink($access_token: String!, $item_id: String!, $user_id: String!, $account_id: String!) {
+              insert_plaid_links(objects: {
+                access_token: $access_token,
+                item_id: $item_id,
+                user_id: $user_id
+              }) {
+                returning {
+                  item_id
+                }
+              }
+
+              update_accounts(_set: {plaid_item_id: $item_id}, where: {id: {_eq: $account_id}}) { returning {id} }
+            }
+          `,
+          variables: {
+            access_token: tokenResponse.access_token,
+            item_id: tokenResponse.item_id,
+            user_id: req.userId,
+            account_id: accountId,
+          },
+        });
+      } catch (ex) {
+        console.error(ex);
+        res.status(500);
+        res.json({error: 'Could not store Plaid item into database'});
+      }
+      console.log(JSON.stringify(tokenResponse, null, 4));
+      res.json({});
+    });
   })
 
   app.use("/api", authedRouter);

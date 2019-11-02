@@ -42,6 +42,37 @@
       }
     }
   }
+
+  async function signUp() {
+    if (!email) {
+      error = 'Must enter your email';
+      return;
+    }
+    if (!password) {
+      error = 'Must enter your password';
+      return;
+    }
+    error = null;
+
+    try {
+      debug('Logging in with Hasura');
+      const {data: {apikey, userId}} = await axios.post(
+        `${endpoint}/auth/signup`,
+        { email, password },
+        { withCredentials: true }
+      );
+      credsStore.set({email, apikey, userId});
+      page('/');
+    } catch (ex) {
+      if (ex.response) {
+        error = ex.response.data.error;
+      } else if (ex.status === 401) {
+        error = ex.message;
+      } else {
+        throw ex;
+      }
+    }
+  }
 </script>
 
 <form on:submit|preventDefault={handleSubmit}>
@@ -72,5 +103,6 @@
   </label>
 
   <button type="submit" class="btn btn-primary">Log In</button>
+  <button type="button" class="btn btn-primary" on:click={signUp}>Sign Up</button>
   <button />
 </form>

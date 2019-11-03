@@ -268,3 +268,7 @@
     <svelte:component this={route} bind:params={routeParams} />
   {:else}Loading data...{/if}
 </main>
+
+<footer>
+  Envelopes.Money version {__COMMIT_HASH__}
+</footer>

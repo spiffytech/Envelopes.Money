@@ -1,13 +1,18 @@
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
-  .BundleAnalyzerPlugin;
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WorkboxPlugin = require('workbox-webpack-plugin');
 const dotenv = require('dotenv');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const WorkboxPlugin = require('workbox-webpack-plugin');
+
 dotenv.config();
 
 const mode = process.env.NODE_ENV || 'development';
 const prod = mode === 'production';
+
+const commitHash = require('child_process')
+  .execSync('git rev-parse --short HEAD')
+  .toString();
 
 module.exports = {
   devServer: {
@@ -73,7 +78,11 @@ module.exports = {
     ],
   },
   mode,
+  /* global __COMMIT_HASH__ */
   plugins: [
+    new webpack.DefinePlugin({
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+    }),
     new HtmlWebpackPlugin({
       title: 'Envelopes.money',
       template: 'public/index.tpl.html',

@@ -2,7 +2,7 @@ import "core-js";
 import "regenerator-runtime/runtime";
 
 import Debug from 'debug';
-import LogRocket from 'logrocket';
+import * as Sentry from '@sentry/browser';
 
 import App from './App.svelte';
 
@@ -10,6 +10,10 @@ const debug = Debug('Envelopes.Money:main');
 
 if (window._env_.ALERT_ON_ERROR) {
   window.onerror = err => alert(err);
+}
+
+if (window._env_.SENTRY_DSN) {
+  Sentry.init({dsn: window._env_.SENTRY_DSN});
 }
 
 async function main() {
@@ -23,13 +27,6 @@ async function main() {
     debug('Storage is persistent? %s', persistent);
   } else {
     debug('Persistent storage not supported on this device');
-  }
-
-  if (window._env_.LOGROCKET_APP) {
-    LogRocket.init(window._env_.LOGROCKET_APP, {
-      network: { isEnabled: false },
-      dom: { isEnabled: false },
-    });
   }
 }
 

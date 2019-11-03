@@ -1,6 +1,7 @@
 <script>
   import debounce from 'lodash/debounce';
   import Debug from 'debug';
+  import { parse as csvParse } from 'json2csv';
   import groupBy from 'ramda/es/groupBy';
   import page from 'page';
   import { getContext } from 'svelte';
@@ -14,24 +15,24 @@
   const accountsStore = getContext('accountsStore');
   const transactionsStore = getContext('transactionsStore');
 
-  function triggerDownload(data) {
+  function triggerDownload(data, extension) {
     var a = document.createElement('a');
     document.body.appendChild(a);
     a.style = 'display: none';
     const blob = new Blob([data], { type: 'octet/stream' });
     const url = window.URL.createObjectURL(blob);
     a.href = url;
-    a.download = 'export.json';
+    a.download = `transactions.${extension}`;
     a.click();
     window.URL.revokeObjectURL(url);
   }
 
   async function exportTxns(transactions) {
     const dataStr = JSON.stringify(Object.values(transactions), null, 4);
-    triggerDownload(dataStr);
+    triggerDownload(dataStr, 'json');
   }
 
-  async function exportBankActivity(transactions, accounts) {
+  function generateBankActivityExport(transactions, accounts) {
     const accountsMap = new Map(
       accounts.map(account => [account.id, account.name])
     );
@@ -53,7 +54,7 @@
       date: txns[0].date,
       memo: txns[0].memo,
       from: txns[0].from,
-      to: txns.map(txn => txn.to).join(', '),
+      to: txns.map(txn => txn.to).join(','),
       cleared: txns[0].cleared,
       ...(txns[0].type === 'banktxn'
         ? { coordinates: txns[0].coordinates }
@@ -63,8 +64,19 @@
     }));
     debug('Exporting grouped transactions: %o', groupTxns);
 
+    return groupTxns;
+  }
+
+  function exportBankActivity(transactions, accounts) {
+    const groupTxns = generateBankActivityExport(transactions, accounts);
     const dataStr = JSON.stringify(groupTxns, null, 4);
-    triggerDownload(dataStr);
+    triggerDownload(dataStr, 'json');
+  }
+
+  function exportBankActivityCsv(transactions, accounts) {
+    const groupTxns = generateBankActivityExport(transactions, accounts);
+    const dataStr = csvParse(groupTxns, {fields: ['date', 'label', 'memo', 'from', 'to', 'cleared', 'type', 'amount']});
+    triggerDownload(dataStr, 'csv');
   }
 </script>
 
@@ -77,5 +89,10 @@
   class="btn btn-tertiary"
   on:click|preventDefault={() => exportBankActivity($transactionsStore, $accountsStore)}>
   Export Bank Activity
+</button>
+<button
+  class="btn btn-tertiary"
+  on:click|preventDefault={() => exportBankActivityCsv($transactionsStore, $accountsStore)}>
+  Export Bank Activity (CSV)
 </button>
 <Accounts />

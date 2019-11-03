@@ -9,6 +9,7 @@ import gql from 'graphql-tag';
 import morgan from "morgan";
 import * as path from "path";
 import plaid from 'plaid';
+import { promisify } from 'util';
 
 import mkApollo from './src/lib/apollo';
 import unauth from "./src/routes/unauth";
@@ -135,15 +136,62 @@ authedRouter.post('/plaid/getAccessToken', express.json(), async (req, res) => {
           account_id: accountId,
         },
       });
+      res.json({});
     } catch (ex) {
       console.error(ex);
       res.status(500);
       res.json({error: 'Could not store Plaid item into database'});
     }
-    console.log(JSON.stringify(tokenResponse, null, 4));
-    res.json({});
   });
 })
+
+app.post('/webhooks/plaid', express.json(), async (req, res) => {
+  console.log(req.body);
+  if (!req.body.item_id) {
+    res.status(400);
+    res.json({error: 'Missing item_id'});
+    return;
+  }
+  const apollo = await mkApollo(process.env.HASURA_ADMIN_KEY!, true);
+  try {
+    const results = await apollo.query<{plaid_links: any}>({
+      query: gql`
+        query VerifyPlaidItemExists($item_id: String!) {
+          plaid_links(where: {item_id: {_eq: $item_id}}) { item_id, access_token }
+        }
+      `,
+      variables: {item_id: req.body.item_id}    
+    });
+    if (results.data.plaid_links.length === 0) {
+      res.status(404);
+      res.json({error: "That item doesn't exist"});
+      return;
+    }
+    console.log(results.data.plaid_links);
+    const accessToken = results.data.plaid_links[0].access_token;
+
+    const plaidClient = new plaid.Client(
+      plaidClientId,
+      plaidSecret,
+      plaidPublicKey,
+      plaid.environments[plaidEnvironment],
+      {version: '2019-05-29'},
+    );
+    await new Promise((resolve, reject) => {
+      plaidClient.getTransactions(accessToken, '2018-01-01', '2019-12-25', {count: 500}, (err, result) => {
+        if (err) return reject(err);
+        console.log(JSON.stringify(result, null, 4));
+        return resolve(result);
+      });
+    });
+
+    res.json({});
+  } catch (ex) {
+    console.error(ex);
+    res.status(500);
+    res.json({error: 'Something went wrong'});
+  }
+});
 
 app.use("/api", authedRouter);
 

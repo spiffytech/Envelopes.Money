@@ -16,7 +16,7 @@
       key: window._env_.PLAID_PUBLIC_KEY,
       product: ['transactions'],
       // Optional – use webhooks to get transaction and error updates
-      webhook: 'https://em-server-hnjh.localhost.run',
+      webhook: `${window._env_.SITE_URL}/webhooks/plaid`,
       onLoad: function() {
         // Optional, called when Link loads
       },
@@ -63,4 +63,8 @@
 <p>Hello, plaid</p>
 
 <button on:click={openPlaid} class="btn btn-secondary">Link bank account</button>
-<button on:click={(e) => {e.preventDefault(); axios.post(`${endpoint}/api/plaid/getAccessToken`, {publicToken, accountId}, {withCredentials: true})}} class="btn btn-secondary">Resend thingy</button>
+<button on:click={(e) => {
+  e.preventDefault(); axios.post(
+    `${endpoint}/api/plaid/getAccessToken`, {publicToken, accountId}, {withCredentials: true}
+    )
+  }} class="btn btn-secondary">Resend thingy</button>

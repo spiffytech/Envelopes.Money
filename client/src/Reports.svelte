@@ -6,6 +6,7 @@
   let reports = [];
   let selectedReport = null;
 
+  /*
   function loadReports() {
     reports = [
       {
@@ -18,6 +19,7 @@
       }
     ]
   }
+  */
 
 </script>
 

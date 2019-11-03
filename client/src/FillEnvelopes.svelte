@@ -1,6 +1,4 @@
 <script>
-  import always from 'ramda/es/always';
-  import Debug from 'debug';
   import fromPairs from 'ramda/es/fromPairs';
   import page from 'page';
   import * as shortid from 'shortid';
@@ -11,8 +9,6 @@
   import { toDollars } from './lib/pennies';
   import { formatDate } from './lib/utils';
   import saveTransactions from './lib/transactions/saveTransactions';
-
-  const debug = Debug('Envelopes.Money:FillEnvelopes.svelte');
 
   const accountsStore = getContext('accountsStore');
   const transactionsStore = getContext('transactionsStore');
@@ -59,26 +55,22 @@
     switch (fillType) {
       case null:
         return [envelopeId, 0];
-        break;
       case 'fill-with-amount':
         return [envelopeId, calcFillAmount(envelope)];
-        break;
       case 'set-to-amount':
         return [
           envelopeId,
           setToFillAmount(envelope, $intervalStore, $balancesStore[envelopeId]),
         ];
-        break;
       case 'set-to-zero':
         return [envelopeId, setToZero(envelope, $balancesStore[envelopeId])];
-        break;
     }
   });
 
   $: fillsByAccount = new Map(fills);
 
   $: sumOfFills = fills
-    .map(([ignored, fillAmount]) => fillAmount)
+    .map(([, fillAmount]) => fillAmount)
     .reduce((acc, item) => acc + item, 0);
 
   function magicFill(balances) {
@@ -98,7 +90,7 @@
   async function handleSubmit() {
     const txnGroupId = shortid.generate();
     const txns = fills
-      .map(([envelopeId, fillAmount], i) => {
+      .map(([envelopeId, fillAmount]) => {
         const txn = {
           id: `transaction/${shortid.generate()}`,
           memo: '',

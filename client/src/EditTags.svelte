@@ -2,11 +2,8 @@
   import Debug from 'debug';
   import flatten from 'ramda/es/flatten';
   import page from 'page';
-  import fromPairs from 'ramda/es/fromPairs';
-  import { getContext, onMount } from 'svelte';
+  import { getContext } from 'svelte';
 
-  import * as Accounts from './lib/Accounts';
-  import * as Tags from './lib/Tags';
   import saveTags from './lib/accounts/saveTags';
 
   const debug = Debug('Envelopes.Money:EditTags.svelte');

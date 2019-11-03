@@ -1,5 +1,6 @@
 <script>
   import comparator from 'ramda/es/comparator';
+  import Debug from 'debug';
   import haversine from 'haversine';
   import map from 'ramda/es/map';
   import page from 'page';
@@ -20,6 +21,8 @@
   const dexie = getContext('dexie');
   const balancesStore = getContext('balancesStore');
 
+  const debug = Debug('Envelopes.Money:EditTxn.svelte');
+
   export let params;
   let txnId;
   $: txnId = params.txnId
@@ -35,7 +38,7 @@
 
   function getCoordinates() {
     return Promise.race([
-      new Promise((resolve, reject) => setTimeout(() => resolve(null), 10000)),
+      new Promise((resolve) => setTimeout(() => resolve(null), 10000)),
       new Promise((resolve, reject) => {
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
@@ -68,7 +71,6 @@
       if (!txns[0].label) {
         const txnsWithCoordinates = $transactionsStore.filter(txn => txn.type === 'banktxn' && txn.label && txn.coordinates);
         const nearbyTxns = txnsWithCoordinates.map(txn => {
-          console.log(coordinates, txn);
           const distance = haversine(coordinates, txn.coordinates, {unit: 'mile'});
           return {...txn, distance};
         });

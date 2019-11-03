@@ -2,16 +2,15 @@
   import { scaleLinear, scaleSqrt } from 'd3-scale';
   import Debug from 'debug';
   import { line } from 'd3-shape';
-  import fromPairs from 'ramda/es/fromPairs';
   import groupBy from 'ramda/es/groupBy';
   import head from 'ramda/es/head';
   import last from 'ramda/es/last';
   import map from 'ramda/es/map';
   import sum from 'ramda/es/sum';
-  import { getContext, beforeUpdate } from 'svelte';
+  import { getContext } from 'svelte';
 
   import { toDollars } from './lib/pennies';
-  import { durations, formatDate } from './lib/utils';
+  import { formatDate } from './lib/utils';
 
   const debug = Debug('Envelopes.Money:Balance.svelte');
 

@@ -5,14 +5,13 @@
   import identity from 'ramda/es/identity';
   import page from 'page';
   import * as shortid from 'shortid';
-  import { getContext, onMount } from 'svelte';
+  import { getContext } from 'svelte';
 
   import Balance from './Balance.svelte';
   import PlaidLink from './components/PlaidLink.svelte';
   import Transaction from './components/Transaction.svelte';
   import * as Accounts from './lib/Accounts';
   import saveAccount from './lib/accounts/saveAccount';
-  import * as Tags from './lib/Tags';
   import { formatDate } from './lib/utils';
   import { toDollars } from './lib/pennies';
 
@@ -52,9 +51,7 @@
   export let params;
 
   let accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
-  $: canChangeType = !Boolean(
-    $accountsStore.find(account => account.id === accountId)
-  );
+  $: canChangeType = !$accountsStore.find(account => account.id === accountId);
   let account = $accountsStore.find(account => account.id === accountId) || Accounts.mkEmptyEnvelope();
 
   let tags = Array.from(
@@ -190,7 +187,7 @@
         data-cy="new-tag-value" />
 
       <button
-        on:click|preventDefault={event => {
+        on:click|preventDefault={() => {
           account = { ...account, tags: { ...account.tags, [newTag.key]: newTag.value } };
           tags = [...tags, newTag.key];
           newTag.key = '';

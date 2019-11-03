@@ -1,13 +1,10 @@
 <script>
-  import debounce from 'lodash/debounce';
   import Debug from 'debug';
   import { parse as csvParse } from 'json2csv';
   import groupBy from 'ramda/es/groupBy';
-  import page from 'page';
   import { getContext } from 'svelte';
 
   import Accounts from './Accounts.svelte';
-  import Transaction from './components/Transaction.svelte';
   import { toDollars } from './lib/pennies';
 
   const debug = Debug('Envelopes.Money:Home.svelte');

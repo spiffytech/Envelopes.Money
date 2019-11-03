@@ -58,7 +58,8 @@
     "build": "cross-env NODE_ENV=production webpack && npm run tailwind && netlify-lambda build lambda",
     "dev": "webpack-dev-server --content-base public",
     "tailwind": "npx tailwind build style.css -o public/global.css",
-    "generate_test_credentials": "node scripts/generate_test_credentials.js"
+    "generate_test_credentials": "node scripts/generate_test_credentials.js",
+    "lint": "eslint src --ext js --ext svelte"
   },
   "dependencies": {
     "@sentry/browser": "^5.7.1",

@@ -7,7 +7,6 @@
 
   import * as Balances from './lib/Balances';
   import { toDollars } from './lib/pennies';
-  import { formatDate } from './lib/utils';
 
   const accountsStore = getContext('accountsStore');
   const balancesStore = getContext('balancesStore');

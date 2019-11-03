@@ -9,7 +9,6 @@
   import page from 'page';
   import { setContext } from 'svelte';
   import { get as storeGet } from 'svelte/store';
-  import shortid from 'shortid';
 
   import { mkClient as mkWSClient } from './lib/graphql';
   import getTransactions from './lib/transactions/getTransactions';
@@ -73,7 +72,7 @@
     wsclientStore.set(wsclient);
 
     debug('Subscribing to transactions and accounts');
-    if (!localStorage.getItem('hasDoneFinalSync')) {
+      if (!localStorage.getItem('hasDoneFinalSync')) {
       debug('Performing final Dexie sync');
       subscribeTransactions(
         wsclient,
@@ -102,6 +101,7 @@
   }
 
   async function syncTransactions(creds, wsclient, transactions = null) {
+    if (localStorage.getItem('hasDoneFinalSync')) return;
     debug('Syncing transactions');
     syncStore.set('syncing');
     await sync(
@@ -124,10 +124,11 @@
     syncStore.set(null);
     localStorage.setItem('hasDoneFinalSync', true);
     debug('Transactions sync complete');
-    if (true) loadStore();
+    loadStore();
   }
 
   async function syncAccounts(creds, wsclient, accounts) {
+    if (localStorage.getItem('hasDoneFinalSync')) return;
     debug('Syncing accounts');
     await sync(
       {
@@ -154,7 +155,7 @@
     debug('Accounts sync complete');
 
     // TODO: if (dirty)
-    if (true) loadStore();
+    loadStore();
   }
 
   async function loadStore() {
@@ -266,7 +267,9 @@
 <main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
   {#if storeIsLoaded}
     <svelte:component this={route} bind:params={routeParams} />
-  {:else}Loading data...{/if}
+  {:else}
+    Loading data...
+  {/if}
 </main>
 
 <footer>

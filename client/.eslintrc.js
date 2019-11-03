@@ -11,6 +11,7 @@ module.exports = {
     SharedArrayBuffer: 'readonly',
     emit: 'readonly',
     __COMMIT_HASH__: 'readonly',
+    Plaid: 'readonly',
   },
   parserOptions: {
     ecmaVersion: 2018,
@@ -24,6 +25,6 @@ module.exports = {
   ],
   rules: {
     'no-console': ["error", { allow: ["warn", "error"] }],
-    'no-unused-vars': ["error", {varsIgnorePattern: "[iI]gnored"}]
+    'no-unused-vars': ["error", {varsIgnorePattern: "[iI]gnored", ignoreRestSiblings: true}]
   },
 };

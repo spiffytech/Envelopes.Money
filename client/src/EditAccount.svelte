@@ -206,7 +206,7 @@
     </div>
   {/if}
 
-  {#if account.type === 'account'}
+  {#if account.type === 'account' && window._env_.SHOW_PLAID}
     <PlaidLink {accountId} />
   {/if}
 

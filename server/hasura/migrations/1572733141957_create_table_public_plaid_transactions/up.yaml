@@ -1,0 +1,10 @@
+- args:
+    sql: CREATE TABLE "public"."plaid_transactions"("transaction_id" text NOT NULL,
+      "original" jsonb NOT NULL, "user_id" text NOT NULL, PRIMARY KEY ("transaction_id")
+      , FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON UPDATE cascade
+      ON DELETE cascade);
+  type: run_sql
+- args:
+    name: plaid_transactions
+    schema: public
+  type: add_existing_table_or_view

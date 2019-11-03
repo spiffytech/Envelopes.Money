@@ -1,0 +1,12 @@
+- args:
+    sql: ALTER TABLE "public"."plaid_transactions" ADD COLUMN "reconciled_with" text
+  type: run_sql
+- args:
+    sql: ALTER TABLE "public"."plaid_transactions" ALTER COLUMN "reconciled_with"
+      DROP NOT NULL
+  type: run_sql
+- args:
+    sql: ALTER TABLE "public"."plaid_transactions" ADD CONSTRAINT plaid_transactions_reconciled_with_fkey
+      FOREIGN KEY (reconciled_with) REFERENCES "public"."transactions" (id) ON DELETE
+      set null ON UPDATE set null
+  type: run_sql

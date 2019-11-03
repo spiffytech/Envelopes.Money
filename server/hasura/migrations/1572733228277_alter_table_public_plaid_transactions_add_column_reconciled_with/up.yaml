@@ -1,0 +1,4 @@
+- args:
+    sql: ALTER TABLE "public"."plaid_transactions" ADD COLUMN "reconciled_with" text
+      NULL;
+  type: run_sql

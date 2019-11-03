@@ -1,0 +1,6 @@
+- args:
+    sql: "\n           alter table \"public\".\"transactions\"\n           add constraint
+      \"transactions_plaid_transaction_fkey\" \n           foreign key (\"plaid_transaction\")
+      \n           references \"public\".\"plaid_transactions\"\n           (\"transaction_id\")
+      on update set null on delete set null;\n      "
+  type: run_sql

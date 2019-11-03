@@ -1,0 +1,32 @@
+- args:
+    role: user
+    table:
+      name: transactions
+      schema: public
+  type: drop_select_permission
+- args:
+    permission:
+      allow_aggregations: false
+      columns:
+      - amount
+      - cleared
+      - coordinates
+      - date
+      - from_id
+      - id
+      - insertion_order
+      - label
+      - memo
+      - _fingerprint
+      - to_id
+      - txn_id
+      - type
+      - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+    role: user
+    table:
+      name: transactions
+      schema: public
+  type: create_select_permission

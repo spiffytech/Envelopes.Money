@@ -8,7 +8,7 @@ import express from "express";
 import gql from 'graphql-tag';
 import morgan from "morgan";
 import * as path from "path";
-import plaid from 'plaid';
+import plaid, { PlaidEnvironments } from 'plaid';
 import { promisify } from 'util';
 
 import mkApollo from './src/lib/apollo';
@@ -157,7 +157,7 @@ app.post('/webhooks/plaid', express.json(), async (req, res) => {
     const results = await apollo.query<{plaid_links: any}>({
       query: gql`
         query VerifyPlaidItemExists($item_id: String!) {
-          plaid_links(where: {item_id: {_eq: $item_id}}) { item_id, access_token }
+          plaid_links(where: {item_id: {_eq: $item_id}}) { item_id, access_token, user_id }
         }
       `,
       variables: {item_id: req.body.item_id}    
@@ -168,7 +168,7 @@ app.post('/webhooks/plaid', express.json(), async (req, res) => {
       return;
     }
     console.log(results.data.plaid_links);
-    const accessToken = results.data.plaid_links[0].access_token;
+    const {access_token: accessToken, user_id: userId} = results.data.plaid_links[0];
 
     const plaidClient = new plaid.Client(
       plaidClientId,
@@ -177,12 +177,33 @@ app.post('/webhooks/plaid', express.json(), async (req, res) => {
       plaid.environments[plaidEnvironment],
       {version: '2019-05-29'},
     );
-    await new Promise((resolve, reject) => {
+    const plaidTransactions: plaid.TransactionsResponse = await new Promise((resolve, reject) => {
       plaidClient.getTransactions(accessToken, '2018-01-01', '2019-12-25', {count: 500}, (err, result) => {
         if (err) return reject(err);
-        console.log(JSON.stringify(result, null, 4));
         return resolve(result);
       });
+    });
+
+    await apollo.mutate({
+      mutation: gql`
+        mutation StorePlaidTransactions($txns: [plaid_transactions_insert_input!]!) {
+          insert_plaid_transactions(
+            objects: $txns,
+            on_conflict: {constraint: plaid_transactions_pkey, update_columns: original}
+          ) {
+            returning {
+              transaction_id
+            }
+          }
+        }
+      `,
+      variables: {
+        txns: plaidTransactions.transactions.map(txn => ({
+          transaction_id: txn.transaction_id,
+          original: txn,
+          user_id: userId,
+        }))
+      }
     });
 
     res.json({});

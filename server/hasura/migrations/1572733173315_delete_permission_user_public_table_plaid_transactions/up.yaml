@@ -1,0 +1,6 @@
+- args:
+    role: user
+    table:
+      name: plaid_transactions
+      schema: public
+  type: drop_insert_permission

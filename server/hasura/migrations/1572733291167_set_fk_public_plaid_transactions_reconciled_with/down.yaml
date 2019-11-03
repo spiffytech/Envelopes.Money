@@ -1,0 +1,4 @@
+- args:
+    sql: "\n          alter table \"public\".\"plaid_transactions\" drop constraint
+      \"plaid_transactions_reconciled_with_fkey\"\n      "
+  type: run_sql

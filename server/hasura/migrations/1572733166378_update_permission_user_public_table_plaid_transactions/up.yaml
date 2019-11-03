@@ -1,0 +1,19 @@
+- args:
+    permission:
+      allow_upsert: true
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      columns:
+      - transaction_id
+      - original
+      - user_id
+      localPresets:
+      - key: ""
+        value: ""
+      set: {}
+    role: user
+    table:
+      name: plaid_transactions
+      schema: public
+  type: create_insert_permission

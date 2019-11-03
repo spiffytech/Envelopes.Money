@@ -51,15 +51,12 @@
 
   export let params;
 
-  let accountId;
-  $: accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
+  let accountId = params.accountId ? decodeURIComponent(params.accountId) : null;
   $: canChangeType = !Boolean(
     $accountsStore.find(account => account.id === accountId)
   );
-  let account = Accounts.mkEmptyEnvelope();
-  $: account =
-    $accountsStore.find(account => account.id === accountId) ||
-    account;
+  let account = $accountsStore.find(account => account.id === accountId) || Accounts.mkEmptyEnvelope();
+
   let tags = Array.from(
     new Set(
       flatten(

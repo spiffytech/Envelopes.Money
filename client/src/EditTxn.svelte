@@ -329,6 +329,7 @@
       <div class="flex justify-between">
         <button type="submit" class="btn btn-primary">Save Transaction</button>
         <button
+          class:hidden={!txnId}
           class="btn btn-tertiary"
           on:click|preventDefault={deleteTransaction}>
           Delete Transaction

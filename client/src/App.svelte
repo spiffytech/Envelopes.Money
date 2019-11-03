@@ -73,14 +73,31 @@
     wsclientStore.set(wsclient);
 
     debug('Subscribing to transactions and accounts');
+    if (!localStorage.getItem('hasDoneFinalSync')) {
+      debug('Performing final Dexie sync');
+      subscribeTransactions(
+        wsclient,
+        creds.userId,
+        ({ data: { transactions } }) =>
+          syncTransactions(creds, wsclient, transactions)
+      );
+      subscribeAccounts(wsclient, creds.userId, ({ data: { accounts } }) =>
+        syncAccounts(creds, wsclient, accounts)
+      );
+    }
+
     subscribeTransactions(
       wsclient,
       creds.userId,
       ({ data: { transactions } }) =>
-        syncTransactions(creds, wsclient, transactions)
+        transactionsStore.set(
+          immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity)
+        )
     );
     subscribeAccounts(wsclient, creds.userId, ({ data: { accounts } }) =>
-      syncAccounts(creds, wsclient, accounts)
+      accountsStore.set(
+        immer(accounts.sort(comparator((a, b) => a.name < b.name)), identity)
+      )
     );
   }
 
@@ -105,6 +122,7 @@
       }
     );
     syncStore.set(null);
+    localStorage.setItem('hasDoneFinalSync', true);
     debug('Transactions sync complete');
     if (true) loadStore();
   }
@@ -131,6 +149,7 @@
       }
     );
 
+    localStorage.setItem('hasDoneFinalSync', true);
     syncStore.set(null);
     debug('Accounts sync complete');
 

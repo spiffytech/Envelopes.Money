@@ -16,7 +16,6 @@
   import deleteTransactionsRemote from './lib/transactions/deleteTransactionsRemote';
 
   const accountsStore = getContext('accountsStore');
-  const activityEmitter = getContext('activityEmitter');
   const transactionsStore = getContext('transactionsStore');
   const balancesStore = getContext('balancesStore');
   const wsclientStore = getContext('wsclientStore');
@@ -165,7 +164,6 @@
     error = null; // Reset it if we got here
 
     await saveTransactionsRemote($wsclientStore, derivedTxns);
-    activityEmitter.emit('transactionsChanged');
     page('/home');
   }
 
@@ -174,7 +172,6 @@
     if (!confirm('Are you sure you want to delete this transaction?')) return;
 
     deleteTransactionsRemote($wsclientStore, txnId);
-    activityEmitter.emit('transactionsChanged');
     page('/home');
   }
 

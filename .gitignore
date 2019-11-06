@@ -26,9 +26,4 @@ react
 vscode.code-workspace
 cypress.env.json
 
-client/public/bundle*js*
-client/public/env.js
-client/public/index.html
-client/lambda_built
-
 couchdb.ini

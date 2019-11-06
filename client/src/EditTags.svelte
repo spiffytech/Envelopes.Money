@@ -9,7 +9,6 @@
   const debug = Debug('Envelopes.Money:EditTags.svelte');
 
   const accountsStore = getContext('accountsStore');
-  const activityEmitter = getContext('activityEmitter');
   const wsclientStore = getContext('wsclientStore');
 
   let accounts = $accountsStore.filter(account => account.type === 'envelope');
@@ -26,7 +25,6 @@
     const accountsThatChanged = accounts.filter(account => dirty[account.id]);
     debug('These accounts changed: %o', accountsThatChanged);
     await saveAccountsRemote($wsclientStore, accountsThatChanged);
-    activityEmitter.emit('accountsChanged');
     page('/home');
   }
 </script>

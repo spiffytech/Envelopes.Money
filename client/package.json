@@ -25,7 +25,6 @@
     "eslint-plugin-cypress": "^2.6.1",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-svelte3": "^2.7.3",
-    "eventemitter3": "^4.0.0",
     "faker": "^4.1.0",
     "graphql": "^14.2.1",
     "graphql-tag": "^2.10.1",

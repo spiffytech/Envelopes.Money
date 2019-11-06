@@ -3,7 +3,6 @@
   import comparator from 'ramda/es/comparator';
   import Debug from 'debug';
   import Dexie from 'dexie';
-  import EventEmitter from 'eventemitter3';
   import identity from 'ramda/es/identity';
   import immer from 'immer';
   import page from 'page';
@@ -41,6 +40,8 @@
     intervalStore,
   } from './stores/main';
   import { endpoint } from './lib/config';
+
+  window.storeGet = storeGet;
 
   const debug = Debug('Envelopes.Money:App.svelte');
 
@@ -196,7 +197,6 @@
   let route;
   let routeParams;
   let storeIsLoaded = false;
-  const activityEmitter = new EventEmitter();
 
   const dexie = new Dexie('Envelopes.Money');
   dexie.version(1).stores({
@@ -216,17 +216,6 @@
   $: if ($credsStore !== null && $wsclientStore === null) {
     initWsclient($credsStore);
   }
-  activityEmitter.on('accountsChanged', () => {
-    if (storeGet(connectionStore) === 'connected') {
-      syncAccounts($credsStore, $wsclientStore);
-    }
-  });
-  activityEmitter.on('transactionsChanged', () => {
-    if (storeGet(connectionStore) === 'connected') {
-      syncTransactions($credsStore, $wsclientStore);
-    }
-  });
-
   setContext('endpoint', endpoint);
   setContext('balancesStore', balancesStore);
   setContext('accountsStore', accountsStore);
@@ -236,7 +225,6 @@
   setContext('syncStore', syncStore);
   setContext('navStore', navStore);
   setContext('intervalStore', intervalStore);
-  setContext('activityEmitter', activityEmitter);
   setContext('wsclientStore', wsclientStore);
 
   page('/', setRoute(Home));

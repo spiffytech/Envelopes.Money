@@ -17,7 +17,6 @@
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
   const accountsStore = getContext('accountsStore');
-  const activityEmitter = getContext('activityEmitter');
   const transactionsStore = getContext('transactionsStore');
   const wsclientStore = getContext('wsclientStore');
 
@@ -105,7 +104,6 @@
     const accountWithId = { ...rest, id: newAccountId };
 
     await saveAccountsRemote($wsclientStore, [accountWithId]);
-    activityEmitter.emit('accountsChanged');
     page('/');
   }
 </script>

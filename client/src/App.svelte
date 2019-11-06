@@ -73,7 +73,7 @@
     wsclientStore.set(wsclient);
 
     debug('Subscribing to transactions and accounts');
-      if (!localStorage.getItem('hasDoneFinalSync')) {
+    if (!localStorage.getItem('hasDoneFinalSync')) {
       debug('Performing final Dexie sync');
       subscribeTransactions(
         wsclient,
@@ -91,7 +91,10 @@
       creds.userId,
       ({ data: { transactions } }) =>
         transactionsStore.set(
-          immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity)
+          immer(
+            transactions.sort(comparator((a, b) => a.date > b.date)),
+            identity
+          )
         )
     );
     subscribeAccounts(wsclient, creds.userId, ({ data: { accounts } }) =>
@@ -125,7 +128,6 @@
     syncStore.set(null);
     localStorage.setItem('hasDoneFinalSync', true);
     debug('Transactions sync complete');
-    loadStore();
   }
 
   async function syncAccounts(creds, wsclient, accounts) {
@@ -154,26 +156,6 @@
     localStorage.setItem('hasDoneFinalSync', true);
     syncStore.set(null);
     debug('Accounts sync complete');
-
-    // TODO: if (dirty)
-    loadStore();
-  }
-
-  async function loadStore() {
-    debug('Loading data from Dexie');
-    const [accounts, transactions] = await Promise.all([
-      dexie.accounts.toArray(),
-      dexie.transactions.toArray(),
-    ]);
-    accountsStore.set(
-      immer(accounts.sort(comparator((a, b) => a.name < b.name)), identity)
-    );
-    transactionsStore.set(
-      immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity)
-    );
-
-    storeIsLoaded = true;
-    debug('Loaded data!');
   }
 
   async function loadCreds() {
@@ -196,7 +178,6 @@
 
   let route;
   let routeParams;
-  let storeIsLoaded = false;
 
   const dexie = new Dexie('Envelopes.Money');
   dexie.version(1).stores({
@@ -211,11 +192,11 @@
   });
   window.dexie = dexie;
 
-  $: if (!storeIsLoaded) loadStore();
   $: if ($credsStore === null) loadCreds();
   $: if ($credsStore !== null && $wsclientStore === null) {
     initWsclient($credsStore);
   }
+
   setContext('endpoint', endpoint);
   setContext('balancesStore', balancesStore);
   setContext('accountsStore', accountsStore);
@@ -254,13 +235,7 @@
 <Nav />
 
 <main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
-  {#if storeIsLoaded}
-    <svelte:component this={route} bind:params={routeParams} />
-  {:else}
-    Loading data...
-  {/if}
+  <svelte:component this={route} bind:params={routeParams} />
 </main>
 
-<footer>
-  Envelopes.Money version {__COMMIT_HASH__}
-</footer>
+<footer>Envelopes.Money version {__COMMIT_HASH__}</footer>

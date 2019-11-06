@@ -21,13 +21,6 @@ async function main() {
     target: document.body,
     props: {},
   });
-
-  if (navigator.storage && navigator.storage.persist) {
-    const persistent = await navigator.storage.persist();
-    debug('Storage is persistent? %s', persistent);
-  } else {
-    debug('Persistent storage not supported on this device');
-  }
 }
 
 main();

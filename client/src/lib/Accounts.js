@@ -34,25 +34,6 @@ export function loadAccount({userId, wsclient}, accountId) {
   });
 }
 
-export function saveAccount({wsclient}, account) {
-  return wsclient.query({
-    query: gql`
-      ${fragments}
-      mutation UpsertAccount($account: accounts_insert_input!) {
-        insert_accounts(
-          objects: [$account],
-          on_conflict: {
-            constraint: accounts_pkey, 
-            update_columns: [name, type, extra, tags]
-          }) {
-          returning {id}
-        }
-      }
-    `,
-    variables: {account},
-  });
-}
-
 export async function subscribe(
   { userId, wsclient },
   onData

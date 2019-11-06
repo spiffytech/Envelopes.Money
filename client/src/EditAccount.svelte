@@ -11,15 +11,15 @@
   import PlaidLink from './components/PlaidLink.svelte';
   import Transaction from './components/Transaction.svelte';
   import * as Accounts from './lib/Accounts';
-  import saveAccount from './lib/accounts/saveAccount';
+  import saveAccountsRemote from './lib/accounts/saveAccountsRemote';
   import { formatDate } from './lib/utils';
   import { toDollars } from './lib/pennies';
 
   const debug = Debug('Envelopes.Money:EditAccount.svelte');
   const accountsStore = getContext('accountsStore');
   const activityEmitter = getContext('activityEmitter');
-  const dexie = getContext('dexie');
   const transactionsStore = getContext('transactionsStore');
+  const wsclientStore = getContext('wsclientStore');
 
   function findTxnsForAccount(transactions, account) {
     const foundTxns = transactions.filter(
@@ -104,7 +104,7 @@
     const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
     const accountWithId = { ...rest, id: newAccountId };
 
-    await saveAccount({ accountsStore }, dexie, accountWithId);
+    await saveAccountsRemote($wsclientStore, [accountWithId]);
     activityEmitter.emit('accountsChanged');
     page('/');
   }

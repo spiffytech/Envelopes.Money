@@ -4,13 +4,13 @@
   import page from 'page';
   import { getContext } from 'svelte';
 
-  import saveTags from './lib/accounts/saveTags';
+  import saveAccountsRemote from './lib/accounts/saveAccountsRemote';
 
   const debug = Debug('Envelopes.Money:EditTags.svelte');
 
   const accountsStore = getContext('accountsStore');
   const activityEmitter = getContext('activityEmitter');
-  const dexie = getContext('dexie');
+  const wsclientStore = getContext('wsclientStore');
 
   let accounts = $accountsStore.filter(account => account.type === 'envelope');
   let allTags = Array.from(
@@ -25,7 +25,7 @@
   async function handleSubmit() {
     const accountsThatChanged = accounts.filter(account => dirty[account.id]);
     debug('These accounts changed: %o', accountsThatChanged);
-    await saveTags({ accountsStore }, dexie, accountsThatChanged);
+    await saveAccountsRemote($wsclientStore, accountsThatChanged);
     activityEmitter.emit('accountsChanged');
     page('/home');
   }

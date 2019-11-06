@@ -2,7 +2,7 @@ import gql from 'graphql-tag';
 
 import {fragments} from '../apollo';
 
-export default function saveAccounts(wsclient, accounts) {
+export default function saveAccountsRemote(wsclient, accounts) {
   return wsclient.query({
     query: gql`
       ${fragments}

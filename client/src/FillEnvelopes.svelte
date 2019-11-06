@@ -8,13 +8,12 @@
   import * as Balances from './lib/Balances';
   import { toDollars } from './lib/pennies';
   import { formatDate } from './lib/utils';
-  import saveTransactions from './lib/transactions/saveTransactions';
+  import saveTransactionsRemote from './lib/transactions/saveTransactionsRemote';
 
   const accountsStore = getContext('accountsStore');
-  const transactionsStore = getContext('transactionsStore');
-  const dexie = getContext('dexie');
   const balancesStore = getContext('balancesStore');
   const intervalStore = getContext('intervalStore');
+  const wsclientStore = getContext('wsclientStore');
 
   const envelopes = $accountsStore.filter(
     account => account.type === 'envelope'
@@ -106,7 +105,7 @@
       })
       .filter(txn => txn.amount !== 0);
 
-    await saveTransactions({transactionsStore}, dexie, txns);
+    await saveTransactionsRemote($wsclientStore, txns);
     page('/home');
   }
 </script>

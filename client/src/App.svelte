@@ -16,7 +16,7 @@
   import deleteTransactionsRemote from './lib/transactions/deleteTransactionsRemote';
   import subscribeTransactions from './lib/transactions/subscribe';
   import getAccounts from './lib/accounts/getAccountsRemote';
-  import saveAccounts from './lib/accounts/saveAccountsRemote';
+  import saveAccountsRemote from './lib/accounts/saveAccountsRemote';
   import subscribeAccounts from './lib/accounts/subscribe';
   import sync from './lib/sync';
 
@@ -72,7 +72,7 @@
     wsclientStore.set(wsclient);
 
     debug('Subscribing to transactions and accounts');
-    if (!localStorage.getItem('hasDoneFinalSync')) {
+      if (!localStorage.getItem('hasDoneFinalSync')) {
       debug('Performing final Dexie sync');
       subscribeTransactions(
         wsclient,
@@ -90,10 +90,7 @@
       creds.userId,
       ({ data: { transactions } }) =>
         transactionsStore.set(
-          immer(
-            transactions.sort(comparator((a, b) => a.date > b.date)),
-            identity
-          )
+          immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity)
         )
     );
     subscribeAccounts(wsclient, creds.userId, ({ data: { accounts } }) =>
@@ -136,7 +133,7 @@
     await sync(
       {
         get: () => accounts || getAccounts(wsclient, creds.userId),
-        store: records => saveAccounts(wsclient, records),
+        store: records => saveAccountsRemote(wsclient, records),
         delete: ids => {
           throw new Error(`We should never be deleting accounts. ${ids}`);
         },
@@ -240,6 +237,7 @@
   setContext('navStore', navStore);
   setContext('intervalStore', intervalStore);
   setContext('activityEmitter', activityEmitter);
+  setContext('wsclientStore', wsclientStore);
 
   page('/', setRoute(Home));
   page('/home', setRoute(Home));
@@ -270,7 +268,11 @@
 <main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
   {#if storeIsLoaded}
     <svelte:component this={route} bind:params={routeParams} />
-  {:else}Loading data...{/if}
+  {:else}
+    Loading data...
+  {/if}
 </main>
 
-<footer>Envelopes.Money version {__COMMIT_HASH__}</footer>
+<footer>
+  Envelopes.Money version {__COMMIT_HASH__}
+</footer>

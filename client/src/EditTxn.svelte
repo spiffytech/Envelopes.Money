@@ -12,14 +12,14 @@
   import { toDollars } from './lib/pennies';
   import * as Transactions from './lib/Transactions';
   import { formatDate } from './lib/utils';
-  import saveTransactions from './lib/transactions/saveTransactions';
-  import deleteTransactions from './lib/transactions/deleteTransactions';
+  import saveTransactionsRemote from './lib/transactions/saveTransactionsRemote';
+  import deleteTransactionsRemote from './lib/transactions/deleteTransactionsRemote';
 
   const accountsStore = getContext('accountsStore');
   const activityEmitter = getContext('activityEmitter');
   const transactionsStore = getContext('transactionsStore');
-  const dexie = getContext('dexie');
   const balancesStore = getContext('balancesStore');
+  const wsclientStore = getContext('wsclientStore');
 
   const debug = Debug('Envelopes.Money:EditTxn.svelte');
 
@@ -164,7 +164,7 @@
     }
     error = null; // Reset it if we got here
 
-    await saveTransactions({transactionsStore}, dexie, derivedTxns);
+    await saveTransactionsRemote($wsclientStore, derivedTxns);
     activityEmitter.emit('transactionsChanged');
     page('/home');
   }
@@ -173,7 +173,7 @@
     if (!txnId) return;
     if (!confirm('Are you sure you want to delete this transaction?')) return;
 
-    deleteTransactions({transactionsStore}, dexie, txnId);
+    deleteTransactionsRemote($wsclientStore, txnId);
     activityEmitter.emit('transactionsChanged');
     page('/home');
   }

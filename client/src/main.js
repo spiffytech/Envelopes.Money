@@ -1,5 +1,5 @@
-import "core-js";
-import "regenerator-runtime/runtime";
+import 'core-js';
+import 'regenerator-runtime/runtime';
 
 import Debug from 'debug';
 import * as Sentry from '@sentry/browser';
@@ -13,7 +13,7 @@ if (window._env_.ALERT_ON_ERROR) {
 }
 
 if (window._env_.SENTRY_DSN) {
-  Sentry.init({dsn: window._env_.SENTRY_DSN});
+  Sentry.init({ dsn: window._env_.SENTRY_DSN });
 }
 
 async function main() {
@@ -46,7 +46,7 @@ if ('serviceWorker' in navigator) {
     } else {
       debug('Unregistering the service worker');
       navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach((registration) => registration.unregister())
+        registrations.forEach(registration => registration.unregister());
       });
     }
   });

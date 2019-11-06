@@ -72,7 +72,7 @@
     wsclientStore.set(wsclient);
 
     debug('Subscribing to transactions and accounts');
-      if (!localStorage.getItem('hasDoneFinalSync')) {
+    if (!localStorage.getItem('hasDoneFinalSync')) {
       debug('Performing final Dexie sync');
       subscribeTransactions(
         wsclient,
@@ -90,7 +90,10 @@
       creds.userId,
       ({ data: { transactions } }) =>
         transactionsStore.set(
-          immer(transactions.sort(comparator((a, b) => a.date > b.date)), identity)
+          immer(
+            transactions.sort(comparator((a, b) => a.date > b.date)),
+            identity
+          )
         )
     );
     subscribeAccounts(wsclient, creds.userId, ({ data: { accounts } }) =>
@@ -267,11 +270,7 @@
 <main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
   {#if storeIsLoaded}
     <svelte:component this={route} bind:params={routeParams} />
-  {:else}
-    Loading data...
-  {/if}
+  {:else}Loading data...{/if}
 </main>
 
-<footer>
-  Envelopes.Money version {__COMMIT_HASH__}
-</footer>
+<footer>Envelopes.Money version {__COMMIT_HASH__}</footer>

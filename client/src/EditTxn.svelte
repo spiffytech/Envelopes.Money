@@ -35,16 +35,17 @@
 
   function getCoordinates() {
     return Promise.race([
-      new Promise((resolve, reject) => setTimeout(() => resolve(null), 10000)),
-      new Promise((resolve, reject) => {
+      new Promise((resolve) => setTimeout(() => resolve(null), 10000)),
+      new Promise((resolve) => {
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
             (pos) => resolve({latitude: pos.coords.latitude, longitude: pos.coords.longitude}),
-            (err) => reject(err)
+            // On a PositionError we don't care what the error is, only that we don't have a position
+            () => resolve(null)
           );
         } else {
           debug('No support for geolocation in this browser');
-          return null;
+          return resolve(null);
         }
       })
     ]);

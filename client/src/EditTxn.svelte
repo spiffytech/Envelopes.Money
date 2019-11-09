@@ -110,7 +110,7 @@
     groups them by what accounts they're most likely to go with
    */
   async function setAllLabels(transactions) {
-    const rows = Object.values(groupBy(arr => arr.join('-'), transactions.map(txn => [txn.label, txn.from_id, txn.to_id]))).map(rows => ({key: rows[0], value: rows.length}));
+    const rows = Object.values(groupBy(arr => arr.join('-'), transactions.filter(txn => txn.type === 'banktxn').map(txn => [txn.label, txn.from_id, txn.to_id]))).map(rows => ({key: rows[0], value: rows.length}));
     const byLabel = groupBy(row => row.key[0], rows);
     Object.values(byLabel).forEach(rows =>
       rows.sort(comparator((a, b) => a.value > b.value))

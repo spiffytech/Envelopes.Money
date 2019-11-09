@@ -208,27 +208,29 @@
         </select>
       </div>
 
-      <div class="flex flex-col">
-        <label class="label-inline" for="from">
-          Who did you pay?
-        </label>
-        <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input-inline" data-cy="label" list="suggested-payees" id="from" />
-        <datalist id="suggested-payees">
-          {#each Object.keys(allLabels) as suggestion}
-            <option data-cy="suggested-payee" value={suggestion}>
-              {suggestion}
-            </option>
-          {/each}
-        </datalist>
-      </div>
-
-      {#each geoPayees as geoPayee}
-        <div>
-          <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
-            {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
-          </button>
+      {#if type === 'banktxn'}
+        <div class="flex flex-col">
+          <label class="label-inline" for="from">
+            Who did you pay?
+          </label>
+          <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input-inline" data-cy="label" list="suggested-payees" id="from" />
+          <datalist id="suggested-payees">
+            {#each Object.keys(allLabels) as suggestion}
+              <option data-cy="suggested-payee" value={suggestion}>
+                {suggestion}
+              </option>
+            {/each}
+          </datalist>
         </div>
-      {/each}
+
+        {#each geoPayees as geoPayee}
+          <div>
+            <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
+              {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
+            </button>
+          </div>
+        {/each}
+      {/if}
 
       <div class="flex flex-col">
         <label class="label-inline" for="date">

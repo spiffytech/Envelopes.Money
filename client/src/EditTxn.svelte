@@ -27,6 +27,7 @@
     : undefined;
 
   let coordinates = null;
+  let storeLocation = true;
   let geoPayees = [];
 
   // This takes care of while we're initializing
@@ -94,6 +95,7 @@
       ...(type === 'banktxn' ? {coordinates} : {}),
       type,
       txn_id: finalTxnId,
+      coordinates: storeLocation ? txn.coordinates : null
     }))
     .map(txn => {
       const { __typename, insertion_order, _id, _rev, type_, user_id, ...rest } = txn;
@@ -261,7 +263,12 @@
       </div>
 
       {#if type === 'banktxn' && !txnId}
-        <div>Location: {@html coordinates ? '&#10003;' : '&#10007;'}</div>
+        <div>Location: {@html coordinates && storeLocation ? '&#10003;' : '&#10007;'}</div>
+        {#if coordinates}
+          <label>Save location?
+            <input type="checkbox" bind:checked={storeLocation} />
+          </label>
+        {/if}
       {/if}
     </div>
 

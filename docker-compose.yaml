@@ -33,29 +33,6 @@ services:
       COOKIE_SECRET: pleaseChangeMePleasePlease
       SCRYPT_SALT: correcthorsebatterystaple
       DEBUG: Envelopes.Money:*
-  couch:
-    image: couchdb
-    restart: on-failure
-    volumes:
-      - ./couchdb.ini:/opt/couchdb/etc/local.d/docker.ini
-      - couchdb_data:/opt/couchdb/data
-    ports:
-      - 5984:5984
-
-  kinto:
-    image: kinto/kinto-server
-    links:
-     - postgres
-    ports:
-     - "8890:8888"
-    environment:
-      #KINTO_CACHE_BACKEND: kinto.core.cache.memcached
-      #KINTO_CACHE_HOSTS: cache:11211 cache:11212
-      KINTO_STORAGE_BACKEND: kinto.core.storage.postgresql
-      KINTO_STORAGE_URL: postgresql://postgres:postgres@postgres/postgres
-      KINTO_PERMISSION_BACKEND: kinto.core.permission.postgresql
-      KINTO_PERMISSION_URL: postgresql://postgres:postgres@postgres/postgres
-      KINTO_CORS_ORIGINS: http://localhost:8080 http://penguin.linux.test:8889
 volumes:
   db_data:
   couchdb_data:

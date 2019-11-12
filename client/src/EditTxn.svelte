@@ -69,7 +69,7 @@
 
       // Try guessing the user's payee if they haven't started filling things
       // in yet
-      if (!txns[0].label) {
+      if (!txns[0].label && coordinates) {
         const txnsWithCoordinates = $transactionsStore.filter(txn => txn.type === 'banktxn' && txn.label && txn.coordinates);
         const nearbyTxns = txnsWithCoordinates.map(txn => {
           const distance = haversine(coordinates, txn.coordinates, {unit: 'mile'});

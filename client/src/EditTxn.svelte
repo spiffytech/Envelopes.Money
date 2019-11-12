@@ -29,6 +29,7 @@
     : undefined;
 
   let coordinates = null;
+  let storeLocation = true;
   let geoPayees = [];
 
   // This takes care of while we're initializing
@@ -38,15 +39,16 @@
   function getCoordinates() {
     return Promise.race([
       new Promise((resolve) => setTimeout(() => resolve(null), 10000)),
-      new Promise((resolve, reject) => {
+      new Promise((resolve) => {
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
             (pos) => resolve({latitude: pos.coords.latitude, longitude: pos.coords.longitude}),
-            (err) => reject(err)
+            // On a PositionError we don't care what the error is, only that we don't have a position
+            () => resolve(null)
           );
         } else {
           debug('No support for geolocation in this browser');
-          return null;
+          return resolve(null);
         }
       })
     ]);
@@ -94,6 +96,7 @@
       ...(type === 'banktxn' ? {coordinates} : {}),
       type,
       txn_id: finalTxnId,
+      coordinates: storeLocation ? txn.coordinates : null
     }))
     .map(txn => {
       const { __typename, insertion_order, _id, _rev, type_, user_id, ...rest } = txn;
@@ -108,7 +111,7 @@
     groups them by what accounts they're most likely to go with
    */
   async function setAllLabels(transactions) {
-    const rows = Object.values(groupBy(arr => arr.join('-'), transactions.map(txn => [txn.label, txn.from_id, txn.to_id]))).map(rows => ({key: rows[0], value: rows.length}));
+    const rows = Object.values(groupBy(arr => arr.join('-'), transactions.filter(txn => txn.type === 'banktxn').map(txn => [txn.label, txn.from_id, txn.to_id]))).map(rows => ({key: rows[0], value: rows.length}));
     const byLabel = groupBy(row => row.key[0], rows);
     Object.values(byLabel).forEach(rows =>
       rows.sort(comparator((a, b) => a.value > b.value))
@@ -204,27 +207,29 @@
         </select>
       </div>
 
-      <div class="flex flex-col">
-        <label class="label-inline" for="from">
-          Who did you pay?
-        </label>
-        <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input-inline" data-cy="label" list="suggested-payees" id="from" />
-        <datalist id="suggested-payees">
-          {#each Object.keys(allLabels) as suggestion}
-            <option data-cy="suggested-payee" value={suggestion}>
-              {suggestion}
-            </option>
-          {/each}
-        </datalist>
-      </div>
-
-      {#each geoPayees as geoPayee}
-        <div>
-          <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
-            {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
-          </button>
+      {#if type === 'banktxn'}
+        <div class="flex flex-col">
+          <label class="label-inline" for="from">
+            Who did you pay?
+          </label>
+          <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input-inline" data-cy="label" list="suggested-payees" id="from" />
+          <datalist id="suggested-payees">
+            {#each Object.keys(allLabels) as suggestion}
+              <option data-cy="suggested-payee" value={suggestion}>
+                {suggestion}
+              </option>
+            {/each}
+          </datalist>
         </div>
-      {/each}
+
+        {#each geoPayees as geoPayee}
+          <div>
+            <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
+              {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
+            </button>
+          </div>
+        {/each}
+      {/if}
 
       <div class="flex flex-col">
         <label class="label-inline" for="date">
@@ -259,7 +264,12 @@
       </div>
 
       {#if type === 'banktxn' && !txnId}
-        <div>Location: {@html coordinates ? '&#10003;' : '&#10007;'}</div>
+        <div>Location: {@html coordinates && storeLocation ? '&#10003;' : '&#10007;'}</div>
+        {#if coordinates}
+          <label>Save location?
+            <input type="checkbox" bind:checked={storeLocation} />
+          </label>
+        {/if}
       {/if}
     </div>
 

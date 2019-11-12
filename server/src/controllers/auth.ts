@@ -68,14 +68,14 @@ export async function signUp(req: express.Request, res: express.Response) {
 
         accounts: [
           {
-            id: shortid.generate(),
+            id: `category/${shortid.generate()}`,
             user_id: userId,
             name: '[Unallocated]',
             type: 'envelope',
             extra: {}
           },
           {
-            id: shortid.generate(),
+            id: `account/${shortid.generate()}`,
             user_id: userId,
             name: '[Equity]',
             type: 'account',

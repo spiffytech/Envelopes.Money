@@ -232,10 +232,14 @@
 
 <PageHeader />
 
-<Nav />
+{#if $credsStore === null}
+  <Login />
+{:else}
+  <Nav />
 
-<main aria-label="Page Content" class="flex-1" style="transition: all 0.3s">
-  <svelte:component this={route} bind:params={routeParams} />
-</main>
+  <main aria-label="Page Content" class="flex-1">
+    <svelte:component this={route} bind:params={routeParams} />
+  </main>
+{/if}
 
 <footer>Envelopes.Money version {__COMMIT_HASH__}</footer>

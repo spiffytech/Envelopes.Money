@@ -32,6 +32,7 @@
       );
       credsStore.set({email, apikey, userId});
       page('/');
+      window.location.reload();
     } catch (ex) {
       if (ex.response) {
         error = ex.response.data.error;

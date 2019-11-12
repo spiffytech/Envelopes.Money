@@ -1,5 +1,4 @@
 <script>
-  import axios from 'axios';
   import comparator from 'ramda/es/comparator';
   import Debug from 'debug';
   import Dexie from 'dexie';
@@ -158,24 +157,6 @@
     debug('Accounts sync complete');
   }
 
-  async function loadCreds() {
-    try {
-      debug('Loading credentials');
-      const response = await axios.get(`${endpoint}/api/credentials`, {
-        withCredentials: true,
-      });
-      debug('Loaded credentials were %o', response.data);
-      credsStore.set({ ...($credsStore || {}), ...response.data });
-    } catch (ex) {
-      if (ex.response && ex.response.status === 401) {
-        debug('No credentials were loaded');
-        credsStore.set(null);
-      } else {
-        throw new Error(`[loadCreds] ${ex.message}`);
-      }
-    }
-  }
-
   let route;
   let routeParams;
 
@@ -192,7 +173,6 @@
   });
   window.dexie = dexie;
 
-  $: if ($credsStore === null) loadCreds();
   $: if ($credsStore !== null && $wsclientStore === null) {
     initWsclient($credsStore);
   }
@@ -208,17 +188,22 @@
   setContext('intervalStore', intervalStore);
   setContext('wsclientStore', wsclientStore);
 
-  page('/', setRoute(Home));
-  page('/home', setRoute(Home));
-  page('/login', setRoute(Login));
-  page('/fill', setRoute(FillEnvelopes));
-  page('/editTags', setRoute(EditTags));
-  page('/editTxn', setRoute(EditTxn));
-  page('/editTxn/:txnId', setRoute(EditTxn));
-  page('/editAccount', setRoute(EditAccount));
-  page('/editAccount/:accountId', setRoute(EditAccount));
-  page('/reports', setRoute(Reports));
-  page('/reports/:reportId', setRoute(Reports));
+  if ($credsStore) {
+    page('/', setRoute(Home));
+    page('/home', setRoute(Home));
+    page('/fill', setRoute(FillEnvelopes));
+    page('/editTags', setRoute(EditTags));
+    page('/editTxn', setRoute(EditTxn));
+    page('/editTxn/:txnId', setRoute(EditTxn));
+    page('/editAccount', setRoute(EditAccount));
+    page('/editAccount/:accountId', setRoute(EditAccount));
+    page('/reports', setRoute(Reports));
+    page('/reports/:reportId', setRoute(Reports));
+    page('*', setRoute(Home));
+  } else {
+    page('/login', setRoute(Login));
+    page('*', setRoute(Login));
+  }
   page();
 </script>
 
@@ -232,14 +217,12 @@
 
 <PageHeader />
 
-{#if $credsStore === null}
-  <Login />
-{:else}
+{#if $credsStore}
   <Nav />
-
-  <main aria-label="Page Content" class="flex-1">
-    <svelte:component this={route} bind:params={routeParams} />
-  </main>
 {/if}
+
+<main aria-label="Page Content" class="flex-1">
+  <svelte:component this={route} bind:params={routeParams} />
+</main>
 
 <footer>Envelopes.Money version {__COMMIT_HASH__}</footer>

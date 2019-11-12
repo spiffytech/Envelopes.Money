@@ -67,6 +67,11 @@ if (!process.env.POUCH_ONLY) {
     });
   });
 
+  authedRouter.post('/logout', (req, res) => {
+    req.session!.credentials = {};
+    res.json({msg: 'logged out'});
+  })
+
   app.use("/api", authedRouter);
 } else {
   debug('Using PouchDB exclusively. No logins supported.');

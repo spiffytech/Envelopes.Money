@@ -29,6 +29,7 @@
   import PageHeader from './components/PageHeader.svelte';
   import Nav from './components/Nav.svelte';
   import Login from './Login.svelte';
+  import Logout from './Logout.svelte';
   import {
     accountsStore,
     balancesStore,
@@ -220,6 +221,7 @@
   page('/', setRoute(Home));
   page('/home', setRoute(Home));
   page('/login', setRoute(Login));
+  page('/logout', setRoute(Logout));
   page('/fill', setRoute(FillEnvelopes));
   page('/editTags', setRoute(EditTags));
   page('/editTxn', setRoute(EditTxn));

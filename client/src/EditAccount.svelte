@@ -1,6 +1,7 @@
 <script>
   import Debug from 'debug';
   import flatten from 'ramda/es/flatten';
+  import fromPairs from 'ramda/es/fromPairs';
   import groupBy from 'ramda/es/groupBy';
   import identity from 'ramda/es/identity';
   import page from 'page';
@@ -63,7 +64,7 @@
       )
     )
   );
-  let newTag = { key: '', value: '' };
+  let pendingTags = [];
 
   let searchTerm = '';
   // Must be reactive in case our accountId URL param changes
@@ -103,7 +104,16 @@
     const newAccountId = account.id || `${rest.type}/${shortid.generate()}`;
     const accountWithId = { ...rest, id: newAccountId };
 
-    await saveAccountsRemote($wsclientStore, [accountWithId]);
+    const newTags = fromPairs(pendingTags.map(({key, value}) => [key, value]));
+    const accountWithNewTags = {
+      ...accountWithId,
+      tags: {
+        ...accountWithId.tags,
+        ...newTags
+      }
+    }
+
+    await saveAccountsRemote($wsclientStore, [accountWithNewTags]);
     page('/');
   }
 </script>
@@ -173,27 +183,25 @@
         </div>
       {/each}
 
-      <input
-        placeholder="New tag name"
-        bind:value={newTag.key}
-        class="border"
-        data-cy="new-tag-name" />
-      <input
-        placeholder="New tag value"
-        bind:value={newTag.value}
-        class="border"
-        data-cy="new-tag-value" />
+      {#each pendingTags as pendingTag, i}
+        <input
+          placeholder="New tag name"
+          bind:value={pendingTags[i].key}
+          class="border"
+          data-cy="new-tag-name" />
+        <input
+          placeholder="New tag value"
+          bind:value={pendingTags[i].value}
+          class="border"
+          data-cy="new-tag-value" />
+        <br />
+      {/each}
 
       <button
-        on:click|preventDefault={() => {
-          account = { ...account, tags: { ...account.tags, [newTag.key]: newTag.value } };
-          tags = [...tags, newTag.key];
-          newTag.key = '';
-          newTag.value = '';
-        }}
+        on:click|preventDefault={() => pendingTags = [...pendingTags, {key: '', value: ''}]}
         class="btn btn-secondary"
         data-cy="add-tag">
-        Add Tag
+        New Tag
       </button>
     </div>
   {/if}

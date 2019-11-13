@@ -26,6 +26,7 @@
   import PageHeader from './components/PageHeader.svelte';
   import Nav from './components/Nav.svelte';
   import Login from './Login.svelte';
+  import Logout from './Logout.svelte';
   import Reports from './Reports.svelte';
   import {
     accountsStore,
@@ -197,6 +198,7 @@
     page('/editTxn/:txnId', setRoute(EditTxn));
     page('/editAccount', setRoute(EditAccount));
     page('/editAccount/:accountId', setRoute(EditAccount));
+    page('/logout', setRoute(Logout));
     page('/reports', setRoute(Reports));
     page('/reports/:reportId', setRoute(Reports));
     page('*', setRoute(Home));

@@ -145,6 +145,11 @@ authedRouter.post('/plaid/getAccessToken', express.json(), async (req, res) => {
   });
 })
 
+authedRouter.post('/logout', (req, res) => {
+  req.session!.credentials = {};
+  res.json({msg: 'logged out'});
+})
+
 app.post('/webhooks/plaid', express.json(), async (req, res) => {
   console.log(req.body);
   if (!req.body.item_id) {

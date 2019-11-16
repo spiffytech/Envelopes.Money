@@ -44,7 +44,7 @@
     "shortid": "^2.2.14",
     "style-loader": "^0.23.1",
     "subscriptions-transport-ws": "^0.9.16",
-    "svelte": "^3.13.0",
+    "svelte": "^3.12.1",
     "svelte-loader": "^2.13.6",
     "tailwindcss": "^1.1.0",
     "webpack": "^4.41.0",

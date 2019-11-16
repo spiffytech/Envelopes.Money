@@ -3,6 +3,9 @@ import 'regenerator-runtime/runtime';
 
 import axios from 'axios';
 import Debug from 'debug';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import * as Sentry from '@sentry/browser';
 
 import App from './App.svelte';
@@ -10,6 +13,9 @@ import { endpoint } from './lib/config';
 import { credsStore } from './stores/main';
 
 const debug = Debug('Envelopes.Money:main');
+
+library.add(faEnvelope);
+library.add(faPlus);
 
 if (window._env_.ALERT_ON_ERROR) {
   window.onerror = err => alert(err);

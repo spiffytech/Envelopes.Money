@@ -10,6 +10,7 @@
     { text: 'New Account', link: '/editAccount' },
     { text: 'Edit Tags', link: '/editTags' },
     { text: 'Reports', link: '/reports' },
+    { text: 'Transactions', link: '/transactions' },
     $credsStore === null
       ? { text: 'Log In', link: '/login' }
       : { text: 'Log Out', link: '/logout' },

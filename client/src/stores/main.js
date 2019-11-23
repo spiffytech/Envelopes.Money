@@ -1,17 +1,36 @@
 import Debug from 'debug';
 import immer from 'immer';
 import flatten from 'ramda/es/flatten';
+import fromPairs from 'ramda/es/fromPairs';
 import groupBy from 'ramda/es/groupBy';
 import identity from 'ramda/es/identity';
 import map from 'ramda/es/map';
 import sum from 'ramda/es/sum';
 import { derived, get as storeGet, writable } from 'svelte/store';
 
+import Transaction from '../lib/Transaction';
+
 const debug = Debug('Envelopes.Money:store');
 window.storeGet = storeGet;
 
 export const transactionsStore = writable(immer([], identity));
 export const accountsStore = writable(immer([], identity));
+
+export const accountsMapStore = derived(
+  accountsStore,
+  $accounts => fromPairs($accounts.map(account => [account.id, account]))
+);
+
+export const transactionsObjStore = derived(
+  [transactionsStore, accountsMapStore],
+  ([$transactions, $accountsMap]) => {
+    return $transactions.map(txn => {
+      const from = $accountsMap[txn.from_id];
+      const to = $accountsMap[txn.to_id];
+      return new Transaction({...transaction, fromAccount: from, toAccount: to});
+    })
+  }
+);
 
 export const balancesStore = derived(
   [transactionsStore, accountsStore],

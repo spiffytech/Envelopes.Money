@@ -12,11 +12,14 @@
     "@testing-library/svelte": "^1.8.0",
     "@types/d3": "^5.7.2",
     "@types/debug": "^4.1.4",
+    "@types/jest": "^24.0.23",
     "@types/lodash": "^4.14.123",
+    "@types/ramda": "^0.26.36",
     "@types/shortid": "0.0.29",
     "axios": "^0.19.0",
     "babel-jest": "^24.9.0",
     "babel-loader": "^8.0.6",
+    "babel-polyfill": "^6.26.0",
     "bencode": "^2.0.1",
     "corejs": "^1.0.0",
     "cross-env": "^5.2.0",
@@ -51,6 +54,8 @@
     "svelte": "^3.12.1",
     "svelte-loader": "^2.13.6",
     "tailwindcss": "^1.1.0",
+    "ts-jest": "^24.2.0",
+    "typescript": "^3.7.2",
     "webpack": "^4.41.0",
     "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.3.0",
@@ -62,7 +67,8 @@
     "dev": "webpack-dev-server --content-base public",
     "tailwind": "npx tailwind build style.css -o public/global.css",
     "generate_test_credentials": "node scripts/generate_test_credentials.js",
-    "lint": "eslint src --ext js --ext svelte"
+    "lint": "eslint src --ext js --ext svelte",
+    "test": "jest"
   },
   "dependencies": {
     "@sentry/browser": "^5.7.1",

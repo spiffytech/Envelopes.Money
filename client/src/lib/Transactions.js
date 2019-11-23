@@ -1,8 +1,13 @@
 import gql from "graphql-tag";
+import groupBy from 'ramda/es/groupBy';
 import * as shortid from "shortid";
 
 import { fragments } from "../lib/apollo";
 import {formatDate} from '../lib/utils';
+
+/** @typedef {import('../types.d').Transaction} Transaction*/
+/** @typedef {import('../types.d').TransactionWithAccounts} TransactionWithAccount */
+/** @typedef {import('../types.d').TransactionGroup} TransactionGroup */
 
 export async function subscribe({ userId, wsclient }, onData) {
   return wsclient
@@ -19,6 +24,17 @@ export async function subscribe({ userId, wsclient }, onData) {
     }, onData);
 }
 
+/**
+ * @param {TransactionWithAccount[]} transactions
+ * @returns {TransactionGroup[]}
+ */
+export function group(transactions) {
+  return Object.values(groupBy((txn) => txn.transaction.txn_id, transactions));
+}
+
+/**
+ * @returns {Partial<Transaction>}
+ */
 export function mkEmptyTransaction() {
   return {
     id: `transaction/${shortid.generate()}`,
@@ -26,8 +42,6 @@ export function mkEmptyTransaction() {
     date: formatDate(new Date()),
     amount: 0,
     label: null,
-    from_id: null,
-    to_id: null,
     cleared: false
   };
 }

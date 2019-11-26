@@ -100,7 +100,7 @@ export function filter(terms) {
         toIds(txnGroup).some(id => id === terms.envelope));
 
     if (terms.term) {
-      const re = new RegExp('.*' + terms.term + '.*');
+      const re = new RegExp('.*' + terms.term.toLowerCase() + '.*', 'i');
       matchesTerm =
         re.test(labelOrLabel(txnGroup)) ||
         re.test(memo(txnGroup) || '') ||

@@ -11,7 +11,9 @@
 
   const txnGroupStore = getContext('txnGroupStore');
 
-  $: txnsGroupsToShow = $txnGroupStore.filter(libtxngroup.filter({account: null, envelope: null, term: ''}));
+  let searchTerm = '';
+
+  $: txnsGroupsToShow = $txnGroupStore.filter(libtxngroup.filter({account: null, envelope: null, term: searchTerm}));
 
   $: debug('%d transactions to show', txnsGroupsToShow.length);
 </script>
@@ -26,7 +28,8 @@
 
     <input
       class="border w-full"
-      placeholder="Search by payee, date, amount, memo" />
+      placeholder="Search by payee, date, amount, memo"
+      bind:value={searchTerm} />
 
   </div>
 

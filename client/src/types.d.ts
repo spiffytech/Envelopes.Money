@@ -8,6 +8,7 @@ export interface Transaction {
   to_id: string;
   cleared: boolean;
   txn_id: string;
+  type: 'banktxn' | 'envelopeTransfer' | 'accountTransfer';
 }
 
 interface BankAccount {

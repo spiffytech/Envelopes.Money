@@ -6,14 +6,21 @@ import groupBy from 'ramda/es/groupBy';
 import identity from 'ramda/es/identity';
 import map from 'ramda/es/map';
 import sum from 'ramda/es/sum';
-import { derived, get as storeGet, writable } from 'svelte/store';
+import { derived, get as storeGet, Readable, writable, Writable } from 'svelte/store';
 
-import Transaction from '../lib/Transaction';
+import * as libtransactions from '../lib/Transactions';
+
+/** @typedef {import('../types.d').TransactionGroup} TransactionGroup */
+/** @typedef {import('../types.d').Transaction} Transaction*/
+/** @typedef {import('../types.d').TransactionWithAccounts} TransactionWithAccounts */
+/** @typedef {import('../types.d').Account} Account */
 
 const debug = Debug('Envelopes.Money:store');
 window.storeGet = storeGet;
 
+/** @type {Writable<Transaction[]>} */
 export const transactionsStore = writable(immer([], identity));
+/** @type {Writable<Account[]>} */
 export const accountsStore = writable(immer([], identity));
 
 export const accountsMapStore = derived(
@@ -21,14 +28,20 @@ export const accountsMapStore = derived(
   $accounts => fromPairs($accounts.map(account => [account.id, account]))
 );
 
-export const transactionsObjStore = derived(
+/** @type {Readable<TransactionGroup[]>} */
+export const txnGroupStore = derived(
   [transactionsStore, accountsMapStore],
+  /** @type {([$transactions, $accountsMap]: [Transaction[], {[key: string]: Account}]) => TransactionGroup[]} */
   ([$transactions, $accountsMap]) => {
-    return $transactions.map(txn => {
-      const from = $accountsMap[txn.from_id];
-      const to = $accountsMap[txn.to_id];
-      return new Transaction({...transaction, fromAccount: from, toAccount: to});
-    })
+    /** @type {TransactionWithAccounts[]} */
+    const txnsWithAccounts = $transactions.map(txn => ({
+      transaction: txn,
+      from: $accountsMap[txn.from_id],
+      to: $accountsMap[txn.to_id],
+    }));
+    /** @type {TransactionGroup[]} */
+    const txnGroups = libtransactions.group(txnsWithAccounts);
+    return txnGroups;
   }
 );
 
@@ -65,3 +78,4 @@ window.balancesStore = balancesStore;
 window.transactionsStore = transactionsStore;
 window.accountsStore = accountsStore;
 window.credsStore = credsStore;
+window.txnGroupStore = txnGroupStore;

@@ -39,6 +39,7 @@
     syncStore,
     navStore,
     intervalStore,
+    txnGroupStore,
   } from './stores/main';
   import { endpoint } from './lib/config';
 
@@ -183,6 +184,7 @@
   setContext('balancesStore', balancesStore);
   setContext('accountsStore', accountsStore);
   setContext('transactionsStore', transactionsStore);
+  setContext('txnGroupStore', txnGroupStore);
   setContext('credsStore', credsStore);
   setContext('dexie', dexie);
   setContext('syncStore', syncStore);

@@ -1,4 +1,6 @@
+import * as pennies from './pennies';
 import * as libtransaction from './Transactions';
+import { treemapSlice } from 'd3';
 
 /** @typedef {import('../types.d').TransactionGroup} TransactionGroup */
 
@@ -54,6 +56,22 @@ export function toNames(txnGroup) {
 
 /**
  * @param {TransactionGroup} txnGroup
+ * @return {string}
+ */
+export function fromId(txnGroup) {
+  return libtransaction.fromAccountId(txnGroup[0]);
+}
+
+/**
+ * @param {TransactionGroup} txnGroup
+ * @return {string[]}
+ */
+export function toIds(txnGroup) {
+  return txnGroup.map(txn => libtransaction.toAccountId(txn));
+}
+
+/**
+ * @param {TransactionGroup} txnGroup
  * @return {string | null}
  */
 export function memo(txnGroup) {
@@ -70,28 +88,23 @@ export function filter(terms) {
    */
   function filterInner(txnGroup) {
     let doesMatch = true;
-    let matchesAccount = false;
-    let matchesEnvelope = false;
     let matchesTerm = false;
 
-    if (terms.account) {
-      const re = new RegExp(terms.account);
-      if (re.test(fromName(txnGroup))) matchesAccount = true;
-      if (toNames(txnGroup).some(name => re.test(name))) matchesAccount = true;
-    }
-    if (terms.envelope) {
-      const re = new RegExp(terms.envelope);
-      if (re.test(fromName(txnGroup))) matchesEnvelope = true;
-      if (toNames(txnGroup).some(name => re.test(name))) matchesEnvelope = true;
-    }
+    const matchesAccount =
+      Boolean(terms.account) &&
+      (fromId(txnGroup) === terms.account ||
+        toIds(txnGroup).some(id => id === terms.account));
+    const matchesEnvelope =
+      Boolean(terms.envelope) &&
+      (fromId(txnGroup) === terms.envelope ||
+        toIds(txnGroup).some(id => id === terms.envelope));
 
     if (terms.term) {
-      const re = new RegExp(terms.term);
+      const re = new RegExp('.*' + terms.term + '.*');
       matchesTerm =
-        re.test(fromName(txnGroup)) ||
-        toNames(txnGroup).some(name => re.test(name)) ||
         re.test(labelOrLabel(txnGroup)) ||
-        re.test(memo(txnGroup) || '');
+        re.test(memo(txnGroup) || '') ||
+        re.test(pennies.toDollars(amount(txnGroup)));
     }
 
     if (terms.account) doesMatch = doesMatch && matchesAccount;

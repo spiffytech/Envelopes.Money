@@ -32,7 +32,7 @@ describe('libtxngroup', () => {
       to,
       transaction: {
         id: 'foo1',
-        memo: null,
+        memo: 'a fun time at the amusement park',
         date: '2019-11-22',
         amount: 50,
         label: 'Foo Co.',
@@ -103,7 +103,7 @@ describe('libtxngroup', () => {
 
     it('returns true if the account matches the from', () => {
       expect(
-        libtxngroup.filter({ account: 'Account 1', envelope: null, term: '' })(
+        libtxngroup.filter({ account: 'account1', envelope: null, term: '' })(
           txnGroup
         )
       ).toBeTruthy();
@@ -111,7 +111,7 @@ describe('libtxngroup', () => {
 
     it('returns true if the account matches the to', () => {
       expect(
-        libtxngroup.filter({ account: 'Account 2', envelope: null, term: '' })(
+        libtxngroup.filter({ account: 'account2', envelope: null, term: '' })(
           txnGroup
         )
       ).toBeTruthy();
@@ -119,7 +119,7 @@ describe('libtxngroup', () => {
 
     it('returns false if the account does not match', () => {
       expect(
-        libtxngroup.filter({ account: 'Account 4', envelope: null, term: '' })(
+        libtxngroup.filter({ account: 'account4', envelope: null, term: '' })(
           txnGroup
         )
       ).toBeFalsy();
@@ -127,7 +127,7 @@ describe('libtxngroup', () => {
 
     it('returns true if the envelope matches the from', () => {
       expect(
-        libtxngroup.filter({ envelope: 'Account 1', account: null, term: '' })(
+        libtxngroup.filter({ envelope: 'account1', account: null, term: '' })(
           txnGroup
         )
       ).toBeTruthy();
@@ -135,7 +135,7 @@ describe('libtxngroup', () => {
 
     it('returns true if the envelope matches the to', () => {
       expect(
-        libtxngroup.filter({ envelope: 'Account 2', account: null, term: '' })(
+        libtxngroup.filter({ envelope: 'account2', account: null, term: '' })(
           txnGroup
         )
       ).toBeTruthy();
@@ -143,23 +143,31 @@ describe('libtxngroup', () => {
 
     it('returns false if the envelope does not match', () => {
       expect(
-        libtxngroup.filter({ envelope: 'Account 4', account: null, term: '' })(
+        libtxngroup.filter({ envelope: 'account4', account: null, term: '' })(
           txnGroup
         )
       ).toBeFalsy();
     });
 
-    it('returns true if the search term matches the from', () => {
+    it('returns true if the search term matches the memo', () => {
       expect(
-        libtxngroup.filter({ term: 'Account 1', account: null, envelope: '' })(
+        libtxngroup.filter({ term: 'amusement park', account: null, envelope: '' })(
           txnGroup
         )
       ).toBeTruthy();
     });
 
-    it('returns true if the search term matches the to', () => {
+    it('returns true if the search term matches the amount', () => {
       expect(
-        libtxngroup.filter({ term: 'Account 2', account: null, envelope: '' })(
+        libtxngroup.filter({ term: '1.25', account: null, envelope: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns true if the search term matches the label', () => {
+      expect(
+        libtxngroup.filter({ term: 'Foo', account: null, envelope: '' })(
           txnGroup
         )
       ).toBeTruthy();
@@ -167,7 +175,7 @@ describe('libtxngroup', () => {
 
     it('returns false if the search term does not match', () => {
       expect(
-        libtxngroup.filter({ term: 'Account 4', account: null, envelope: '' })(
+        libtxngroup.filter({ term: 'Bogus Term', account: null, envelope: '' })(
           txnGroup
         )
       ).toBeFalsy();

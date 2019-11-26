@@ -11,17 +11,3 @@ export function formatDate(date) {
   if (typeof date === 'string') date = new Date(date + 'T00:00');
   return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
 }
-
-export function myDebounce(fn, wait) {
-  let capturedArgs = [];
-  let timeout = null;
-  return arg => {
-    capturedArgs.push(arg);
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      timeout = null;
-      fn(capturedArgs.slice());
-      capturedArgs = [];
-    }, wait);
-  };
-}

@@ -73,7 +73,7 @@ export function label(txn) {
 }
 
 /**
- * @returns {Partial<Transaction>}
+ * @returns {Pick<Transaction, 'id' | 'memo' | 'date' |'amount' | 'label' | 'cleared'>}
  */
 export function mkEmptyTransaction() {
   return {

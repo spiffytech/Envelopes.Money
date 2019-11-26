@@ -68,7 +68,7 @@
     "tailwind": "npx tailwind build style.css -o public/global.css",
     "generate_test_credentials": "node scripts/generate_test_credentials.js",
     "lint": "eslint src --ext js --ext svelte",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "dependencies": {
     "@sentry/browser": "^5.7.1",

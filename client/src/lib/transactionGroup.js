@@ -51,3 +51,55 @@ export function fromName(txnGroup) {
 export function toNames(txnGroup) {
   return txnGroup.map(txn => txn.to.name);
 }
+
+/**
+ * @param {TransactionGroup} txnGroup
+ * @return {string | null}
+ */
+export function memo(txnGroup) {
+  return libtransaction.memo(txnGroup[0]);
+}
+
+/**
+ * @param {{account: string | null, envelope: string | null, term: string}} terms
+ */
+export function filter(terms) {
+  /**
+   * @param {TransactionGroup} txnGroup
+   * @return {boolean}
+   */
+  function filterInner(txnGroup) {
+    let doesMatch = true;
+    let matchesAccount = false;
+    let matchesEnvelope = false;
+    let matchesTerm = false;
+
+    if (terms.account) {
+      const re = new RegExp(terms.account);
+      if (re.test(fromName(txnGroup))) matchesAccount = true;
+      if (toNames(txnGroup).some(name => re.test(name))) matchesAccount = true;
+    }
+    if (terms.envelope) {
+      const re = new RegExp(terms.envelope);
+      if (re.test(fromName(txnGroup))) matchesEnvelope = true;
+      if (toNames(txnGroup).some(name => re.test(name))) matchesEnvelope = true;
+    }
+
+    if (terms.term) {
+      const re = new RegExp(terms.term);
+      matchesTerm =
+        re.test(fromName(txnGroup)) ||
+        toNames(txnGroup).some(name => re.test(name)) ||
+        re.test(labelOrLabel(txnGroup)) ||
+        re.test(memo(txnGroup) || '');
+    }
+
+    if (terms.account) doesMatch = doesMatch && matchesAccount;
+    if (terms.envelope) doesMatch = doesMatch && matchesEnvelope;
+    if (terms.term) doesMatch = doesMatch && matchesTerm;
+
+    return doesMatch;
+  }
+
+  return filterInner;
+}

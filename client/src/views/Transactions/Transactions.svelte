@@ -5,15 +5,13 @@
   import Icon from '../../components/Icon.svelte';
   import Transaction from './Transaction.svelte';
 
-  import * as libtransactions from '../../lib/Transactions';
+  import * as libtxngroup from '../../lib/transactionGroup';
 
   const debug = Debug('Envelopes.Money:Transactions.svelte');
 
   const txnGroupStore = getContext('txnGroupStore');
 
-  $: txnsGroupsToShow = $txnGroupStore.filter(txnGroup =>
-    libtransactions.filterByAccount(null, txnGroup)
-  );
+  $: txnsGroupsToShow = $txnGroupStore.filter(libtxngroup.filter({account: null, envelope: null, term: ''}));
 
   $: debug('%d transactions to show', txnsGroupsToShow.length);
 </script>

@@ -120,3 +120,11 @@ export function friendlyTypeName(txn) {
 export function amount(txn) {
   return txn.transaction.amount;
 }
+
+/**
+ * @param {TransactionWithAccounts} txn
+ * @return {string | null}
+ */
+export function memo(txn) {
+  return txn.transaction.memo;
+}

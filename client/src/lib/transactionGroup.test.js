@@ -91,4 +91,86 @@ describe('libtxngroup', () => {
   it('returns the "to" names joined with a comma', () => {
     expect(libtxngroup.toNames(txnGroup)).toEqual(['Account 2', 'Account 3']);
   });
+
+  describe('filter', () => {
+    it('returns true if no terms are provided', () => {
+      expect(
+        libtxngroup.filter({ account: null, envelope: null, term: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns true if the account matches the from', () => {
+      expect(
+        libtxngroup.filter({ account: 'Account 1', envelope: null, term: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns true if the account matches the to', () => {
+      expect(
+        libtxngroup.filter({ account: 'Account 2', envelope: null, term: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns false if the account does not match', () => {
+      expect(
+        libtxngroup.filter({ account: 'Account 4', envelope: null, term: '' })(
+          txnGroup
+        )
+      ).toBeFalsy();
+    });
+
+    it('returns true if the envelope matches the from', () => {
+      expect(
+        libtxngroup.filter({ envelope: 'Account 1', account: null, term: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns true if the envelope matches the to', () => {
+      expect(
+        libtxngroup.filter({ envelope: 'Account 2', account: null, term: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns false if the envelope does not match', () => {
+      expect(
+        libtxngroup.filter({ envelope: 'Account 4', account: null, term: '' })(
+          txnGroup
+        )
+      ).toBeFalsy();
+    });
+
+    it('returns true if the search term matches the from', () => {
+      expect(
+        libtxngroup.filter({ term: 'Account 1', account: null, envelope: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns true if the search term matches the to', () => {
+      expect(
+        libtxngroup.filter({ term: 'Account 2', account: null, envelope: '' })(
+          txnGroup
+        )
+      ).toBeTruthy();
+    });
+
+    it('returns false if the search term does not match', () => {
+      expect(
+        libtxngroup.filter({ term: 'Account 4', account: null, envelope: '' })(
+          txnGroup
+        )
+      ).toBeFalsy();
+    });
+  });
 });

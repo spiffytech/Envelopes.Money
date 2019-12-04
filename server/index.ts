@@ -34,48 +34,44 @@ app.use(
   })
 );
 
-if (!process.env.POUCH_ONLY) {
-  app.use("/auth", unauth);
+app.use("/auth", unauth);
 
-  const authedRouter = express.Router();
-  authedRouter.use(async (req, res, next) => {
-    const apikey = sessions.apikeyFromRequest(req);
-    if (!apikey) {
-      res.statusCode = 401;
-      console.log("No API key in request");
-      return res.send({ error: "unauthorized" });
-    }
+const authedRouter = express.Router();
+authedRouter.use(async (req, res, next) => {
+  const apikey = sessions.apikeyFromRequest(req);
+  if (!apikey) {
+    res.statusCode = 401;
+    console.log("No API key in request");
+    return res.send({ error: "unauthorized" });
+  }
 
-    const session = await sessions.lookUpSession(apikey);
-    if (!session) {
-      res.statusCode = 401;
-      console.error("No session for that API key");
-      return res.send({ error: "unauthorized" });
-    }
+  const session = await sessions.lookUpSession(apikey);
+  if (!session) {
+    res.statusCode = 401;
+    console.error("No session for that API key");
+    return res.send({ error: "unauthorized" });
+  }
 
-    req.userId = session.id;
-    req.apikey = apikey;
-    return next();
+  req.userId = session.id;
+  req.apikey = apikey;
+  return next();
+});
+
+authedRouter.get("/credentials", (req, res) => {
+  res.json({
+    email: req.session!.credentials.email,
+    password: req.session!.credentials.password,
+    apikey: req.session!.credentials.apikey,
+    userId: req.session!.credentials.userId
   });
+});
 
-  authedRouter.get("/credentials", (req, res) => {
-    res.json({
-      email: req.session!.credentials.email,
-      password: req.session!.credentials.password,
-      apikey: req.session!.credentials.apikey,
-      userId: req.session!.credentials.userId
-    });
-  });
+authedRouter.post('/logout', (req, res) => {
+  req.session!.credentials = {};
+  res.json({msg: 'logged out'});
+})
 
-  authedRouter.post('/logout', (req, res) => {
-    req.session!.credentials = {};
-    res.json({msg: 'logged out'});
-  })
-
-  app.use("/api", authedRouter);
-} else {
-  debug('Using PouchDB exclusively. No logins supported.');
-}
+app.use("/api", authedRouter);
 
 
 // Serve static files for React

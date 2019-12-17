@@ -63,7 +63,7 @@
     "workbox-webpack-plugin": "^4.3.1"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack && npm run tailwind && netlify-lambda build lambda",
+    "build": "cross-env NODE_ENV=production webpack && npm run tailwind",
     "dev": "webpack-dev-server --content-base public",
     "tailwind": "npx tailwind build style.css -o public/global.css",
     "generate_test_credentials": "node scripts/generate_test_credentials.js",

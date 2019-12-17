@@ -396,6 +396,7 @@ h3,
 h4,
 h5,
 h6,
+hr,
 figure,
 p,
 pre {
@@ -473,7 +474,7 @@ html {
  */
 
 hr {
-  border-width: 1px;
+  border-top-width: 1px;
 }
 
 /**
@@ -494,8 +495,7 @@ textarea {
   resize: vertical;
 }
 
-input::-moz-placeholder,
-textarea::-moz-placeholder {
+input::-moz-placeholder, textarea::-moz-placeholder {
   color: #a0aec0;
 }
 

@@ -10,10 +10,6 @@ dotenv.config();
 const mode = process.env.NODE_ENV || 'development';
 const prod = mode === 'production';
 
-const commitHash = require('child_process')
-  .execSync('git rev-parse --short HEAD')
-  .toString();
-
 module.exports = {
   devServer: {
     port: 8080,
@@ -78,10 +74,8 @@ module.exports = {
     ],
   },
   mode,
-  /* global __COMMIT_HASH__ */
   plugins: [
     new webpack.DefinePlugin({
-      __COMMIT_HASH__: JSON.stringify(commitHash),
     }),
     new HtmlWebpackPlugin({
       title: 'Envelopes.money',

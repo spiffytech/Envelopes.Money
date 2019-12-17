@@ -230,5 +230,3 @@
 <main aria-label="Page Content" class="flex-1">
   <svelte:component this={route} bind:params={routeParams} />
 </main>
-
-<footer>Envelopes.Money version {__COMMIT_HASH__}</footer>

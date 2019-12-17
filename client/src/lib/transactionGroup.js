@@ -1,6 +1,5 @@
 import * as pennies from './pennies';
 import * as libtransaction from './Transactions';
-import { treemapSlice } from 'd3';
 
 /** @typedef {import('../types.d').TransactionGroup} TransactionGroup */
 

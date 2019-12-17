@@ -109,5 +109,8 @@ module.exports = {
   optimization: {
     usedExports: prod,
     minimize: prod,
+    concatenateModules: false,
+    namedModules: true,
+    namedChunks: true,
   },
 };

@@ -5,7 +5,6 @@
   const navStore = getContext('navStore');
 
   $: navLinks = [
-    { text: 'New Transaction', link: '/editTxn' },
     { text: 'Fill Envelopes', link: '/fill' },
     { text: 'New Account', link: '/editAccount' },
     { text: 'Edit Tags', link: '/editTags' },

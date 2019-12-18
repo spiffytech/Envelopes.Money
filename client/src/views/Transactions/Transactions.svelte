@@ -3,6 +3,7 @@
   import { getContext } from 'svelte';
 
   import Icon from '../../components/Icon.svelte';
+  import Paginated from '../../components/Paginated.svelte';
   import Transaction from './Transaction.svelte';
 
   import * as libtxngroup from '../../lib/transactionGroup';
@@ -57,9 +58,13 @@
       New transaction
     </div>
   </a>
-  {#each txnsGroupsToShow as txn}
-    <div class="mb-3">
-      <Transaction {txn} />
+  <Paginated items={txnsGroupsToShow} let:items>
+    <div style="display: contents;">
+      {#each items as txn (libtxngroup.txnId(txn))}
+        <div class="mb-3">
+          <Transaction {txn} />
+        </div>
+      {/each}
     </div>
-  {/each}
+  </Paginated>
 </section>

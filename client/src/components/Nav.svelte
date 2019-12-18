@@ -28,7 +28,7 @@
   }
 </style>
 
-<nav>
+<nav class="border-t border-b">
   <ul class="p-0 flex justify-center">
     <li class="px-5 py-2 border"><a href="/"><Icon prefix="far" icon="envelope" size={32} /></a></li>
     <li class="px-5 py-2 border"><a href="/transactions"><Icon prefix="fas" icon="dollar-sign" size={32} /></a></li>

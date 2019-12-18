@@ -5,6 +5,8 @@
   import uniq from 'ramda/es/uniq';
   import { getContext } from 'svelte';
 
+  import Icon from './components/Icon.svelte';
+
   import * as Balances from './lib/Balances';
   import { toDollars } from './lib/pennies';
 
@@ -77,6 +79,26 @@
 </script>
 
 <div class="m-3">
+
+
+  <section class="flex">
+    <a href="/editAccount" class="p-3"><Icon prefix="fas" icon="plus" /></a>
+
+    <select bind:value={$intervalStore} class="border">
+      <option value="weekly">Weekly Budget</option>
+      <option value="biweekly">Biweekly Budget</option>
+      <option value="bimonthly">Bimonthly Budget</option>
+      <option value="monthly">Monthly Budget</option>
+      <option value="annually">Annual Budget</option>
+    </select>
+
+    <a href="/fill" class="p-3">
+      <Icon prefix="far" icon="envelope" size={16} />
+      <Icon prefix="fas" icon="arrow-right" size={16} />
+      <Icon prefix="fas" icon="dollar-sign" size={16} />
+    </a>
+  </section>
+
   <section aria-label="Display controls">
     <div class="shadow-md p-3 rounded-lg mb-3 bg-white max-w-sm">
       <header

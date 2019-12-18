@@ -37,14 +37,14 @@
   </div>
 
   <div class="flex justify-between mb-3">
-    <select bind:value={searchAccount}>
+    <select bind:value={searchAccount} class="border">
       <option value={null}>Account</option>
       {#each $accountsStore.filter(account => account.type === 'account') as account}
         <option value={account.id}>{account.name}</option>
       {/each}
     </select>
 
-    <select bind:value={searchEnvelope}>
+    <select bind:value={searchEnvelope} class="border">
       <option value={null}>Envelope</option>
       {#each $accountsStore.filter(account => account.type === 'envelope') as envelope}
         <option value={envelope.id}>{envelope.name}</option>

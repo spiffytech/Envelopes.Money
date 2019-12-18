@@ -8,7 +8,7 @@
 <a
   style="display: contents"
   href={`/editTxn/${encodeURIComponent(encodeURIComponent(libtxngroup.txnId(txn)))}`}>
-  <div class="border rounded-lg">
+  <div class="border rounded-lg p-3">
     <p>{libtxngroup.date(txn)}</p>
 
     <p class="flex justify-between">

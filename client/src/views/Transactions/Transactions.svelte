@@ -29,12 +29,6 @@
 
 <section class="m-auto max-w-3xl">
   <div class="flex mb-3">
-    <div class="p-2 mr-3">
-      <a href="/editTxn">
-        <Icon prefix="fas" icon="plus" />
-      </a>
-    </div>
-
     <input
       class="border w-full"
       placeholder="Search by payee, date, amount, memo"
@@ -57,6 +51,12 @@
     </select>
   </div>
 
+  <a href="/editTxn" style="display: contents;">
+    <div class="border rounded-lg p-3 mb-3">
+      <Icon prefix="fas" icon="plus" size={16} />
+      New transaction
+    </div>
+  </a>
   {#each txnsGroupsToShow as txn}
     <div class="mb-3">
       <Transaction {txn} />

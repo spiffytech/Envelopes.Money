@@ -3,6 +3,7 @@
   import { getContext } from 'svelte';
 
   import Icon from '../../components/Icon.svelte';
+  import TopBar from '../../components/material/TopBar.svelte';
   import Paginated from '../../components/Paginated.svelte';
   import Transaction from './Transaction.svelte';
 
@@ -28,43 +29,45 @@
   $: debug('%d transactions to show', txnsGroupsToShow.length);
 </script>
 
-<section class="m-auto max-w-3xl">
-  <div class="flex mb-3">
-    <input
-      class="border w-full"
-      placeholder="Search by payee, date, amount, memo"
-      bind:value={searchTerm} />
-  </div>
-
-  <div class="flex justify-between mb-3">
-    <select bind:value={searchAccount} class="border">
-      <option value={null}>Account</option>
-      {#each $accountsStore.filter(account => account.type === 'account') as account}
-        <option value={account.id}>{account.name}</option>
-      {/each}
-    </select>
-
-    <select bind:value={searchEnvelope} class="border">
-      <option value={null}>Envelope</option>
-      {#each $accountsStore.filter(account => account.type === 'envelope') as envelope}
-        <option value={envelope.id}>{envelope.name}</option>
-      {/each}
-    </select>
-  </div>
-
-  <a href="/editTxn" style="display: contents;">
-    <div class="border rounded-lg p-3 mb-3">
-      <Icon prefix="fas" icon="plus" size={16} />
-      New transaction
+<TopBar title="Transactions">
+  <section class="m-auto max-w-3xl mt-4">
+    <div class="flex mb-3">
+      <input
+        class="border w-full"
+        placeholder="Search by payee, date, amount, memo"
+        bind:value={searchTerm} />
     </div>
-  </a>
-  <Paginated items={txnsGroupsToShow} let:items>
-    <div style="display: contents;">
-      {#each items as txn (libtxngroup.txnId(txn))}
-        <div class="mb-3">
-          <Transaction {txn} />
-        </div>
-      {/each}
+
+    <div class="flex justify-between mb-3">
+      <select bind:value={searchAccount} class="border">
+        <option value={null}>Account</option>
+        {#each $accountsStore.filter(account => account.type === 'account') as account}
+          <option value={account.id}>{account.name}</option>
+        {/each}
+      </select>
+
+      <select bind:value={searchEnvelope} class="border">
+        <option value={null}>Envelope</option>
+        {#each $accountsStore.filter(account => account.type === 'envelope') as envelope}
+          <option value={envelope.id}>{envelope.name}</option>
+        {/each}
+      </select>
     </div>
-  </Paginated>
-</section>
+
+    <a href="/editTxn" style="display: contents;">
+      <div class="border rounded-lg p-3 mb-3">
+        <Icon prefix="fas" icon="plus" size={16} />
+        New transaction
+      </div>
+    </a>
+    <Paginated items={txnsGroupsToShow} let:items>
+      <div style="display: contents;">
+        {#each items as txn (libtxngroup.txnId(txn))}
+          <div class="mb-3">
+            <Transaction {txn} />
+          </div>
+        {/each}
+      </div>
+    </Paginated>
+  </section>
+</TopBar>

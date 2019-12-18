@@ -4,6 +4,9 @@
   import groupBy from 'ramda/es/groupBy';
   import { getContext } from 'svelte';
 
+  import Icon from './components/Icon.svelte';
+  import TopBar from './components/material/TopBar.svelte';
+
   import Accounts from './Accounts.svelte';
   import { toDollars } from './lib/pennies';
 
@@ -11,6 +14,7 @@
 
   const accountsStore = getContext('accountsStore');
   const transactionsStore = getContext('transactionsStore');
+  const topBarStore = getContext('topBarStore');
 
   function triggerDownload(data, extension) {
     var a = document.createElement('a');
@@ -77,19 +81,34 @@
   }
 </script>
 
-<button
-  class="btn btn-tertiary"
-  on:click|preventDefault={() => exportTxns($transactionsStore)}>
-  Export Transactions Raw
-</button>
-<button
-  class="btn btn-tertiary"
-  on:click|preventDefault={() => exportBankActivity($transactionsStore, $accountsStore)}>
-  Export Bank Activity
-</button>
-<button
-  class="btn btn-tertiary"
-  on:click|preventDefault={() => exportBankActivityCsv($transactionsStore, $accountsStore)}>
-  Export Bank Activity (CSV)
-</button>
-<Accounts />
+<TopBar title="Envelopes">
+  <button
+    class="btn btn-tertiary"
+    on:click|preventDefault={() => exportTxns($transactionsStore)}>
+    Export Transactions Raw
+  </button>
+  <button
+    class="btn btn-tertiary"
+    on:click|preventDefault={() => exportBankActivity($transactionsStore, $accountsStore)}>
+    Export Bank Activity
+  </button>
+  <button
+    class="btn btn-tertiary"
+    on:click|preventDefault={() => exportBankActivityCsv($transactionsStore, $accountsStore)}>
+    Export Bank Activity (CSV)
+  </button>
+
+  <div slot="button1">
+    <a href="/fill" class="p-3">
+      <Icon prefix="far" icon="envelope" size={16} />
+      <Icon prefix="fas" icon="arrow-right" size={16} />
+      <Icon prefix="fas" icon="dollar-sign" size={16} />
+    </a>
+  </div>
+
+  <div slot="button2">
+    <a href="/editAccount" class="p-3"><Icon prefix="fas" icon="plus" size={16} /></a>
+  </div>
+
+  <Accounts />
+</TopBar>

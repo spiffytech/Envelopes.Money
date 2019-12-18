@@ -1,0 +1,4 @@
+public/bundle*js*
+public/env.js
+public/index.html
+lambda_built

@@ -221,7 +221,7 @@
   <p>{$connectionStore}</p>
 {/if}
 
-<PageHeader />
+<!--<PageHeader />-->
 
 {#if $credsStore}
   <Nav />

@@ -12,6 +12,8 @@
     { prefix, iconName: icon },
     { transform: { size } }
   );
+
+  if (!i) throw new Error(`No such icon: ${prefix} ${icon}`);
 </script>
 
 {@html i.html}

@@ -5,7 +5,7 @@ import axios from 'axios';
 import Debug from 'debug';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faDollarSign, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import * as Sentry from '@sentry/browser';
 
 import App from './App.svelte';
@@ -16,6 +16,8 @@ const debug = Debug('Envelopes.Money:main');
 
 library.add(faEnvelope);
 library.add(faPlus);
+library.add(faDollarSign);
+library.add(faChartLine);
 
 if (window._env_.ALERT_ON_ERROR) {
   window.onerror = err => alert(err);

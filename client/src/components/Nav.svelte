@@ -1,6 +1,8 @@
 <script>
   import { getContext } from 'svelte';
 
+  import Icon from './Icon.svelte';
+
   const credsStore = getContext('credsStore');
   const navStore = getContext('navStore');
 
@@ -26,35 +28,10 @@
   }
 </style>
 
-{#if $navStore}
-  <nav class="bg-orange-500 block sm:hidden" data-cy="nav-buttons" aria-label="menu">
-    <ul class="p-0">
-      {#each navLinks as link}
-        <li class="bg-orange-500 pl-2 pb-2 pt-2 border-b-2 border-gray-900">
-          <a
-            class="text-gray-900"
-            href={link.link}
-            data-cy="fill-envelopes"
-            on:click={() => navStore.set(false)}>
-            {link.text}
-          </a>
-        </li>
-      {/each}
-    </ul>
-  </nav>
-{/if}
-
-<nav class="bg-orange-500 hidden sm:block" data-cy="nav-buttons" aria-label="menu">
-  <ul class="flex p-0">
-    {#each navLinks as link}
-      <li class="p-2 border-2 border-gray-900">
-        <a
-          class="text-gray-900"
-          href={link.link}
-          data-cy="fill-envelopes">
-          {link.text}
-        </a>
-      </li>
-    {/each}
+<nav>
+  <ul class="p-0 flex justify-center">
+    <li class="px-5 py-2 border"><a href="/"><Icon prefix="far" icon="envelope" size={32} /></a></li>
+    <li class="px-5 py-2 border"><a href="/transactions"><Icon prefix="fas" icon="dollar-sign" size={32} /></a></li>
+    <li class="px-5 py-2 border"><a href="/reports"><Icon prefix="fas" icon="chart-line" size={32} /></a></li>
   </ul>
 </nav>

@@ -30,8 +30,12 @@
 
 <nav class="border-t border-b">
   <ul class="p-0 flex justify-center">
-    <li class="px-5 py-2 border"><a href="/"><Icon prefix="far" icon="envelope" size={32} /></a></li>
-    <li class="px-5 py-2 border"><a href="/transactions"><Icon prefix="fas" icon="dollar-sign" size={32} /></a></li>
-    <li class="px-5 py-2 border"><a href="/reports"><Icon prefix="fas" icon="chart-line" size={32} /></a></li>
+    {#if $credsStore}
+      <li class="px-5 py-2 border"><a href="/"><Icon prefix="far" icon="envelope" size={32} /></a></li>
+      <li class="px-5 py-2 border"><a href="/transactions"><Icon prefix="fas" icon="dollar-sign" size={32} /></a></li>
+      <li class="px-5 py-2 border"><a href="/reports"><Icon prefix="fas" icon="chart-line" size={32} /></a></li>
+    {:else}
+      <li class="px-5 py-2 border"><a href="/login"><Icon prefix="fas" icon="user-alt" size={32} /></a></li>
+    {/if}
   </ul>
 </nav>

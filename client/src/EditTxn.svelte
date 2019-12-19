@@ -9,6 +9,8 @@
   import * as shortid from 'shortid';
   import { getContext, onMount } from 'svelte';
 
+  import TopBar from './components/material/TopBar.svelte';
+
   import { toDollars } from './lib/pennies';
   import * as Transactions from './lib/Transactions';
   import { formatDate } from './lib/utils';
@@ -183,167 +185,169 @@
   }
 </script>
 
-{#if from === undefined || to === undefined || from.filter(filterRealAccounts).length === 0 || to.filter(filterRealAccounts).length === 0}
-  <p data-cy="no-data">
-    Go create some accounts and envelopes before trying to do this
-  </p>
-{:else}
-  {#if error}
-    <p>Error! {error}</p>
-  {/if}
-  <form
-    on:submit|preventDefault={handleSubmit}
-    class="m-auto flex flex-wrap justify-around"
-    data-cy="edittxn-form">
-    <div class="flex-auto max-w-sm px-0 sm:px-3">
-      <div class="flex flex-col">
-        <label class="label-inline" for="txntype">
-          Transaction Type
-        </label>
-        <select bind:value={type} class="input-inline" id="txntype">
-          <option value="banktxn">Bank Transaction</option>
-          <option value="envelopeTransfer">Envelope Transfer</option>
-          <option value="accountTransfer">Account Transfer</option>
-        </select>
-      </div>
-
-      {#if type === 'banktxn'}
+<TopBar title={txnId ? 'Edit Transaction' : 'New Transaction'}>
+  {#if from === undefined || to === undefined || from.filter(filterRealAccounts).length === 0 || to.filter(filterRealAccounts).length === 0}
+    <p data-cy="no-data">
+      Go create some accounts and envelopes before trying to do this
+    </p>
+  {:else}
+    {#if error}
+      <p>Error! {error}</p>
+    {/if}
+    <form
+      on:submit|preventDefault={handleSubmit}
+      class="m-auto flex flex-wrap justify-around"
+      data-cy="edittxn-form">
+      <div class="flex-auto max-w-sm px-0 sm:px-3">
         <div class="flex flex-col">
-          <label class="label-inline" for="from">
-            Who did you pay?
+          <label class="label-inline" for="txntype">
+            Transaction Type
           </label>
-          <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input-inline" data-cy="label" list="suggested-payees" id="from" />
-          <datalist id="suggested-payees">
-            {#each Object.keys(allLabels) as suggestion}
-              <option data-cy="suggested-payee" value={suggestion}>
-                {suggestion}
-              </option>
-            {/each}
+          <select bind:value={type} class="input-inline" id="txntype">
+            <option value="banktxn">Bank Transaction</option>
+            <option value="envelopeTransfer">Envelope Transfer</option>
+            <option value="accountTransfer">Account Transfer</option>
+          </select>
+        </div>
+
+        {#if type === 'banktxn'}
+          <div class="flex flex-col">
+            <label class="label-inline" for="from">
+              Who did you pay?
+            </label>
+            <input bind:value={txns[0].label} on:input={(event) => setSuggestion(event.target.value)} class="input-inline" data-cy="label" list="suggested-payees" id="from" />
+            <datalist id="suggested-payees">
+              {#each Object.keys(allLabels) as suggestion}
+                <option data-cy="suggested-payee" value={suggestion}>
+                  {suggestion}
+                </option>
+              {/each}
+            </datalist>
+          </div>
+
+          {#each geoPayees as geoPayee}
+            <div>
+              <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
+                {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
+              </button>
+            </div>
+          {/each}
+        {/if}
+
+        <div class="flex flex-col">
+          <label class="label-inline" for="date">
+            Date
+          </label>
+          <input
+            id="date"
+            type="date"
+            list="dates-list"
+            value={formatDate(txns[0].date)}
+            class="input-inline"
+            on:input={event => (txns[0].date = formatDate(new Date(event.target.value + 'T00:00')))} />
+
+          <datalist id="dates-list">
+            <option label="Today">{formatDate(new Date())}</option>
+            <option label="Yesterday">{formatDate(new Date(new Date().setDate(new Date().getDate()-1)))}</option>
           </datalist>
         </div>
 
-        {#each geoPayees as geoPayee}
-          <div>
-            <button class="btn btn-tertiary" on:click|preventDefault={() => setSuggestion(geoPayee.label)}>
-              {geoPayee.label} ({geoPayee.distance.toFixed(2)}mi)
-            </button>
-          </div>
-        {/each}
-      {/if}
-
-      <div class="flex flex-col">
-        <label class="label-inline" for="date">
-          Date
-        </label>
-        <input
-          id="date"
-          type="date"
-          list="dates-list"
-          value={formatDate(txns[0].date)}
-          class="input-inline"
-          on:input={event => (txns[0].date = formatDate(new Date(event.target.value + 'T00:00')))} />
-
-        <datalist id="dates-list">
-          <option label="Today">{formatDate(new Date())}</option>
-          <option label="Yesterday">{formatDate(new Date(new Date().setDate(new Date().getDate()-1)))}</option>
-        </datalist>
-      </div>
-
-      <div class="flex flex-col">
-        <label class="label-inline" for="memo">
-          Memo
-        </label>
-        <input bind:value={txns[0].memo} class="input-inline" id="memo" />
-      </div>
-
-      <div>
-        <label>
-          <input type="checkbox" bind:checked={txns[0].cleared} />
-          Cleared
-        </label>
-      </div>
-
-      {#if type === 'banktxn' && !txnId}
-        <div>Location: {@html coordinates && storeLocation ? '&#10003;' : '&#10007;'}</div>
-        {#if coordinates}
-          <label>Save location?
-            <input type="checkbox" bind:checked={storeLocation} />
+        <div class="flex flex-col">
+          <label class="label-inline" for="memo">
+            Memo
           </label>
-        {/if}
-      {/if}
-    </div>
-
-
-    <div class="flex-auto max-w-sm px-0 sm:px-3">
-      <p class="font-bold" data-cy="sum-of-splits">
-        Sum of splits: {toDollars(txns.map(txn => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
-      </p>
-
-      <div class="flex flex-col">
-        <label class="label-inline" for="account">
-          {type === 'banktxn' ? 'Account' : 'Transfer From'}
-        </label>
-        <select
-          id="account"
-          bind:value={txns[0].from_id}
-          class="input-inline"
-          data-cy="transaction-source">
-          <option value={null}>Select a source</option>
-          {#each from as f}
-            <option value={f.id}>{f.name}: {toDollars($balancesStore[f.id])}</option>
-          {/each}
-        </select>
-      </div>
-
-      <fieldset>
-        <legend>
-          {type === 'banktxn' ? 'Envelopes' : 'Transfer Into'}
-        </legend>
-
-        {#each txns as txn, i}
-          <div class="flex flex-col" data-cy="split-data-entry">
-            <label class="label-inline" for={`destination-${i}`}>Destination</label>
-            <select bind:value={txn.to_id} class="input-inline" id={`destination-${i}`}>
-              <option value={null}>Select a destination</option>
-              {#each to as t}
-                <option value={t.id}>{t.name}: {toDollars($balancesStore[t.id])}</option>
-              {/each}
-            </select>
-
-            <label class="label-inline" for={`amount-${i}`}>Amount</label>
-            <input
-              id={`amount-${i}`}
-              type="number"
-              class="input-inline"
-              value={txn.amount ? txn.amount / 100 : ''}
-              step="0.01"
-              on:input={event => {
-                if (event.target.value) txns[i].amount = Math.round(parseFloat(event.target.value) * 100);
-              }} />
-            </div>
-
-            <hr />
-          {/each}
-        </fieldset>
-
-        <div class="mb-3 mt-3">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            on:click|preventDefault={() => (txns = [...txns, Transactions.mkEmptyTransaction()])}>
-            New Split
-          </button>
+          <input bind:value={txns[0].memo} class="input-inline" id="memo" />
         </div>
 
-      <div class="flex justify-between">
-        <button type="submit" class="btn btn-primary">Save Transaction</button>
-        <button
-          class:hidden={!txnId}
-          class="btn btn-tertiary"
-          on:click|preventDefault={deleteTransaction}>
-          Delete Transaction
-        </button>
+        <div>
+          <label>
+            <input type="checkbox" bind:checked={txns[0].cleared} />
+            Cleared
+          </label>
+        </div>
+
+        {#if type === 'banktxn' && !txnId}
+          <div>Location: {@html coordinates && storeLocation ? '&#10003;' : '&#10007;'}</div>
+          {#if coordinates}
+            <label>Save location?
+              <input type="checkbox" bind:checked={storeLocation} />
+            </label>
+          {/if}
+        {/if}
       </div>
-    </div>
-  </form>
-{/if}
+
+
+      <div class="flex-auto max-w-sm px-0 sm:px-3">
+        <p class="font-bold" data-cy="sum-of-splits">
+          Sum of splits: {toDollars(txns.map(txn => txn.amount || 0).reduce((acc, item) => acc + item, 0))}
+        </p>
+
+        <div class="flex flex-col">
+          <label class="label-inline" for="account">
+            {type === 'banktxn' ? 'Account' : 'Transfer From'}
+          </label>
+          <select
+            id="account"
+            bind:value={txns[0].from_id}
+            class="input-inline"
+            data-cy="transaction-source">
+            <option value={null}>Select a source</option>
+            {#each from as f}
+              <option value={f.id}>{f.name}: {toDollars($balancesStore[f.id])}</option>
+            {/each}
+          </select>
+        </div>
+
+        <fieldset>
+          <legend>
+            {type === 'banktxn' ? 'Envelopes' : 'Transfer Into'}
+          </legend>
+
+          {#each txns as txn, i}
+            <div class="flex flex-col" data-cy="split-data-entry">
+              <label class="label-inline" for={`destination-${i}`}>Destination</label>
+              <select bind:value={txn.to_id} class="input-inline" id={`destination-${i}`}>
+                <option value={null}>Select a destination</option>
+                {#each to as t}
+                  <option value={t.id}>{t.name}: {toDollars($balancesStore[t.id])}</option>
+                {/each}
+              </select>
+
+              <label class="label-inline" for={`amount-${i}`}>Amount</label>
+              <input
+                id={`amount-${i}`}
+                type="number"
+                class="input-inline"
+                value={txn.amount ? txn.amount / 100 : ''}
+                step="0.01"
+                on:input={event => {
+                  if (event.target.value) txns[i].amount = Math.round(parseFloat(event.target.value) * 100);
+                }} />
+              </div>
+
+              <hr />
+            {/each}
+          </fieldset>
+
+          <div class="mb-3 mt-3">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              on:click|preventDefault={() => (txns = [...txns, Transactions.mkEmptyTransaction()])}>
+              New Split
+            </button>
+          </div>
+
+        <div class="flex justify-between">
+          <button type="submit" class="btn btn-primary">Save Transaction</button>
+          <button
+            class:hidden={!txnId}
+            class="btn btn-tertiary"
+            on:click|preventDefault={deleteTransaction}>
+            Delete Transaction
+          </button>
+        </div>
+      </div>
+    </form>
+  {/if}
+</TopBar>

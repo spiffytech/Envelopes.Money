@@ -8,6 +8,7 @@
   import Transaction from './Transaction.svelte';
 
   import * as libtxngroup from '../../lib/transactionGroup';
+  import tabs from '../../lib/tabs';
 
   const debug = Debug('Envelopes.Money:Transactions.svelte');
 
@@ -29,7 +30,7 @@
   $: debug('%d transactions to show', txnsGroupsToShow.length);
 </script>
 
-<TopBar title="Transactions">
+<TopBar title="Transactions" {tabs}>
   <section class="m-auto max-w-3xl mt-4">
     <div class="flex mb-3">
       <input

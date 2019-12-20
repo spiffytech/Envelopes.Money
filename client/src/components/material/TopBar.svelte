@@ -1,5 +1,8 @@
 <script>
+  import Tabs from './Tabs.svelte';
+
   export let title = '';
+  export let tabs = null;
 </script>
 
 <style>
@@ -14,6 +17,12 @@
     <slot name="button1" />
     <slot name="button2" />
   </div>
+</div>
+
+<div class="bg-orange-500">
+  {#if tabs}
+    <Tabs {tabs} />
+  {/if}
 </div>
 
 <slot />

@@ -12,10 +12,11 @@
   import TopBar from './components/material/TopBar.svelte';
 
   import { toDollars } from './lib/pennies';
+  import tabs from './lib/tabs';
   import * as Transactions from './lib/Transactions';
-  import { formatDate } from './lib/utils';
   import saveTransactionsRemote from './lib/transactions/saveTransactionsRemote';
   import deleteTransactionsRemote from './lib/transactions/deleteTransactionsRemote';
+  import { formatDate } from './lib/utils';
 
   const accountsStore = getContext('accountsStore');
   const transactionsStore = getContext('transactionsStore');
@@ -185,7 +186,7 @@
   }
 </script>
 
-<TopBar title={txnId ? 'Edit Transaction' : 'New Transaction'}>
+<TopBar title={txnId ? 'Edit Transaction' : 'New Transaction'} {tabs}>
   {#if from === undefined || to === undefined || from.filter(filterRealAccounts).length === 0 || to.filter(filterRealAccounts).length === 0}
     <p data-cy="no-data">
       Go create some accounts and envelopes before trying to do this

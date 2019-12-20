@@ -9,6 +9,7 @@
 
   import Accounts from './Accounts.svelte';
   import { toDollars } from './lib/pennies';
+  import tabs from './lib/tabs';
 
   const debug = Debug('Envelopes.Money:Home.svelte');
 
@@ -81,7 +82,7 @@
   }
 </script>
 
-<TopBar title="Envelopes">
+<TopBar title="Envelopes" {tabs}>
   <button
     class="btn btn-tertiary"
     on:click|preventDefault={() => exportTxns($transactionsStore)}>

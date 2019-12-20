@@ -221,12 +221,6 @@
   <p>{$connectionStore}</p>
 {/if}
 
-<!--<PageHeader />-->
-
-{#if $credsStore}
-  <Nav />
-{/if}
-
 <main aria-label="Page Content" class="flex-1">
   <svelte:component this={route} bind:params={routeParams} />
 </main>

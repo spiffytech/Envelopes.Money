@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import m from 'mithril';
 
 export interface TabsProps {
-  tabs: { visual: m.FactoryComponent; url: string }[];
+  tabs: { visual: m.Vnode<any, any>; url: string }[];
   active: string;
 }
 
@@ -20,7 +20,7 @@ export default function Tabs(): m.Component<TabsProps> {
               m(
                 'li.px-4.py-2.border-black.flex-1.md:flex-none.flex.justify-center',
                 {class: classnames({'border-b-2': tab.url === active})},
-                m(tab.visual)
+                tab.visual
               )
             )
           )

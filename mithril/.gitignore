@@ -1,0 +1,5 @@
+public/bundle*js*
+public/tailwind.css
+public/env.js
+public/index.html
+lambda_built

@@ -2,7 +2,7 @@ import m from 'mithril';
 
 import Tabs, { TabsProps } from './Tabs';
 
-interface TopBarProps {
+export interface TopBarProps {
   title: string;
   buttons: m.FactoryComponent[];
   tabs?: TabsProps;
@@ -20,7 +20,7 @@ export default function TopBar(): m.Component<TopBarProps> {
             m('span.text-lg.font-medium', attrs.title),
             m(
               '.flex',
-              ...attrs.buttons.slice(0, 2).map(button => m('.px-4', m(button)))
+              ...(attrs.buttons || []).slice(0, 2).map(button => m('.px-4', m(button)))
             )
           ),
           attrs.tabs ? m(Tabs, attrs.tabs) : null

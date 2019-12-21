@@ -8,7 +8,7 @@ export interface TabsProps {
 
 export default function Tabs(): m.Component<TabsProps> {
   return {
-    view({ attrs: { tabs, active }, children }) {
+    view({ attrs: { tabs, active } }) {
       return m(
         'nav.w-full',
         m(
@@ -19,7 +19,7 @@ export default function Tabs(): m.Component<TabsProps> {
               { style: { display: 'contents' }, href: tab.url },
               m(
                 'li.px-4.py-2.border-black.flex-1.md:flex-none.flex.justify-center',
-                {class: classnames({'border-b-2': tab.url === active})},
+                { class: classnames({ 'border-b-2': tab.url === active }) },
                 tab.visual
               )
             )

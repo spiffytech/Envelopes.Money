@@ -1,11 +1,15 @@
 import m from 'mithril';
 
-import TopBar from './material/TopBar';
+import { LayoutChildProps } from './Layout';
 
-export default function Transactions(): m.Component {
+export default function Transactions(): m.Component<LayoutChildProps> {
   return {
+    oninit({attrs: {setTitle}}) {
+      setTitle('Transactions');
+    },
+
     view() {
-      return m('', 'transactions', m(TopBar));
-    }
-  }
+      return m('', 'transactions');
+    },
+  };
 }

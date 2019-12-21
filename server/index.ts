@@ -222,9 +222,9 @@ app.post('/webhooks/plaid', express.json(), async (req, res) => {
 app.use("/api", authedRouter);
 
 // Serve static files for React
-app.use(express.static(path.join(__dirname, "../../../client", "public")));
+app.use(express.static(path.join(__dirname, "../../../mithril", "public")));
 app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../../client", "public", "index.html"));
+  res.sendFile(path.join(__dirname, "../../../mithril", "public", "index.html"));
 });
 
 const port = process.env.PORT || 3000;

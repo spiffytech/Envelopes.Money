@@ -7,7 +7,6 @@ import {
   Machine,
   MachineConfig,
   matchesState,
-  StateMachine,
 } from 'xstate';
 
 import { LayoutChildProps } from './Layout';
@@ -17,7 +16,6 @@ type Hasura = Pick<LayoutChildProps, 'hasura'>['hasura'];
 
 interface TransactionsSchema {
   states: {
-    idle: {};
     configured: {
       states: {
         loading: {};
@@ -28,22 +26,25 @@ interface TransactionsSchema {
   };
 }
 
+interface AfterParams {date: string; txn_id: string;}
+
 interface UrlParams {
   envelope: string | null;
   account: string | null;
   searchTerm: string | null;
-  after: string | null;
+  after: AfterParams | null;
 }
 
 type TransactionsEvent =
   | { type: 'configure'; urlParams: UrlParams }
   | { type: 'error'; error: any }
-  | { type: 'ready'; transactions?: any[] };
+  | { type: 'ready'; transactions?: any[], after: AfterParams};
 
 interface TransactionsContext {
   error: any;
   hasura: Hasura;
   creds: Record<string, string>;
+  after: AfterParams | null;
   urlParams: UrlParams;
   transactions: any[];
 }
@@ -55,27 +56,17 @@ export default function Transactions(): m.Component<LayoutChildProps> {
     TransactionsEvent
   > = {
     id: 'transactions',
-    initial: 'idle',
+    initial: 'configured',
     states: {
-      idle: {
-        on: {
-          configure: {
-            target: 'configured',
-            actions: assign((context, event) => ({
-              ...context,
-              urlParams: event.urlParams,
-            })),
-          },
-        },
-      },
       configured: {
         initial: 'loading',
         on: { configure: 'configured' },
         states: {
           loading: {
-            entry: assign(context => ({
+            entry: assign((context, event) => ({
               ...context,
               transactions: [],
+              urlParams: (event as any).urlParams,
             })),
             on: {
               error: 'error',
@@ -115,6 +106,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
             hasura: Hasura;
             creds: any;
           }) => fireEvent => {
+            const limit = 50;
             const { unsubscribe } = hasura.subscribe(
               {
                 query: gql`
@@ -130,7 +122,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                         _and: { date: { _lt: $date }, txn_id: { _lt: $txn_id } }
                       }
                       order_by: { date: desc, txn_id: asc }
-                      limit: 50
+                      limit: ${limit}
                     ) {
                       ...txn_grouped
                     }
@@ -138,11 +130,16 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                 `,
                 variables: { user_id: creds.userId },
               },
-              ({ data }) =>
-                fireEvent({ type: 'ready', transactions: data.txns_grouped }),
+              ({ data }) => {
+                const last = data.txns_grouped[data.txns_grouped.length - 1];
+                const after: AfterParams | null = data.txns_grouped.length === limit ? {date: last.date, txn_id: last.txn_id} : null;
+                return fireEvent({ type: 'ready', transactions: data.txns_grouped, after });
+              },
               error => fireEvent({ type: 'error', error })
             );
-            return unsubscribe;
+            return () => {
+              unsubscribe();
+            }
           },
         },
       },
@@ -156,6 +153,17 @@ export default function Transactions(): m.Component<LayoutChildProps> {
     TransactionsEvent
   > | null = null;
 
+  function getUrlParams(): UrlParams {
+    return  {
+      account: m.route.param('account'),
+      envelope: m.route.param('envelope'),
+      searchTerm: m.route.param('searchTerm'),
+      after: m.route.param('after') as any,
+    };
+  }
+
+  let urlParams = getUrlParams();
+
   return {
     oninit({ attrs: { setTitle, hasura, creds } }) {
       setTitle('Transactions');
@@ -164,12 +172,8 @@ export default function Transactions(): m.Component<LayoutChildProps> {
         error: null,
         hasura,
         creds,
-        urlParams: {
-          account: null,
-          envelope: null,
-          searchTerm: null,
-          after: null,
-        },
+        after: null,
+        urlParams,
         transactions: [],
       };
 
@@ -185,7 +189,11 @@ export default function Transactions(): m.Component<LayoutChildProps> {
       });
 
       service.start();
-      service.send({ type: 'configure', urlParams: m.route.param() });
+      //service.send({ type: 'configure', urlParams: m.route.param() });
+    },
+
+    onupdate() {
+      const newUrlParams = getUrlParams();
     },
 
     view() {
@@ -198,10 +206,15 @@ export default function Transactions(): m.Component<LayoutChildProps> {
       }
 
       return [
+        m(m.route.Link, {href: '/stuff'}, 'A Link'),
         context!.transactions.map(transaction =>
           m('', JSON.stringify(transaction))
         ),
       ];
     },
+
+    onremove() {
+      service?.stop();
+    }
   };
 }

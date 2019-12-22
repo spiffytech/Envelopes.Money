@@ -6,7 +6,7 @@ import {
 
 export interface WSClient {
   client: SubscriptionClient;
-  subscribe: (query: OperationOptions, onData: (value: {data?: any}) => void) => void;
+  subscribe: (query: OperationOptions, onData: (value: {data?: any}) => void) => ReturnType<typeof subscribe>;
   query: (query: OperationOptions) => Promise<{data?: any}>;
 }
 
@@ -25,8 +25,9 @@ function request(
   query: OperationOptions
 ): Promise<{data?: any}> {
   return new Promise((resolve, reject): void => {
-    client.request(query).subscribe({
+    const {unsubscribe} = client.request(query).subscribe({
       next: result => {
+        unsubscribe();
         if (result.errors) return reject(result.errors);
         return resolve(result);
       },

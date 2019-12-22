@@ -70,7 +70,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
           on: { configure: 'unconfigured' },
           states: {
             loading: {
-              entry: assign((context) => ({...context, loaded: false})),
+              entry: assign((context) => ({...context, loaded: false, transactions: []})),
               on: {
                 ready: {
                   target: 'ready',
@@ -89,7 +89,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
           },
           invoke: {
             src: ({hasura, creds}: {hasura: Hasura, creds: any}) => (fireEvent) => {
-              return hasura.subscribe({
+              const {unsubscribe} = hasura.subscribe({
                 query: gql`
                   ${fragments}
                   subscription SubscribeTransactions($user_id: String!) {
@@ -101,7 +101,8 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                 variables: {user_id: creds.userId}
               }, ({data}) => {
                 fireEvent({type: 'ready', transactions: data.transactions});
-              })
+              });
+              return unsubscribe;
             }
           }
         },

@@ -22,6 +22,7 @@
     "@storybook/preset-typescript": "^1.2.0",
     "@types/classnames": "^2.2.9",
     "@types/debug": "^4.1.5",
+    "@types/lodash": "^4.14.149",
     "@types/mithril": "^2.0.2",
     "babel-loader": "^8.0.6",
     "fork-ts-checker-webpack-plugin": "^4.0.0-beta.4",
@@ -44,6 +45,7 @@
     "debug": "^4.1.1",
     "graphql": "^14.5.8",
     "graphql-tag": "^2.10.1",
+    "lodash": "^4.17.15",
     "mithril": "^2.0.4",
     "subscriptions-transport-ws": "^0.9.16",
     "xstate": "^4.7.3"

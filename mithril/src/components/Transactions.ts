@@ -1,4 +1,5 @@
 import gql from 'graphql-tag';
+import isEqual from 'lodash/isEqual';
 import m from 'mithril';
 import {
   assign,
@@ -38,13 +39,12 @@ interface UrlParams {
 type TransactionsEvent =
   | { type: 'configure'; urlParams: UrlParams }
   | { type: 'error'; error: any }
-  | { type: 'ready'; transactions?: any[], after: AfterParams};
+  | { type: 'dataReceived'; transactions?: any[], after: AfterParams};
 
 interface TransactionsContext {
   error: any;
   hasura: Hasura;
   creds: Record<string, string>;
-  after: AfterParams | null;
   urlParams: UrlParams;
   transactions: any[];
 }
@@ -66,15 +66,19 @@ export default function Transactions(): m.Component<LayoutChildProps> {
             entry: assign((context, event) => ({
               ...context,
               transactions: [],
-              urlParams: (event as any).urlParams,
+              // Spread the old urlParams so we don't wipe out the initial
+              // URLparams (since we default to this state and there's no event
+              // with params to spread from)
+              urlParams: {...context.urlParams, ...(event as any).urlParams},
             })),
             on: {
               error: 'error',
-              ready: {
+              dataReceived: {
                 target: 'ready',
                 actions: assign((context, event) => ({
                   ...context,
                   transactions: event.transactions,
+                  urlParams: {...context.urlParams, after: event.after}
                 })),
               },
             },
@@ -88,11 +92,12 @@ export default function Transactions(): m.Component<LayoutChildProps> {
           ready: {
             on: {
               error: 'error',
-              ready: {
+              dataReceived: {
                 target: 'ready',
                 actions: assign((context, event) => ({
                   ...context,
                   transactions: event.transactions,
+                  urlParams: {...context.urlParams, after: event.after}
                 })),
               },
             },
@@ -102,9 +107,11 @@ export default function Transactions(): m.Component<LayoutChildProps> {
           src: ({
             hasura,
             creds,
+            urlParams,
           }: {
             hasura: Hasura;
             creds: any;
+            urlParams: UrlParams;
           }) => fireEvent => {
             const limit = 50;
             const { unsubscribe } = hasura.subscribe(
@@ -128,12 +135,12 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                     }
                   }
                 `,
-                variables: { user_id: creds.userId },
+                variables: { user_id: creds.userId, date: urlParams.after?.date, txn_id: urlParams.after?.txn_id },
               },
               ({ data }) => {
                 const last = data.txns_grouped[data.txns_grouped.length - 1];
                 const after: AfterParams | null = data.txns_grouped.length === limit ? {date: last.date, txn_id: last.txn_id} : null;
-                return fireEvent({ type: 'ready', transactions: data.txns_grouped, after });
+                return fireEvent({ type: 'dataReceived', transactions: data.txns_grouped, after });
               },
               error => fireEvent({ type: 'error', error })
             );
@@ -172,7 +179,6 @@ export default function Transactions(): m.Component<LayoutChildProps> {
         error: null,
         hasura,
         creds,
-        after: null,
         urlParams,
         transactions: [],
       };
@@ -189,11 +195,14 @@ export default function Transactions(): m.Component<LayoutChildProps> {
       });
 
       service.start();
-      //service.send({ type: 'configure', urlParams: m.route.param() });
     },
 
     onupdate() {
       const newUrlParams = getUrlParams();
+      if (!isEqual(urlParams, newUrlParams)) {
+        service!.send({type: 'configure', urlParams: newUrlParams});
+      }
+      urlParams = newUrlParams;
     },
 
     view() {
@@ -206,7 +215,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
       }
 
       return [
-        m(m.route.Link, {href: '/stuff'}, 'A Link'),
+        m(m.route.Link, {href: `/transactions?${m.buildQueryString(context!.urlParams as any)}`}, 'A Link'),
         context!.transactions.map(transaction =>
           m('', JSON.stringify(transaction))
         ),

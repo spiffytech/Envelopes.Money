@@ -16,8 +16,8 @@ function subscribe(
   onData: (value: {data?: any}) => void,
   // eslint-disable-next-line no-console
   onError = console.error
-): void {
-  client.request(query).subscribe({ next: onData, error: onError });
+) {
+  return client.request(query).subscribe({ next: onData, error: onError });
 }
 
 function request(

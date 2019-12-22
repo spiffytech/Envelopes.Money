@@ -7,9 +7,9 @@ import m from 'mithril';
 
 import Icon from './material/Icon';
 import { TabsProps } from './material/Tabs';
-import TopBar, {TopBarProps} from './material/TopBar';
+import TopBar, { TopBarProps } from './material/TopBar';
 
-import {endpoint} from  '../lib/config';
+import { endpoint } from '../lib/config';
 import mkClient from '../lib/graphql';
 
 const debug = Debug('Envelopes.Money:Layout');
@@ -20,6 +20,7 @@ library.add(faDollarSign);
 export interface LayoutChildProps {
   setTitle: (title: string) => void;
   hasura: ReturnType<typeof mkClient>;
+  creds: any;
 }
 
 interface LayoutProps {
@@ -45,21 +46,27 @@ async function loadCreds() {
 }
 
 const tabs: Pick<TabsProps, 'tabs'>['tabs'] = [
-  {visual: m(Icon, {prefix: 'fas', icon: 'dollar-sign', size: 2}), url: '/transactions'},
-  {visual: m(Icon, {prefix: 'far', icon: 'envelope', size: 2}), url: '/envelopes'},
-]
+  {
+    visual: m(Icon, { prefix: 'fas', icon: 'dollar-sign', size: 2 }),
+    url: '/transactions',
+  },
+  {
+    visual: m(Icon, { prefix: 'far', icon: 'envelope', size: 2 }),
+    url: '/envelopes',
+  },
+];
 
 export default function Layout(): m.Component<LayoutProps> {
   let title = '';
   let buttons: Pick<TopBarProps, 'buttons'>['buttons'] = [];
   let hasura: ReturnType<typeof mkClient> | null = null;
   let error: string | null = null;
+  let creds: any = null;
 
   return {
     async oninit() {
-      console.log(window._env_)
       try {
-        const creds = await loadCreds();
+        creds = await loadCreds();
 
         hasura = mkClient(window._env_.GRAPHQL_WSS_HOST as string, {
           reconnect: true,
@@ -76,15 +83,22 @@ export default function Layout(): m.Component<LayoutProps> {
       }
     },
 
-    view({attrs: {body}}) {
+    view({ attrs: { body } }) {
       if (error) return m('p', error);
 
       if (!hasura) return m('p', 'Loading...');
 
       return [
-        m(TopBar, {title, buttons, tabs: {tabs, active: ''}}),
-        m(body, {setTitle: (newTitle) => {title = newTitle; m.redraw();}, hasura})
+        m(TopBar, { title, buttons, tabs: { tabs, active: '' } }),
+        m(body, {
+          setTitle: newTitle => {
+            title = newTitle;
+            m.redraw();
+          },
+          hasura,
+          creds
+        }),
       ];
-    }
+    },
   };
 }

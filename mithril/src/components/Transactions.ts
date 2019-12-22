@@ -1,6 +1,14 @@
 import gql from 'graphql-tag';
 import m from 'mithril';
-import { assign, interpret, Machine } from 'xstate';
+import {
+  assign,
+  interpret,
+  Interpreter,
+  Machine,
+  MachineConfig,
+  matchesState,
+  StateMachine,
+} from 'xstate';
 
 import { LayoutChildProps } from './Layout';
 
@@ -10,94 +18,85 @@ type Hasura = Pick<LayoutChildProps, 'hasura'>['hasura'];
 interface TransactionsSchema {
   states: {
     idle: {};
-    unconfigured: {};
     configured: {
       states: {
         loading: {};
+        error: {};
         ready: {};
       };
     };
   };
 }
 
+interface UrlParams {
+  envelope: string | null;
+  account: string | null;
+  searchTerm: string | null;
+  after: string | null;
+}
+
 type TransactionsEvent =
-  | { type: 'initialize'; hasura: Hasura; creds: any }
-  | { type: 'configure' }
+  | { type: 'configure'; urlParams: UrlParams }
+  | { type: 'error'; error: any }
   | { type: 'ready'; transactions?: any[] };
 
 interface TransactionsContext {
-  loaded: boolean;
-  hasura: Hasura | null;
-  urlParams: {
-    envelope: string | null;
-    account: string | null;
-    searchTerm: string | null;
-  };
+  error: any;
+  hasura: Hasura;
+  creds: Record<string, string>;
+  urlParams: UrlParams;
   transactions: any[];
 }
 
 export default function Transactions(): m.Component<LayoutChildProps> {
-  const machine = Machine<
+  const machineDefinition: MachineConfig<
     TransactionsContext,
     TransactionsSchema,
     TransactionsEvent
-  >({
+  > = {
     id: 'transactions',
     initial: 'idle',
-    context: {
-      loaded: false,
-      hasura: null,
-      urlParams: { envelope: null, account: null, searchTerm: null },
-      transactions: [],
-    },
     states: {
       idle: {
         on: {
-          initialize: {
-            target: 'unconfigured',
-            actions: assign((context, event) => ({
-              ...context,
-              hasura: event.hasura,
-              creds: event.creds,
-            })),
-          },
-        },
-      },
-      unconfigured: {
-        invoke: {
-          src: () => Promise.resolve(m.route.param()),
-          onDone: {
+          configure: {
             target: 'configured',
             actions: assign((context, event) => ({
               ...context,
-              urlParams: event.data,
+              urlParams: event.urlParams,
             })),
           },
         },
       },
       configured: {
         initial: 'loading',
-        on: { configure: 'unconfigured' },
+        on: { configure: 'configured' },
         states: {
           loading: {
             entry: assign(context => ({
               ...context,
-              loaded: false,
               transactions: [],
             })),
             on: {
+              error: 'error',
               ready: {
                 target: 'ready',
                 actions: assign((context, event) => ({
                   ...context,
                   transactions: event.transactions,
-                  loaded: true,
                 })),
               },
             },
           },
+          error: {
+            entry: assign((context, event) => ({
+              ...context,
+              error: (event as any).error,
+            })),
+          },
           ready: {
             on: {
+              error: 'error',
               ready: {
                 target: 'ready',
                 actions: assign((context, event) => ({
@@ -139,47 +138,67 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                 `,
                 variables: { user_id: creds.userId },
               },
-              ({ data }) => {
-                fireEvent({ type: 'ready', transactions: data.txns_grouped });
-              }
+              ({ data }) =>
+                fireEvent({ type: 'ready', transactions: data.txns_grouped }),
+              error => fireEvent({ type: 'error', error })
             );
             return unsubscribe;
           },
         },
       },
     },
-  });
-
-  let context: TransactionsContext = {
-    loaded: false,
-    hasura: null,
-    urlParams: {
-      account: null,
-      envelope: null,
-      searchTerm: null,
-    },
-    transactions: [],
   };
-  const service = interpret(machine);
-  service.onChange(newContext => {
-    context = newContext;
-    m.redraw();
-  });
+
+  let context: TransactionsContext | null = null;
+  let service: Interpreter<
+    TransactionsContext,
+    TransactionsSchema,
+    TransactionsEvent
+  > | null = null;
 
   return {
     oninit({ attrs: { setTitle, hasura, creds } }) {
       setTitle('Transactions');
+
+      const initialContext: TransactionsContext = {
+        error: null,
+        hasura,
+        creds,
+        urlParams: {
+          account: null,
+          envelope: null,
+          searchTerm: null,
+          after: null,
+        },
+        transactions: [],
+      };
+
+      const machine = Machine<
+        TransactionsContext,
+        TransactionsSchema,
+        TransactionsEvent
+      >(machineDefinition, {}, initialContext);
+      service = interpret(machine);
+      service.onChange(newContext => {
+        context = newContext;
+        m.redraw();
+      });
+
       service.start();
-      service.send('initialize', { hasura, creds });
+      service.send({ type: 'configure', urlParams: m.route.param() });
     },
 
     view() {
-      if (!context.loaded) {
+      if (matchesState('configured.error', service!.state.value)) {
+        return m('', 'Error loading transactions:', context!.error.message);
+      }
+
+      if (!matchesState('configured.ready', service!.state.value)) {
         return m('', 'Loading...');
       }
 
       return [
-        context.transactions.map(transaction =>
+        context!.transactions.map(transaction =>
           m('', JSON.stringify(transaction))
         ),
       ];

@@ -6,7 +6,7 @@ import {
 
 export interface WSClient {
   client: SubscriptionClient;
-  subscribe: (query: OperationOptions, onData: (value: {data?: any}) => void) => ReturnType<typeof subscribe>;
+  subscribe: (query: OperationOptions, onData: (value: {data?: any}) => void, onError?: (error: any) => void) => ReturnType<typeof subscribe>;
   query: (query: OperationOptions) => Promise<{data?: any}>;
 }
 
@@ -15,7 +15,7 @@ function subscribe(
   query: OperationOptions,
   onData: (value: {data?: any}) => void,
   // eslint-disable-next-line no-console
-  onError = console.error
+  onError: (error: any) => void = console.error
 ) {
   return client.request(query).subscribe({ next: onData, error: onError });
 }

@@ -17,15 +17,11 @@ type Hasura = Pick<LayoutChildProps, 'hasura'>['hasura'];
 
 interface TransactionsSchema {
   states: {
-    configured: {
-      states: {
-        loading: {};
-        error: {};
-        firstPage: {};
-        nthPage: {};
-        lastPage: {};
-      };
-    };
+    loading: {};
+    error: {};
+    firstPage: {};
+    nthPage: {};
+    lastPage: {};
   };
 }
 
@@ -56,45 +52,43 @@ export default function Transactions(): m.Component<LayoutChildProps> {
     TransactionsEvent
   > = {
     id: 'transactions',
-    initial: 'configured',
+    initial: 'loading',
+    on: {
+      configure: 'loading',
+      error: 'error',
+      dataReceived: [
+        {
+          cond: 'isFirstPage',
+          internal: true,
+          target: 'firstPage',
+          actions: 'storeData',
+        },
+        {
+          cond: 'isLastPage',
+          internal: true,
+          target: 'lastPage',
+          actions: 'storeData',
+        },
+        {
+          target: 'nthPage',
+          internal: true,
+          actions: 'storeData',
+        },
+      ],
+    },
     states: {
-      configured: {
-        initial: 'loading',
-        on: {
-          configure: 'configured',
-          error: 'configured.error',
-          dataReceived: [
-            {
-              cond: 'isFirstPage',
-              target: 'configured.firstPage',
-              actions: 'storeData',
-            },
-            {
-              cond: 'isLastPage',
-              target: 'configured.lastPage',
-              actions: 'storeData',
-            },
-            {
-              target: 'configured.nthPage',
-              actions: 'storeData',
-            },
-          ],
-        },
-        states: {
-          loading: {
-            entry: 'setUrlParams',
-          },
-          error: {
-            entry: 'storeError',
-          },
-          firstPage: {},
-          nthPage: {},
-          lastPage: {},
-        },
-        invoke: {
-          src: 'subscribeData',
-        },
+      loading: {
+        entry: 'setUrlParams',
       },
+      error: {
+        entry: 'storeError',
+      },
+      firstPage: {},
+      nthPage: {},
+      lastPage: {},
+    },
+    invoke: {
+      src: 'subscribeData',
     },
   };
 
@@ -167,6 +161,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
               creds,
               urlParams: { pageNum },
             }) => fireEvent => {
+              console.log('invoking');
               const limit = 50;
               const offset = pageNum * limit;
               try {
@@ -234,16 +229,16 @@ export default function Transactions(): m.Component<LayoutChildProps> {
     },
 
     view() {
-      if (matchesState('configured.error', service!.state.value)) {
+      if (matchesState('error', service!.state.value)) {
         return m('', 'Error loading transactions:', context!.error.message);
       }
 
-      if (matchesState('configured.loading', service!.state.value)) {
+      if (matchesState('loading', service!.state.value)) {
         return m('', 'Loading...');
       }
 
       return [
-        matchesState('configured.firstPage', service!.state.value)
+        matchesState('firstPage', service!.state.value)
           ? m('span', 'Previous')
           : m(
               m.route.Link,
@@ -255,7 +250,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
               },
               'Previous'
             ),
-        matchesState('configured.lastPage', service!.state.value)
+        matchesState('lastPage', service!.state.value)
           ? m('span', 'Next')
           : m(
               m.route.Link,

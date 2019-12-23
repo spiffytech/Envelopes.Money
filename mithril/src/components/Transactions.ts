@@ -27,19 +27,17 @@ interface TransactionsSchema {
   };
 }
 
-interface AfterParams {date: string; txn_id: string;}
-
 interface UrlParams {
   envelope: string | null;
   account: string | null;
   searchTerm: string | null;
-  after: AfterParams | null;
+  pageNum: number;
 }
 
 type TransactionsEvent =
   | { type: 'configure'; urlParams: UrlParams }
   | { type: 'error'; error: any }
-  | { type: 'dataReceived'; transactions?: any[], after: AfterParams};
+  | { type: 'dataReceived'; transactions?: any[]};
 
 interface TransactionsContext {
   error: any;
@@ -78,7 +76,6 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                 actions: assign((context, event) => ({
                   ...context,
                   transactions: event.transactions,
-                  urlParams: {...context.urlParams, after: event.after}
                 })),
               },
             },
@@ -97,7 +94,6 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                 actions: assign((context, event) => ({
                   ...context,
                   transactions: event.transactions,
-                  urlParams: {...context.urlParams, after: event.after}
                 })),
               },
             },
@@ -107,45 +103,49 @@ export default function Transactions(): m.Component<LayoutChildProps> {
           src: ({
             hasura,
             creds,
-            urlParams,
+            urlParams: {pageNum},
           }: {
             hasura: Hasura;
             creds: any;
             urlParams: UrlParams;
           }) => fireEvent => {
             const limit = 50;
-            const { unsubscribe } = hasura.subscribe(
-              {
-                query: gql`
-                  ${fragments}
-                  subscription SubscribeTransactions(
-                    $user_id: String!
-                    $date: date
-                    $txn_id: String
-                  ) {
-                    txns_grouped(
-                      where: {
-                        _or: { date: { _lte: $date } }
-                        _and: { date: { _lt: $date }, txn_id: { _lt: $txn_id } }
-                      }
-                      order_by: { date: desc, txn_id: asc }
-                      limit: ${limit}
+            const offset = pageNum * limit;
+            try {
+              const { unsubscribe } = hasura.subscribe(
+                {
+                  query: gql`
+                    ${fragments}
+                    subscription SubscribeTransactions(
+                      $user_id: String!
+                      $limit: Int!
+                      $offset: Int!
                     ) {
-                      ...txn_grouped
+                      txns_grouped(
+                        where: {
+                          user_id: { _eq: $user_id }
+                        }
+                        order_by: { date: desc, txn_id: asc }
+                        limit: $limit
+                        offset: $offset
+                      ) {
+                        ...txn_grouped
+                      }
                     }
-                  }
-                `,
-                variables: { user_id: creds.userId, date: urlParams.after?.date, txn_id: urlParams.after?.txn_id },
-              },
-              ({ data }) => {
-                const last = data.txns_grouped[data.txns_grouped.length - 1];
-                const after: AfterParams | null = data.txns_grouped.length === limit ? {date: last.date, txn_id: last.txn_id} : null;
-                return fireEvent({ type: 'dataReceived', transactions: data.txns_grouped, after });
-              },
-              error => fireEvent({ type: 'error', error })
-            );
-            return () => {
-              unsubscribe();
+                  `,
+                  variables: { user_id: creds.userId, limit, offset },
+                },
+                ({ data }) => {
+                  const last = data.txns_grouped[data.txns_grouped.length - 1];
+                  return fireEvent({ type: 'dataReceived', transactions: data.txns_grouped });
+                },
+                error => fireEvent({ type: 'error', error })
+              );
+              return () => {
+                unsubscribe();
+              }
+            } catch (ex) {
+              fireEvent({type: 'error', error: ex});
             }
           },
         },
@@ -165,7 +165,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
       account: m.route.param('account'),
       envelope: m.route.param('envelope'),
       searchTerm: m.route.param('searchTerm'),
-      after: m.route.param('after') as any,
+      pageNum: parseInt(m.route.param('pageNum') || '0'),
     };
   }
 
@@ -215,7 +215,8 @@ export default function Transactions(): m.Component<LayoutChildProps> {
       }
 
       return [
-        m(m.route.Link, {href: `/transactions?${m.buildQueryString(context!.urlParams as any)}`}, 'A Link'),
+        m(m.route.Link, {href: `/transactions?${m.buildQueryString({...context!.urlParams as any, pageNum: Math.max(0, context!.urlParams.pageNum - 1)})}`}, 'Previous'),
+        m(m.route.Link, {href: `/transactions?${m.buildQueryString({...context!.urlParams as any, pageNum: context!.urlParams.pageNum + 1})}`}, 'Next'),
         context!.transactions.map(transaction =>
           m('', JSON.stringify(transaction))
         ),

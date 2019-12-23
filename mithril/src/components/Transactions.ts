@@ -21,7 +21,9 @@ interface TransactionsSchema {
       states: {
         loading: {};
         error: {};
-        ready: {};
+        firstPage: {};
+        nthPage: {};
+        lastPage: {};
       };
     };
   };
@@ -37,7 +39,7 @@ interface UrlParams {
 type TransactionsEvent =
   | { type: 'configure'; urlParams: UrlParams }
   | { type: 'error'; error: any }
-  | { type: 'dataReceived'; transactions?: any[], hasNextPage: boolean; };
+  | { type: 'dataReceived'; transactions?: any[]; hasNextPage: boolean };
 
 interface TransactionsContext {
   error: any;
@@ -61,20 +63,33 @@ export default function Transactions(): m.Component<LayoutChildProps> {
         on: {
           configure: 'configured',
           error: 'configured.error',
-          dataReceived: {
-            target: 'configured.ready',
-            actions: 'storeData'
-          },
+          dataReceived: [
+            {
+              cond: 'isFirstPage',
+              target: 'configured.firstPage',
+              actions: 'storeData',
+            },
+            {
+              cond: 'isLastPage',
+              target: 'configured.lastPage',
+              actions: 'storeData',
+            },
+            {
+              target: 'configured.nthPage',
+              actions: 'storeData',
+            },
+          ],
         },
         states: {
           loading: {
             entry: 'setUrlParams',
           },
           error: {
-            entry: 'storeError'
+            entry: 'storeError',
           },
-          ready: {
-          },
+          firstPage: {},
+          nthPage: {},
+          lastPage: {},
         },
         invoke: {
           src: 'subscribeData',
@@ -142,8 +157,8 @@ export default function Transactions(): m.Component<LayoutChildProps> {
           },
 
           guards: {
-            isFirstPage: (context) => context.urlParams.pageNum === 0,
-            isLastPage: (_context, event) => !(event as any).hasNextPage
+            isFirstPage: context => context.urlParams.pageNum === 0,
+            isLastPage: (_context, event) => !(event as any).hasNextPage,
           },
 
           services: {
@@ -174,14 +189,18 @@ export default function Transactions(): m.Component<LayoutChildProps> {
                         }
                       }
                     `,
-                    variables: { user_id: creds.userId, limit: limit + 1, offset },
+                    variables: {
+                      user_id: creds.userId,
+                      limit: limit + 1,
+                      offset,
+                    },
                   },
                   ({ data }) => {
                     const hasNextPage = data.txns_grouped.length === limit + 1;
                     return fireEvent({
                       type: 'dataReceived',
                       transactions: data.txns_grouped,
-                      hasNextPage
+                      hasNextPage,
                     });
                   },
                   error => fireEvent({ type: 'error', error })
@@ -219,31 +238,35 @@ export default function Transactions(): m.Component<LayoutChildProps> {
         return m('', 'Error loading transactions:', context!.error.message);
       }
 
-      if (!matchesState('configured.ready', service!.state.value)) {
+      if (matchesState('configured.loading', service!.state.value)) {
         return m('', 'Loading...');
       }
 
       return [
-        m(
-          m.route.Link,
-          {
-            href: `/transactions?${m.buildQueryString({
-              ...(context!.urlParams as any),
-              pageNum: Math.max(0, context!.urlParams.pageNum - 1),
-            })}`,
-          },
-          'Previous'
-        ),
-        m(
-          m.route.Link,
-          {
-            href: `/transactions?${m.buildQueryString({
-              ...(context!.urlParams as any),
-              pageNum: context!.urlParams.pageNum + 1,
-            })}`,
-          },
-          'Next'
-        ),
+        matchesState('configured.firstPage', service!.state.value)
+          ? m('span', 'Previous')
+          : m(
+              m.route.Link,
+              {
+                href: `/transactions?${m.buildQueryString({
+                  ...(context!.urlParams as any),
+                  pageNum: Math.max(0, context!.urlParams.pageNum - 1),
+                })}`,
+              },
+              'Previous'
+            ),
+        matchesState('configured.lastPage', service!.state.value)
+          ? m('span', 'Next')
+          : m(
+              m.route.Link,
+              {
+                href: `/transactions?${m.buildQueryString({
+                  ...(context!.urlParams as any),
+                  pageNum: context!.urlParams.pageNum + 1,
+                })}`,
+              },
+              'Next'
+            ),
         context!.transactions.map(transaction =>
           m('', JSON.stringify(transaction))
         ),

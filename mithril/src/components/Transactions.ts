@@ -37,7 +37,7 @@ interface UrlParams {
 type TransactionsEvent =
   | { type: 'configure'; urlParams: UrlParams }
   | { type: 'error'; error: any }
-  | { type: 'dataReceived'; transactions?: any[]};
+  | { type: 'dataReceived'; transactions?: any[], hasNextPage: boolean; };
 
 interface TransactionsContext {
   error: any;
@@ -58,96 +58,26 @@ export default function Transactions(): m.Component<LayoutChildProps> {
     states: {
       configured: {
         initial: 'loading',
-        on: { configure: 'configured' },
+        on: {
+          configure: 'configured',
+          error: 'configured.error',
+          dataReceived: {
+            target: 'configured.ready',
+            actions: 'storeData'
+          },
+        },
         states: {
           loading: {
-            entry: assign((context, event) => ({
-              ...context,
-              transactions: [],
-              // Spread the old urlParams so we don't wipe out the initial
-              // URLparams (since we default to this state and there's no event
-              // with params to spread from)
-              urlParams: {...context.urlParams, ...(event as any).urlParams},
-            })),
-            on: {
-              error: 'error',
-              dataReceived: {
-                target: 'ready',
-                actions: assign((context, event) => ({
-                  ...context,
-                  transactions: event.transactions,
-                })),
-              },
-            },
+            entry: 'setUrlParams',
           },
           error: {
-            entry: assign((context, event) => ({
-              ...context,
-              error: (event as any).error,
-            })),
+            entry: 'storeError'
           },
           ready: {
-            on: {
-              error: 'error',
-              dataReceived: {
-                target: 'ready',
-                actions: assign((context, event) => ({
-                  ...context,
-                  transactions: event.transactions,
-                })),
-              },
-            },
           },
         },
         invoke: {
-          src: ({
-            hasura,
-            creds,
-            urlParams: {pageNum},
-          }: {
-            hasura: Hasura;
-            creds: any;
-            urlParams: UrlParams;
-          }) => fireEvent => {
-            const limit = 50;
-            const offset = pageNum * limit;
-            try {
-              const { unsubscribe } = hasura.subscribe(
-                {
-                  query: gql`
-                    ${fragments}
-                    subscription SubscribeTransactions(
-                      $user_id: String!
-                      $limit: Int!
-                      $offset: Int!
-                    ) {
-                      txns_grouped(
-                        where: {
-                          user_id: { _eq: $user_id }
-                        }
-                        order_by: { date: desc, txn_id: asc }
-                        limit: $limit
-                        offset: $offset
-                      ) {
-                        ...txn_grouped
-                      }
-                    }
-                  `,
-                  variables: { user_id: creds.userId, limit, offset },
-                },
-                ({ data }) => {
-                  const last = data.txns_grouped[data.txns_grouped.length - 1];
-                  return fireEvent({ type: 'dataReceived', transactions: data.txns_grouped });
-                },
-                error => fireEvent({ type: 'error', error })
-              );
-              return () => {
-                unsubscribe();
-              }
-            } catch (ex) {
-              fireEvent({type: 'error', error: ex});
-            }
-          },
+          src: 'subscribeData',
         },
       },
     },
@@ -161,7 +91,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
   > | null = null;
 
   function getUrlParams(): UrlParams {
-    return  {
+    return {
       account: m.route.param('account'),
       envelope: m.route.param('envelope'),
       searchTerm: m.route.param('searchTerm'),
@@ -187,7 +117,86 @@ export default function Transactions(): m.Component<LayoutChildProps> {
         TransactionsContext,
         TransactionsSchema,
         TransactionsEvent
-      >(machineDefinition, {}, initialContext);
+      >(
+        machineDefinition,
+        {
+          actions: {
+            storeData: assign((context, event) => ({
+              ...context,
+              transactions: (event as any).transactions,
+            })),
+
+            setUrlParams: assign((context, event) => ({
+              ...context,
+              transactions: [],
+              // Spread the old urlParams so we don't wipe out the initial
+              // URLparams (since we default to this state and there's no event
+              // with params to spread from)
+              urlParams: { ...context.urlParams, ...(event as any).urlParams },
+            })),
+
+            storeError: assign((context, event) => ({
+              ...context,
+              error: (event as any).error,
+            })),
+          },
+
+          guards: {
+            isFirstPage: (context) => context.urlParams.pageNum === 0,
+            isLastPage: (_context, event) => !(event as any).hasNextPage
+          },
+
+          services: {
+            subscribeData: ({
+              hasura,
+              creds,
+              urlParams: { pageNum },
+            }) => fireEvent => {
+              const limit = 50;
+              const offset = pageNum * limit;
+              try {
+                const { unsubscribe } = hasura.subscribe(
+                  {
+                    query: gql`
+                      ${fragments}
+                      subscription SubscribeTransactions(
+                        $user_id: String!
+                        $limit: Int!
+                        $offset: Int!
+                      ) {
+                        txns_grouped(
+                          where: { user_id: { _eq: $user_id } }
+                          order_by: { date: desc, txn_id: asc }
+                          limit: $limit
+                          offset: $offset
+                        ) {
+                          ...txn_grouped
+                        }
+                      }
+                    `,
+                    variables: { user_id: creds.userId, limit: limit + 1, offset },
+                  },
+                  ({ data }) => {
+                    const hasNextPage = data.txns_grouped.length === limit + 1;
+                    return fireEvent({
+                      type: 'dataReceived',
+                      transactions: data.txns_grouped,
+                      hasNextPage
+                    });
+                  },
+                  error => fireEvent({ type: 'error', error })
+                );
+                return () => {
+                  unsubscribe();
+                };
+              } catch (ex) {
+                fireEvent({ type: 'error', error: ex });
+              }
+            },
+          },
+        },
+        initialContext
+      );
       service = interpret(machine);
       service.onChange(newContext => {
         context = newContext;
@@ -200,7 +209,7 @@ export default function Transactions(): m.Component<LayoutChildProps> {
     onupdate() {
       const newUrlParams = getUrlParams();
       if (!isEqual(urlParams, newUrlParams)) {
-        service!.send({type: 'configure', urlParams: newUrlParams});
+        service!.send({ type: 'configure', urlParams: newUrlParams });
       }
       urlParams = newUrlParams;
     },
@@ -215,8 +224,26 @@ export default function Transactions(): m.Component<LayoutChildProps> {
       }
 
       return [
-        m(m.route.Link, {href: `/transactions?${m.buildQueryString({...context!.urlParams as any, pageNum: Math.max(0, context!.urlParams.pageNum - 1)})}`}, 'Previous'),
-        m(m.route.Link, {href: `/transactions?${m.buildQueryString({...context!.urlParams as any, pageNum: context!.urlParams.pageNum + 1})}`}, 'Next'),
+        m(
+          m.route.Link,
+          {
+            href: `/transactions?${m.buildQueryString({
+              ...(context!.urlParams as any),
+              pageNum: Math.max(0, context!.urlParams.pageNum - 1),
+            })}`,
+          },
+          'Previous'
+        ),
+        m(
+          m.route.Link,
+          {
+            href: `/transactions?${m.buildQueryString({
+              ...(context!.urlParams as any),
+              pageNum: context!.urlParams.pageNum + 1,
+            })}`,
+          },
+          'Next'
+        ),
         context!.transactions.map(transaction =>
           m('', JSON.stringify(transaction))
         ),
@@ -225,6 +252,6 @@ export default function Transactions(): m.Component<LayoutChildProps> {
 
     onremove() {
       service?.stop();
-    }
+    },
   };
 }

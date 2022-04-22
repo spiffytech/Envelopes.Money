@@ -29,7 +29,7 @@
     "lodash": "^4.17.14",
     "morgan": "^1.9.1",
     "mz": "^2.7.0",
-    "nconf": "^0.10.0",
+    "nconf": "^0.11.4",
     "shortid": "^2.2.14"
   },
   "devDependencies": {
